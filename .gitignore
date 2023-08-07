@@ -6,3 +6,5 @@ ebin
 relx*
 logs
 .erlang.mk
+EGRE_MUD_1.d
+protocol.csv
