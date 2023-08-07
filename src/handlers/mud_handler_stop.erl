@@ -1,11 +1,11 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_stop).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_stop).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 %% @doc stop and re-broadcast
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% object behaviour
 -export([attempt/1]).

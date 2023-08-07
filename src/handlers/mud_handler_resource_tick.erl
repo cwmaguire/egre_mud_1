@@ -1,7 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_resource_tick).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_resource_tick).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 %% This is a tick handler for a resource process. Resource processes manage
 %% how often other processes can perform actions such as attacks. Resource
@@ -10,7 +10,7 @@
 %% process or processes in line depending on how much each next successive
 %% process needs.
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -53,7 +53,7 @@ succeed({Props, {Self, tick, Ref, with, Count}})
                 %% For now just make each tick take at _least_ PerTick
                 %% millis instead of trying to wait close to a PerTick,
                 %% or trying to correct for a long previous tick.
-                gerlshmud_object:attempt_after(TickTime, Self, {Self, tick, Ref, with, PerTick}),
+                egre_object:attempt_after(TickTime, Self, {Self, tick, Ref, with, PerTick}),
                 Type = proplists:get_value(type, Props),
                 allocate(Type, Reservations, New)
         end,
@@ -69,7 +69,7 @@ fail({Props, _, _}) ->
 
 allocate(Type, [{Proc, Required} | Reservations], Available)
   when Available >= Required ->
-    gerlshmud_object:attempt(Proc, {self(), allocate, Required, 'of', Type, to, Proc}),
+    egre_object:attempt(Proc, {self(), allocate, Required, 'of', Type, to, Proc}),
     RotatedReservations = Reservations ++ [{Proc, Required}],
     allocate(Type, RotatedReservations, Available - Required);
 allocate(_, Reservations, Available) ->

@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_item_inject_self).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_item_inject_self).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{},
          Props,
@@ -54,4 +54,4 @@ is_name(Props, Name) ->
     match == re:run(ItemName, Name, [{capture, none}]).
 
 %log(Props) ->
-    %gerlshmud_event_log:log(debug, [{module, ?MODULE} | Props]).
+    %egre_event_log:log(debug, [{module, ?MODULE} | Props]).

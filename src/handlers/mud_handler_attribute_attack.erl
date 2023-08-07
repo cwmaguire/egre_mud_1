@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_attribute_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_attribute_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% @doc modify an attack with this attribute's modifiers
 %%

@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_char_cleanup).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_char_cleanup).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{owner = Room}, Props, {Self, cleanup}}) when Self == self() ->
     Log = [{?TARGET, Self},
@@ -23,7 +23,7 @@ succeed({Props, {Self, cleanup, body_parts, _BodyParts, in, Room}}) when Self ==
     Log = [{?SOURCE, Self},
            {?TARGET, Room},
            {?EVENT, cleanup}],
-    gerlshmud_object:attempt(self(), {stop, self()}),
+    egre_object:attempt(self(), {stop, self()}),
     {Props, Log};
 
 succeed({Props, _}) ->

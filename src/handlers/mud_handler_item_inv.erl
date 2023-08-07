@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_item_inv).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_item_inv).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -122,12 +122,12 @@ set_child_properties(Child, Props) ->
                 TopItem_;
             undefined ->
                 #top_item{item = self(),
-                          is_active = gerlshmud_object:value(is_active, Props, boolean),
+                          is_active = egre_object:value(is_active, Props, boolean),
                           is_wielded = is_wielded(Props),
                           ref = proplists:get_value(top_item_ref, Props)}
         end,
     ChildProps = [{top_item, TopItem}],
-    gerlshmud_object:attempt(Child, {self(), set_child_properties, ChildProps}).
+    egre_object:attempt(Child, {self(), set_child_properties, ChildProps}).
 
 clear_child_top_item(Props, Item, Target) ->
     log([{?EVENT, give},
@@ -139,7 +139,7 @@ clear_child_top_item(Props, Item, Target) ->
          {result, succeed}]),
     TopItem = top_item(Props),
     Message = {Target, clear_child_property, top_item, 'if', TopItem},
-    gerlshmud_object:attempt(Item, Message),
+    egre_object:attempt(Item, Message),
     lists:keydelete(Item, 2, Props).
 
 top_item(Props) ->
@@ -169,4 +169,4 @@ apply_prop({K, V}, Props) ->
     lists:keystore(K, 1, Props, {K, V}).
 
 log(Props) ->
-    gerlshmud_event_log:log(debug, [{module, ?MODULE} | Props]).
+    egre_event_log:log(debug, [{module, ?MODULE} | Props]).

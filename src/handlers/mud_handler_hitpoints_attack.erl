@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_hitpoints_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_hitpoints_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{owner = Owner},
          Props,
@@ -50,7 +50,7 @@ take_damage(Attacker, Owner, Amount, EffectType, Props) ->
         X when X < 1 ->
             Owner = proplists:get_value(owner, Props),
             ct:pal("Sending 'killed' message for character ~p~n", [Owner]),
-            gerlshmud_object:attempt(Owner, {Attacker, killed, Owner, with, EffectType});
+            egre_object:attempt(Owner, {Attacker, killed, Owner, with, EffectType});
         _ ->
             ok
     end,

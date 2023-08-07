@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_char_move).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_char_move).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -45,13 +45,13 @@ succeed({Props, {Self, move, from, Source, to, Target, via, Exit}}) when Self ==
     NewProps = set(room, Target, set(owner, Target, Props)),
     case proplists:get_value(is_attacking, Props) of
         true ->
-            gerlshmud_object:attempt(self(), {self(), stop_attack});
+            egre_object:attempt(self(), {self(), stop_attack});
         _ ->
             ok
     end,
     {NewProps, Log};
 succeed({Props, {Self, move, Direction, from, Source}}) when Self == self(), is_atom(Direction) ->
-    % gerlshmud_handler_exit_move should have turned this into:
+    % egre_handler_exit_move should have turned this into:
     % {Self, move, from, Source, to, Target, via, Exit}
     Log = [{?EVENT, move},
            {?SOURCE, Self},

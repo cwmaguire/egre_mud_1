@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_conn_send).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_conn_send).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -23,7 +23,7 @@ succeed({Props, {send, Player, Message}}) ->
            {?TARGET, Player},
            {player_message, Message}],
     {Conn} = proplists:get_value(conn, Props),
-    gerlshmud_conn:handle(Conn, {send, Message}),
+    egre_conn:handle(Conn, {send, Message}),
     {Props, Log};
 succeed({Props, _Other}) ->
     Props.

@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_item_cleanup).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_item_cleanup).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{},
          Props,
@@ -25,7 +25,7 @@ succeed({Props, {Character, cleanup, body_parts, BodyParts, in, Room}}) ->
            {?EVENT, cleanup}],
     Owner = proplists:get_value(owner, Props),
     case lists:member(Owner, [Character | BodyParts]) of
-        true -> gerlshmud_object:attempt(self(),
+        true -> egre_object:attempt(self(),
                                          {self(), move, from, Owner, to, Room},
                                          _ShouldSubscribe = false);
         _ ->

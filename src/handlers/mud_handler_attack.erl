@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ATTEMPT
@@ -34,7 +34,7 @@ attempt({#parents{character = Character},
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            gerlshmud_object:attempt(self(), {Character, attack, Target, with, self()});
+            egre_object:attempt(self(), {Character, attack, Target, with, self()});
          _ ->
              ok
      end,
@@ -134,7 +134,7 @@ succeed({Props, {Character, Attack, Target}})
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            gerlshmud_object:attempt(self(), {Character, attack, Target, with, self()});
+            egre_object:attempt(self(), {Character, attack, Target, with, self()});
          _ ->
              ok
      end,
@@ -191,7 +191,7 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}})
                 Character = proplists:get_value(character, Props),
                 Target = proplists:get_value(target, Props),
                 Event = {Character, affect, Target, because, Self},
-                gerlshmud_object:attempt(self(), Event, false),
+                egre_object:attempt(self(), Event, false),
                 deallocate(Allocated, Required);
             _ ->
                 Allocated
@@ -213,12 +213,12 @@ reserve(Character, Props) when is_list(Props) ->
     [reserve(Character, Resource, Amount) || {Resource, Amount} <- proplists:get_value(resources, Props, [])].
 
 reserve(Character, Resource, Amount) ->
-    gerlshmud_object:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, self()}).
+    egre_object:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, self()}).
 
 unreserve(Character, Props) when is_list(Props) ->
     [unreserve(Character, Resource) || {Resource, _Amt} <- proplists:get_value(resources, Props, [])];
 unreserve(Character, Resource) ->
-    gerlshmud_object:attempt(self(), {Character, unreserve, Resource, for, self()}).
+    egre_object:attempt(self(), {Character, unreserve, Resource, for, self()}).
 
 update_allocated(New, Type, Props) ->
     Allocated = proplists:get_value(allocated_resources, Props, #{}),
@@ -248,4 +248,4 @@ subtract_required({Type, Required}, Allocated) ->
     Allocated#{Type := min(0, Amt - Required)}.
 
 %log(Props) ->
-    %gerlshmud_event_log:log(debug, [{module, ?MODULE} | Props]).
+    %egre_event_log:log(debug, [{module, ?MODULE} | Props]).

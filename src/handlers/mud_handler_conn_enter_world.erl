@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_conn_enter_world).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_conn_enter_world).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).

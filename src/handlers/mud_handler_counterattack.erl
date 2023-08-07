@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_counterattack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_counterattack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{}, Props, {Attacker, attack, Self}}) when Self == self() ->
     Log = [{?EVENT, attack},
@@ -38,14 +38,14 @@ succeed({Props, {Attacker, attack, Self}}) ->
         true ->
             ok;
         _ ->
-            gerlshmud_object:attempt(self(), {self(), counter_attack, Attacker})
+            egre_object:attempt(self(), {self(), counter_attack, Attacker})
     end,
     {Props, Log};
 succeed({Props, {Self, counter_attack, Target}}) ->
     Log = [{?SOURCE, Self},
            {?EVENT, counter_attack},
            {?TARGET, Target}],
-    gerlshmud_object:attempt(self(), {self(), attack, Target}),
+    egre_object:attempt(self(), {self(), attack, Target}),
     {Props, Log};
 succeed({Props, _}) ->
     Props.

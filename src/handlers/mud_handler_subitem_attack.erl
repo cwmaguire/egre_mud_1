@@ -1,7 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_subitem_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_subitem_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 %% This handler is specific to sub-items and controls whether this sub-item
 %% process can participate in an attack or not. The character will
@@ -24,7 +24,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% Attacking: hit and damage
 attempt({#parents{top_item = TopItem},
@@ -115,7 +115,7 @@ succeed({Props, {Character, attack, Target}}) when is_pid(Target) ->
     Log = [{?SOURCE, Character},
            {?EVENT, attack},
            {?TARGET, Target}],
-    gerlshmud_object:attempt(self(), {Character, attack, Target, with, self()}),
+    egre_object:attempt(self(), {Character, attack, Target, with, self()}),
     {Props, Log};
 succeed({Props, _}) ->
     Props.
@@ -137,4 +137,4 @@ is_top_item_interested(Props) ->
     end.
 
 %log(Level, IoData) ->
-    %gerlshmud_event_log:log(Level, [list_to_binary(atom_to_list(?MODULE)) | IoData]).
+    %egre_event_log:log(Level, [list_to_binary(atom_to_list(?MODULE)) | IoData]).

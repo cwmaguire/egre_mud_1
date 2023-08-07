@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_body_part_inv).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_body_part_inv).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([can_add/2]).
 
@@ -116,7 +116,7 @@ succeed({Props, {Item, move, from, OldOwner, to, Self, on, body_part, type, Body
            {?TARGET, Self},
            {body_part_type, BodyPartType}],
     ItemRef = make_ref(),
-    gerlshmud_object:attempt(Item, {self(), set_child_property, body_part,
+    egre_object:attempt(Item, {self(), set_child_property, body_part,
                                  #body_part{body_part = self(),
                                             type = BodyPartType,
                                             ref = ItemRef}}),
@@ -202,7 +202,7 @@ clear_child_body_part(Props, Item, Target) ->
          {props, Props}]),
     BodyPartType = proplists:get_value(body_part, Props, undefined),
     ItemRef = item_ref(Item, Props),
-    gerlshmud_object:attempt(Item,
+    egre_object:attempt(Item,
                              {Target,
                               clear_child_property,
                               body_part,
@@ -222,4 +222,4 @@ item_ref(Item, Props) ->
     end.
 
 log(IoData) ->
-    gerlshmud_event_log:log(debug, [{module, ?MODULE} | IoData]).
+    egre_event_log:log(debug, [{module, ?MODULE} | IoData]).

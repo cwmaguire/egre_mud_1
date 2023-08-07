@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_item_search).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_item_search).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{owner = Char},
          Props,
@@ -41,6 +41,6 @@ fail({Props, _Result, _Msg}) ->
     {Props, Log}.
 
 send_description(Source, Props, Context) ->
-    Description = gerlshmud_util:describe(item, Props),
+    Description = egre_util:describe(item, Props),
     SendMsg = {send, Source, [<<Context/binary>>, Description]},
-    gerlshmud_object:attempt(Source, SendMsg).
+    egre_object:attempt(Source, SendMsg).

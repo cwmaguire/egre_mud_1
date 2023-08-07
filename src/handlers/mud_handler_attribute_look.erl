@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_attribute_look).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_attribute_look).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% object behaviour
 -export([attempt/1]).
@@ -53,11 +53,11 @@ describe(Source, Props, Context, deep) ->
     send_description(Source, Props, Context),
     Name = proplists:get_value(name, Props),
     NewContext = <<Context/binary, Name/binary, " -> ">>,
-    gerlshmud_object:attempt(Source, {Source, describe, self(), with, NewContext}).
+    egre_object:attempt(Source, {Source, describe, self(), with, NewContext}).
 
 send_description(Source, Props, Context) ->
     Description = description(Props),
-    gerlshmud_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 is_owner(MaybeOwner, Props) when is_pid(MaybeOwner) ->
     MaybeOwner == proplists:get_value(owner, Props);
@@ -66,13 +66,13 @@ is_owner(_, _) ->
 
 description(Props) when is_list(Props) ->
     Type = proplists:get_value(type, Props),
-    DescTemplate = gerlshmud_config:desc_template(Type),
+    DescTemplate = egre_config:desc_template(Type),
     log([{desc_template, DescTemplate},
          {desc_type, Type},
          {object, self()},
          {handler, ?MODULE},
          {target, self()}
-         | gerlshmud_event_log:flatten(Props)]),
+         | egre_event_log:flatten(Props)]),
     [[description_part(Props, Part)] || Part <- DescTemplate].
 
 description_part(_, RawText) when is_binary(RawText) ->
@@ -82,7 +82,7 @@ description_part(Props, DescProp) ->
          {object, self()},
          {handler, ?MODULE},
          {target, self()}
-         | gerlshmud_event_log:flatten(Props)]),
+         | egre_event_log:flatten(Props)]),
     prop_description(proplists:get_value(DescProp,
                                          Props,
                                          <<"?? !",
@@ -97,4 +97,4 @@ prop_description(Value) when not is_pid(Value) ->
     Value.
 
 log(Proplist) ->
-    gerlshmud_event_log:log(debug, [{module, ?MODULE} | Proplist]).
+    egre_event_log:log(debug, [{module, ?MODULE} | Proplist]).

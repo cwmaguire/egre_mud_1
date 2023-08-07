@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_life_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_life_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% We have been killed
 attempt({#parents{owner = Owner}, Props, Msg = {Source, killed, Owner, with, _AttackVector}}) ->
@@ -114,7 +114,7 @@ succeed({Props, {Source, killed, Owner, with, AttackVector}}) ->
          {?TARGET, Owner},
          {handler, ?MODULE},
          {attack_vector, AttackVector}]),
-    gerlshmud_object:attempt(self(), {Owner, die}),
+    egre_object:attempt(self(), {Owner, die}),
     Props;
 
 succeed({Props, {Owner, die}}) ->
@@ -123,8 +123,8 @@ succeed({Props, {Owner, die}}) ->
          {object, self()},
          {props, Props},
          {?TARGET, Owner}]),
-    CorpseCleanupMilis = application:get_env(gerlshmud, corpse_cleanup_milis, 10 * 60 * 1000),
-    gerlshmud_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
+    CorpseCleanupMilis = application:get_env(egre, corpse_cleanup_milis, 10 * 60 * 1000),
+    egre_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
     lists:keystore(is_alive, 1, Props, {is_alive, false});
 
 succeed({Props, _Msg}) ->
@@ -136,4 +136,4 @@ fail({Props, _Message, _Reason}) ->
     Props.
 
 log(Terms) ->
-    gerlshmud_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).
+    egre_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).

@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_test_connection_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_test_connection_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -156,7 +156,7 @@ succeed({Props, {killed, Attack, Source, Owner}}) ->
            {vector, Attack},
            {?SOURCE, Source},
            {?TARGET, Owner}],
-    gerlshmud_object:attempt(self(), {Owner, die}),
+    egre_object:attempt(self(), {Owner, die}),
     {Props, Log};
 %% Why is test_connection_attack kicking off the cleanup?
 %% _life_attack kicks it off too
@@ -167,8 +167,8 @@ succeed({Props, {Target, die}}) ->
     Props2
     = case Target of
         X when X == Owner ->
-            CorpseCleanupMilis = application:get_env(gerlshmud, corpse_cleanup_milis, 10 * 60 * 1000),
-            gerlshmud_object:attempt_after(CorpseCleanupMilis, self(), {cleanup, Owner}),
+            CorpseCleanupMilis = application:get_env(egre, corpse_cleanup_milis, 10 * 60 * 1000),
+            egre_object:attempt_after(CorpseCleanupMilis, self(), {cleanup, Owner}),
             lists:keystore(is_alive, 1, Props, {is_alive, false});
         _ ->
             Props

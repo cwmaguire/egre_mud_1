@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_exit_look).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_exit_look).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% object behaviour
 -export([attempt/1]).
@@ -55,7 +55,7 @@ describe(Source, Props, Room, Context) ->
     Desc = <<Context/binary,
              "exits ",
              ExitsDesc/binary>>,
-    gerlshmud_object:attempt(Source, {send, Source, Desc}).
+    egre_object:attempt(Source, {send, Source, Desc}).
 
 other_exits(Props, Room) ->
     [Dir || {{room, Dir}, NotRoom} <- Props, Room /= NotRoom].

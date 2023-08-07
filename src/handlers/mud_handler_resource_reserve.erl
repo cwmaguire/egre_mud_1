@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_resource_reserve).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_resource_reserve).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -76,7 +76,7 @@ update_tick(Props) ->
     case {Reservations, Tick} of
         {[_ | _], undefined} ->
             Ref = make_ref(),
-            gerlshmud_object:attempt(Self, {Self, tick, Ref, with, PerTick}),
+            egre_object:attempt(Self, {Self, tick, Ref, with, PerTick}),
             [{tick, Ref} | Props];
         {[], _} ->
             lists:keydelete(tick, 1, Props);

@@ -1,7 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_attack_resource).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_attack_resource).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 %% respond to resources being added to the owner by reserving
 %% those resources and kicking off attacks
@@ -16,7 +16,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({#parents{character = Character,
                   owner = Owner},
@@ -73,10 +73,10 @@ fail({Props, _, _}) ->
     {Props, _Log = []}.
 
 reserve(Character, Resource, Amount, Owner) ->
-    gerlshmud_object:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, Owner}).
+    egre_object:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, Owner}).
 
 unreserve(Character, Owner, Props) when is_list(Props) ->
     [unreserve(Character, Resource, Owner) || {resource, Resource} <- Props];
 
 unreserve(Character, Resource, Owner) ->
-    gerlshmud_object:attempt(self(), {Character, unreserve, Resource, for, Owner}).
+    egre_object:attempt(self(), {Character, unreserve, Resource, for, Owner}).

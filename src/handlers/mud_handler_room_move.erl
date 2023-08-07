@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_room_move).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_room_move).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({_Owner, Props, {Char, move, from, Source, to, Target, via, Exit}})
   when Source == self(); Target == self() ->
@@ -40,7 +40,7 @@ succeed({Props, {Char, move, from, Source, to, Self, via, Exit}}) when Self == s
            {from, Source},
            {to, Self},
            {exit, Exit}],
-    gerlshmud_object:attempt(Self, {Char, look, Self}),
+    egre_object:attempt(Self, {Char, look, Self}),
     Props2 = [{character, Char} | Props],
     {Props2, Log};
 succeed({Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() ->
@@ -48,7 +48,7 @@ succeed({Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() 
            {?EVENT, enter_world},
            {room, Self},
            {conn, Conn}],
-    gerlshmud_object:attempt(Self, {Char, look, Self}),
+    egre_object:attempt(Self, {Char, look, Self}),
     Props2 = [{character, Char} | Props],
     {Props2, Log};
 succeed({Props, _}) ->

@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_room_inv).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_room_inv).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 attempt({_Owner, Props, {Item, move, from, Source, to, Target}})
   when Source == self(); Target == self() ->
@@ -42,4 +42,4 @@ fail({Props, _, _}) ->
     Props.
 
 log(Terms) ->
-    gerlshmud_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).
+    egre_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).

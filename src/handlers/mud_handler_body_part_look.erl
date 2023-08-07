@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_body_part_look).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_body_part_look).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -58,16 +58,16 @@ describe(Source, Props, Context, deep) ->
     send_description(Source, Props, Context),
     Name = proplists:get_value(name, Props),
     NewContext = <<Context/binary, Name/binary, " -> ">>,
-    gerlshmud_object:attempt(Source, {Source, describe, self(), with, NewContext});
+    egre_object:attempt(Source, {Source, describe, self(), with, NewContext});
 describe(Source, Props, Context, shallow) ->
     send_description(Source, Props, Context).
 
 send_description(Source, Props, Context) ->
     Description = description(Props),
-    gerlshmud_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 description(Props) when is_list(Props) ->
-    DescTemplate = gerlshmud_config:desc_template(body_part),
+    DescTemplate = egre_config:desc_template(body_part),
     log([{?EVENT, body_part_desc}, {template, DescTemplate}]),
     [[description_part(Props, Part)] || Part <- DescTemplate].
 
@@ -84,4 +84,4 @@ prop_description(Value) when not is_pid(Value) ->
     Value.
 
 log(IoData) ->
-    gerlshmud_event_log:log(debug, [{module, ?MODULE} | IoData]).
+    egre_event_log:log(debug, [{module, ?MODULE} | IoData]).

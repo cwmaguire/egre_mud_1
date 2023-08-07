@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_effect_attack).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_effect_attack).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ATTEMPT
@@ -55,7 +55,7 @@ succeed({Props, {_Self, affect, Target}}) ->
     Character = proplists:get_value(character, Props),
     EffectType = proplists:get_value(type, Props),
     Event = {Character, roll, calc_hit_roll(Props), for, hit, with, EffectType, on, Target, with, self()},
-    gerlshmud_object:attempt(self(), Event),
+    egre_object:attempt(self(), Event),
 
     {Props, Log};
 
@@ -72,7 +72,7 @@ succeed({Props, {Character, roll, SuccessRoll, for, hit, with, EffectType, on, T
            {effect, self()}],
 
     Event = {Character, roll, calc_effect_roll(Props), for, effect, with, EffectType, on, Target, with, self()},
-    gerlshmud_object:attempt(self(), Event),
+    egre_object:attempt(self(), Event),
     {Props, Log};
 
 succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Target, with, Self}})
@@ -86,19 +86,19 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Targ
            {effect, Self}],
 
     CharacterSubstitutions = [{<<"<target>">>, Target}],
-    AmountBin = <<" [", (gerlshmud_util:itob(FailRoll))/binary, "]">>,
+    AmountBin = <<" [", (egre_util:itob(FailRoll))/binary, "]">>,
     CharacterMsg =
         <<"You miss <target> with ",
-          (gerlshmud_util:atob(EffectType))/binary,
+          (egre_util:atob(EffectType))/binary,
           AmountBin/binary>>,
-    gerlshmud_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
+    egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
     ct:pal("~p: CharacterMsg~n\t~p~n", [?MODULE, CharacterMsg]),
 
     TargetSubstitutions = [{<<"<character>">>, Character}],
-    TargetMsg = <<"<character> misses you with ", (gerlshmud_util:atob(EffectType))/binary>>,
+    TargetMsg = <<"<character> misses you with ", (egre_util:atob(EffectType))/binary>>,
     TargetSubstitutions = [{<<"<target>">>, Target},
                            {<<"<character>">>, Character}],
-    gerlshmud_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
+    egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
     ct:pal("~p: TargetMsg~n\t~p~n", [?MODULE, TargetMsg]),
     {Props, Log};
 
@@ -114,7 +114,7 @@ succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, o
            {effect, Self}],
 
     EffectEvent = {Character, cause, EffectAmount, 'of', EffectType, to, Target, with, Self},
-    gerlshmud_object:attempt(Target, EffectEvent, false),
+    egre_object:attempt(Target, EffectEvent, false),
 
     maybe_repeat(Props, Log);
 
@@ -129,19 +129,19 @@ succeed({Props, {Character, roll, IneffectiveAmount, for, effect, with, EffectTy
            {effect, Self}],
 
     CharacterSubstitutions = [{<<"<target>">>, Target}],
-    AmountBin = <<" [", (gerlshmud_util:itob(IneffectiveAmount))/binary, "]">>,
+    AmountBin = <<" [", (egre_util:itob(IneffectiveAmount))/binary, "]">>,
     CharacterMsg =
-        <<(gerlshmud_util:atob(EffectType))/binary,
+        <<(egre_util:atob(EffectType))/binary,
           " has no effect on <target> (",
           AmountBin/binary,
           ")">>,
-    gerlshmud_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
+    egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
 
     TargetSubstitutions = [{<<"<character>">>, Character}],
-    TargetMsg = <<"<character>'s ", (gerlshmud_util:atob(EffectType))/binary, " has no effect">>,
+    TargetMsg = <<"<character>'s ", (egre_util:atob(EffectType))/binary, " has no effect">>,
     TargetSubstitutions = [{<<"<target>">>, Target},
                            {<<"<character>">>, Character}],
-    gerlshmud_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
+    egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
     {Props, Log};
 
 succeed({Props, {Attacker, do, EffectAmount, 'of', EffectType, to, Target, with, Self}})
@@ -154,20 +154,20 @@ succeed({Props, {Attacker, do, EffectAmount, 'of', EffectType, to, Target, with,
            {effect_type, EffectType}],
 
     AttackerSubstitutions = [{<<"<target>">>, self()}],
-    AmountBin = <<" [", (gerlshmud_util:itob(EffectAmount))/binary, "]">>,
+    AmountBin = <<" [", (egre_util:itob(EffectAmount))/binary, "]">>,
     AttackerMsg =
         <<"You do ",
           AmountBin/binary,
           " damage to <target> with ",
-          (gerlshmud_util:atob(EffectType))/binary>>,
-    gerlshmud_object:attempt(Attacker, {send, Attacker, AttackerMsg, AttackerSubstitutions}, _Sub0 = false),
+          (egre_util:atob(EffectType))/binary>>,
+    egre_object:attempt(Attacker, {send, Attacker, AttackerMsg, AttackerSubstitutions}, _Sub0 = false),
 
     TargetSubstitutions = [{<<"<attacker>">>, Attacker}],
     TargetMsg = <<"<attacker> does ",
                   AmountBin/binary,
                   " damage to you with ",
-                  (gerlshmud_util:atob(EffectType))/binary>>,
-    gerlshmud_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}, _Sub1 = false),
+                  (egre_util:atob(EffectType))/binary>>,
+    egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}, _Sub1 = false),
 
 
     {Props, Log};
@@ -187,7 +187,7 @@ fail({Props, _, _}) ->
 %     EffectType = proplists:get_value(effect_type, Props),
 %     Target = proplists:get_value(target, Props),
 %     NewMessage = {Character, Roll, for, EffectType, on, Target, with, self()},
-%     gerlshmud_object:attempt(self(), NewMessage),
+%     egre_object:attempt(self(), NewMessage),
 %
 %    Target = proplists:get_value(target, Props),
 %    AttackType = proplists:get_value(attack_type, Props, []),
@@ -195,15 +195,15 @@ fail({Props, _, _}) ->
 %
 %    Event = {Character, roll, 0, for, affect, with, EffectType, on, Target, with, Self},
 %    % I think we're auto-subscribed
-%    gerlshmud_object:attempt(self(), Event).
+%    egre_object:attempt(self(), Event).
 
 calc_hit_roll(Props) ->
     Roll = proplists:get_value(hit_roll, Props, {0, 0}),
-    gerlshmud_roll:roll(Roll).
+    egre_roll:roll(Roll).
 
 calc_effect_roll(Props) ->
     EffectAmount = proplists:get_value(effect_roll, Props, 0),
-    gerlshmud_roll:roll(EffectAmount).
+    egre_roll:roll(EffectAmount).
 
 % TODO implement repeat logic for effects that keep going
 % maybe re-roll for hit?
@@ -214,10 +214,10 @@ maybe_repeat(Props, Log) ->
 stop(Props, Log) ->
     Owner = proplists:get_value(owner, Props),
     StopEvent = {delete, self()},
-    gerlshmud_object:attempt(Owner, StopEvent),
+    egre_object:attempt(Owner, StopEvent),
     {stop, finished, Props, Log}.
 
 
 %log(Props) ->
-    %gerlshmud_event_log:log(debug, [{module, ?MODULE} | Props]).
+    %egre_event_log:log(debug, [{module, ?MODULE} | Props]).
 

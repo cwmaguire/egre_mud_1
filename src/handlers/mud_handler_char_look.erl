@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_char_look).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_char_look).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -82,11 +82,11 @@ describe(Source, Props, Context, deep) ->
     send_description(Source, Props, Context),
     Name = proplists:get_value(name, Props),
     NewContext = <<Context/binary, Name/binary, " -> ">>,
-    gerlshmud_object:attempt(Source, {Source, describe, self(), with, NewContext}).
+    egre_object:attempt(Source, {Source, describe, self(), with, NewContext}).
 
 send_description(Source, Props, Context) ->
-    Description = gerlshmud_util:describe(character, Props),
-    gerlshmud_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    Description = egre_util:describe(character, Props),
+    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 is_owner(MaybeOwner, Props) when is_pid(MaybeOwner) ->
     MaybeOwner == proplists:get_value(owner, Props);

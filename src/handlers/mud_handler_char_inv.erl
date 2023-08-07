@@ -1,13 +1,13 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_char_inv).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_char_inv).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 %% Injects the room, which might indicate this should be in ...room_inject_self,
 %% except the character has a 'room' property, which is faster.
@@ -21,7 +21,7 @@ attempt({_Owner, Props, {Self, Action, Item}})
     Log = [{?SOURCE, Self},
            {?EVENT, Action},
            {?TARGET, Item}],
-    case Action == get orelse gerlshmud_object:has_pid(Props, Item) of
+    case Action == get orelse egre_object:has_pid(Props, Item) of
         true ->
             Room = proplists:get_value(owner, Props),
             {Source, Target} = case Action of
@@ -69,7 +69,7 @@ succeed({Props, {Item, move, from, Source, to, Self}}) when Self == self() ->
     Log = [{?EVENT, get_item},
            {?SOURCE, Source},
            {?TARGET, Self}],
-    gerlshmud_object:attempt(Item, {self(), set_child_property, character, self()}),
+    egre_object:attempt(Item, {self(), set_child_property, character, self()}),
     {[{item, Item} | Props], Log};
 succeed({Props, {Item, move, from, Self, to, BodyPart, on, body_part, type, BodyPartType}}) when Self == self() ->
     Log = [{item, Item},
@@ -94,8 +94,8 @@ fail({Props, _, _}) ->
 
 clear_child_character(Props, Item, Target) ->
     log([{?EVENT, give_item}, {?SOURCE, self()}, {?TARGET, Target}, {props, Props}]),
-    gerlshmud_object:attempt(Item, {Target, clear_child_property, character, 'if', self()}),
+    egre_object:attempt(Item, {Target, clear_child_property, character, 'if', self()}),
     lists:keydelete(Item, 2, Props).
 
 log(Props) ->
-    gerlshmud_event_log:log(debug, [{module, ?MODULE} | Props]).
+    egre_event_log:log(debug, [{module, ?MODULE} | Props]).

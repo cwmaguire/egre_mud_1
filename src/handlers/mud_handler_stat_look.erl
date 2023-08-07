@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_handler_stat_look).
--behaviour(gerlshmud_handler).
--compile({parse_transform, gerlshmud_protocol_parse_transform}).
+-module(egre_handler_stat_look).
+-behaviour(egre_handler).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/gerlshmud.hrl").
+-include("include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -46,10 +46,10 @@ is_owner(_, _) ->
 
 describe(Source, Props, Context) ->
     Description = description(Props),
-    gerlshmud_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 description(Props) when is_list(Props) ->
-    DescTemplate = application:get_env(gerlshmud, item_desc_template, []),
+    DescTemplate = application:get_env(egre, item_desc_template, []),
     log([<<"item desc template: ">>, DescTemplate]),
     [[description_part(Props, Part)] || Part <- DescTemplate].
 
@@ -68,4 +68,4 @@ log(Terms) ->
     log(debug, Terms).
 
 log(Level, Terms) ->
-    gerlshmud_event_log:log(Level, [list_to_binary(atom_to_list(?MODULE)) | Terms]).
+    egre_event_log:log(Level, [list_to_binary(atom_to_list(?MODULE)) | Terms]).
