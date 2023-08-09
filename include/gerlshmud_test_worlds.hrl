@@ -1,6 +1,6 @@
--include("gerlshmud_handlers.hrl").
+-include("mud_handlers.hrl").
 
--define(TEST_CONN_HANDLERS, {handlers, [gerlshmud_handler_test_connection_attack,
+-define(TEST_CONN_HANDLERS, {handlers, [mud_handler_test_connection_attack,
                                         ?UNIVERSAL_HANDLERS]}).
 
 -define(WORLD_1, [{room_nw,
@@ -119,8 +119,8 @@
                        {body_part, {?PID(p_hand_right), hand}},
                        {is_attack, true},
                        {is_defence, false},
-                       {should_attack_module, gerlshmud_attack_melee},
-                       {should_defend_module, gerlshmud_defence_melee},
+                       {should_attack_module, mud_attack_melee},
+                       {should_defend_module, mud_defence_melee},
                        {effect_prototype, p_fist_melee_effect_prototype},
                        {attack_type, melee},
                        {resources, [{stamina, 5}]},
@@ -348,7 +348,7 @@
                       [{owner, player},
                        {type, height},
                        {value, <<"2.2">>},
-                       %% XXX I don't think this is used anymore: I have desc templates in gerlshmud.app.src
+                       %% XXX I don't think this is used anymore: I have desc templates in mud.app.src
                        {desc, [value, <<"m tall">>]},
                        {icon, stat},
                        ?ATTRIBUTE_HANDLERS]},
@@ -605,8 +605,8 @@
                        {is_attack, true},
                        {is_defence, false},
                        {is_auto_attack, true},
-                       {should_attack_module, gerlshmud_attack_melee},
-                       {should_defend_module, gerlshmud_defence_melee},
+                       {should_attack_module, mud_attack_melee},
+                       {should_defend_module, mud_defence_melee},
                        {effect_prototype, p_fist_melee_effect_prototype},
                        {resources, [{stamina, 5}]},
                        {icon, weapon},
@@ -709,8 +709,8 @@
                        {is_attack, true},
                        {is_defence, false},
                        {is_auto_attack, true},
-                       {should_attack_module, gerlshmud_attack_melee},
-                       {should_defend_module, gerlshmud_defence_melee},
+                       {should_attack_module, mud_attack_melee},
+                       {should_defend_module, mud_defence_melee},
                        {effect_prototype, g_glub_melee_effect_prototype},
                        {attack_type, melee},
                        {resources, [{stamina, 5}]},
@@ -852,8 +852,8 @@
                         {is_defence, false},
                         {is_auto_attack, true},
 
-                        {should_attack_module, gerlshmud_attack_spell},
-                        {should_defend_module, gerlshmud_defence_spell},
+                        {should_attack_module, mud_attack_spell},
+                        {should_defend_module, mud_defence_spell},
                         {effect_prototype, p_fireball_effect_prototype},
 
                         {resources, [{mana, 5}]},
