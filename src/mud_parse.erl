@@ -39,4 +39,3 @@ parse(_, _) ->
 
 log(_Terms) ->
     ok.
-    %gerlshmud_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).
