@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_exit_move).
+-module(mud_handler_exit_move).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -7,7 +7,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 %% Exit might not be a cardinal direction like "south", so saying "Direction"
 %% doesn't always make sense. e.g. "portal" is not a direction.

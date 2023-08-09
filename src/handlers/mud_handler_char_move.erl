@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_char_move).
+-module(mud_handler_char_move).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).
@@ -51,7 +51,7 @@ succeed({Props, {Self, move, from, Source, to, Target, via, Exit}}) when Self ==
     end,
     {NewProps, Log};
 succeed({Props, {Self, move, Direction, from, Source}}) when Self == self(), is_atom(Direction) ->
-    % egre_handler_exit_move should have turned this into:
+    % mud_handler_exit_move should have turned this into:
     % {Self, move, from, Source, to, Target, via, Exit}
     Log = [{?EVENT, move},
            {?SOURCE, Self},

@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_set_child_property).
+-module(mud_handler_set_child_property).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -17,7 +17,7 @@
 %% need to specify what value we're clearing out. If that value is already
 %% set to something else then we should leave it as is.
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 %% object behaviour
 -export([attempt/1]).

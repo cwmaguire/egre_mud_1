@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_subitem_attack).
+-module(mud_handler_subitem_attack).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -24,7 +24,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 %% Attacking: hit and damage
 attempt({#parents{top_item = TopItem},

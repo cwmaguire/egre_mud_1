@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_attack).
+-module(mud_handler_attack).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -7,7 +7,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ATTEMPT
@@ -88,7 +88,7 @@ attempt({#parents{},
            {?SOURCE, Target},
            {vector, AttackVector}],
     case proplists:get_value(target, Props) of
-        Target ->
+        Target_ when Target_ == Target ->
             Log2 = [{?TARGET, Target} | Log],
             {succeed, true, Props, Log2};
         _ ->
@@ -244,7 +244,8 @@ deallocate(Allocated, Required) ->
     lists:foldl(fun subtract_required/2, Allocated, Required).
 
 subtract_required({Type, Required}, Allocated) ->
-    #{Type := Amt} = Allocated,
+    %#{Type := Amt} = Allocated,
+    Amt = maps:get(Type, Allocated),
     Allocated#{Type := min(0, Amt - Required)}.
 
 %log(Props) ->

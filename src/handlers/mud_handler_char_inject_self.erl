@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_char_inject_self).
+-module(mud_handler_char_inject_self).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).

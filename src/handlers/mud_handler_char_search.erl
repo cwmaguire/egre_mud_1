@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_char_search).
+-module(mud_handler_char_search).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -7,7 +7,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 attempt({#parents{}, Props, {Player, search, Self}}) when Self == self() ->
     Log = [{?EVENT, search},

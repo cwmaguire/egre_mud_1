@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_resource_tick).
+-module(mud_handler_resource_tick).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -10,7 +10,7 @@
 %% process or processes in line depending on how much each next successive
 %% process needs.
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).

@@ -1,11 +1,11 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_stop).
+-module(mud_handler_stop).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
 %% @doc stop and re-broadcast
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 %% object behaviour
 -export([attempt/1]).

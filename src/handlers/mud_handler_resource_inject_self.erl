@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_resource_inject_self).
+-module(mud_handler_resource_inject_self).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -7,7 +7,7 @@
 %% Captures reservation events reserving this process' character's resource
 %% by name and then resends it with this processes pid instead.
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).

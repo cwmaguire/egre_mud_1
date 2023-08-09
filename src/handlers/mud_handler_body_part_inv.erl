@@ -1,9 +1,9 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_body_part_inv).
+-module(mud_handler_body_part_inv).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 -export([can_add/2]).
 

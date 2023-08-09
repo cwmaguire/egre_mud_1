@@ -1,12 +1,12 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(egre_handler_char_attack).
+-module(mud_handler_char_attack).
 -behaviour(egre_handler).
 
 -export([attempt/1]).
 -export([succeed/1]).
 -export([fail/1]).
 
--include("include/egre.hrl").
+-include_lib("egre/include/egre.hrl").
 
 attempt({#parents{}, Props, {Attacker, attack, Self}}) when Self == self() ->
     Log = [{?SOURCE, Attacker},
