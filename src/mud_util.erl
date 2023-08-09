@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_util).
+-module(mud_util).
 
 -export([atob/1]).
 -export([itob/1]).
@@ -12,7 +12,7 @@ itob(Int) ->
     list_to_binary(integer_to_list(Int)).
 
 describe(Template, Props) ->
-    DescTemplate = gerlshmud_config:desc_template(Template),
+    DescTemplate = mud_config:desc_template(Template),
     [[description_part(Props, Part)] || Part <- DescTemplate].
 
 description_part(_, RawText) when is_binary(RawText) ->

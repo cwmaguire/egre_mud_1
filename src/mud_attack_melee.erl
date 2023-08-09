@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_attack_melee).
--behaviour(gerlshmud_attack).
+-module(mud_attack_melee).
+-behaviour(mud_attack).
 
 -export([should_attack/1]).
 

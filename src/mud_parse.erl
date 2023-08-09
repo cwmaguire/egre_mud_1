@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_parse).
+-module(mud_parse).
 
 -export([parse/2]).
 

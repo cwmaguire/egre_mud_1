@@ -1,8 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_world).
+-module(mud_world).
 
--include("gerlshmud.hrl").
--include("gerlshmud_handlers.hrl").
 -include("play_world.hrl").
 
 -export([init/0]).
@@ -13,11 +11,11 @@
 
 init() ->
     IdPids = [{Id, start(Id, Props)} || {Id, Props} <- ?WORLD],
-    _Objs = [gerlshmud_object:populate(Pid, IdPids) || {_, Pid} <- IdPids],
+    _Objs = [egre_object:populate(Pid, IdPids) || {_, Pid} <- IdPids],
     IdPids.
 
 start(Id, Props) ->
-    {ok, Pid} = supervisor:start_child(gerlshmud_object_sup, [Id, Props]),
+    {ok, Pid} = supervisor:start_child(mud_object_sup, [Id, Props]),
     Pid.
 
 move(IdPids) ->
@@ -32,7 +30,7 @@ m(Dir) ->
     gen_server:cast(Player1, {attempt, {move, Player1, Dir}, {procs, undefined, [], [], []}}).
 
 s() ->
-    Ids = [{Id, gerlshmud_index:get_pid(Id)} || {Id, _Prop} <- ?WORLD],
+    Ids = [{Id, egre_index:get_pid(Id)} || {Id, _Prop} <- ?WORLD],
     [io:format("~p: ~p~n", [Id, st(Pid)]) || {Id, Pid} <- Ids].
 
 st(Process) ->
@@ -42,4 +40,4 @@ t() ->
     dbg:start(),
     dbg:tracer(),
     dbg:p(all, [call]),
-    dbg:tpl(gerlshmud_object, [{'_',[],[{return_trace}]}]).
+    dbg:tpl(mud_object, [{'_',[],[{return_trace}]}]).

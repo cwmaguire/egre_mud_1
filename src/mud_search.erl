@@ -1,7 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_search).
+-module(mud_search).
 
--behaviour(gerlshmud_object).
+-behaviour(mud_object).
 
 %% object behaviour
 -export([id/3]).
@@ -30,4 +30,4 @@ fail(Props, _Reason, _Message) ->
     Props.
 
 %log(Terms) ->
-    %gerlshmud_event_log:log(debug, [?MODULE | Terms]).
+    %mud_event_log:log(debug, [?MODULE | Terms]).

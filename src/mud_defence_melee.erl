@@ -1,10 +1,8 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_defence_melee).
--behaviour(gerlshmud_defence).
+-module(mud_defence_melee).
+-behaviour(mud_defence).
 
 -export([should_defend/1]).
-
--include("include/gerlshmud.hrl").
 
 should_defend(Props) ->
     is_wielded(Props) andalso is_defence(Props).

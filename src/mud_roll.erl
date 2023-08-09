@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_roll).
+-module(mud_roll).
 
 -export([roll/1]).
 
