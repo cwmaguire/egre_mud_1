@@ -1,0 +1,16 @@
+erlang library app
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2023-08-09   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+An Erlang library application includes modules, but doesn't run any.
+That's what I want EGRE_MUD MUDs to be: they specify the code to run, but are loaded and run by the EGRE_MUD engine.
+
+Simply don't include a list of modules to be started,
+i.e. dont' include: [{mod, {my_mod, []}}] in your .app.src file.
+
+https://www.erlang.org/doc/design_principles/applications.html#loading-and-unloading-applications
+search for "Library"
+
+ChatGPT gave me the same answer in more words.
