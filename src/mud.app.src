@@ -1,4 +1,4 @@
-{application, gerlshmud, [
+{application, mud, [
   {description, ""},
   {vsn, "0.1.0"},
   {id, "git"},
@@ -13,7 +13,7 @@
     cowboy,
     jsx
   ]},
-  {mod, {gerlshmud_app, []}},
+  {mod, {mud_app, []}},
   {env, [{corpse_cleanup_millis, 120000}, %% 2 minutes
          {desc_templates, [
              {character, [<<"character ">>, name]},
