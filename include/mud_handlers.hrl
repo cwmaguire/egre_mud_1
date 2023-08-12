@@ -1,5 +1,5 @@
--ifndef(GERLSHMUD_HANDLERS_HRL).
--define(GERLSHMUD_HANDLERS_HRL,already_included).
+-ifndef(MUD_HANDLERS_HRL).
+-define(MUD_HANDLERS_HRL,already_included).
 
 -define(UNIVERSAL_HANDLERS, [mud_handler_set_child_property,
                              mud_handler_delete_property,

@@ -1,7 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(mud_search).
 
--behaviour(mud_object).
+-behaviour(egre_object).
 
 %% object behaviour
 -export([id/3]).

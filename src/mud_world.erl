@@ -1,6 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(mud_world).
 
+-include("mud_handlers.hrl").
 -include("play_world.hrl").
 
 -export([init/0]).
