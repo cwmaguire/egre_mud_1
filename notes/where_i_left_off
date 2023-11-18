@@ -1,4 +1,4 @@
-Where I Left Off
+Where I Left Off - EGRE_MUD_1
 I need a place to track where I am for when I take long breaks.
 
 What do I _need_ for a MUD?
@@ -18,7 +18,48 @@ x cast spell
 - complete quest
 - resurrect
 
-2022-08-31
+┏━━━━━━━━━━━━━━━━┓
+┃   2023-11-17   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+What tests do I need?
+Practically all of them.
+
+I think EM1 needs to depend on EM so that it can start up
+a test MUD.
+
+I think EM1 will have to have to be an application with a supervisor
+that starts EM.
+Or, I start the E app, then the M app, then 1 app.
+
+Hmm, with Cowboy, it relies on the parent app starting it.
+
+Ah, ChatGPT: myapp.app.src lists dependent apps.
+
+1 will start M and will tell it what modules to load.
+M will start E and tell _it_ what modules to load.
+
+M will then basically take over and handle the communication
+with the clients.
+
+All 1 has to do is kick things off with the rules.
+The "MUD" is simply the specification of the game rules.
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2023-08-12   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+First note after switching from GERLSHMUD to EGRE.
+
+EGRE_MUD_1 is compiling and has been turned into a libary app for EGRE_MUD to include.
+
+
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2022-08-31   ┃
+┗━━━━━━━━━━━━━━━━┛
 
 Trying to figure out quest handlers.
 
@@ -35,15 +76,15 @@ What do quest triggers do when they're complete?
 Maybe I set them up with the appropriate process to tell when the quest is complete?
 (Should I have a "quest complete" attempt?)
 
---------------------------------------------------
-
-2022-08-30
+┏━━━━━━━━━━━━━━━━┓
+┃   2022-08-30   ┃
+┗━━━━━━━━━━━━━━━━┛
 
 D'oh! I didn't have a {room, Room} property in my player character and the connection gear was depending on it. I've fixed the connection gear to use {owner, Room} instead.
 
---------------------------------------------------
-
-2022-08-29
+┏━━━━━━━━━━━━━━━━┓
+┃   202w-08-29   ┃
+┗━━━━━━━━━━━━━━━━┛
 
 The connection doesn't seem to be getting my {send, Player, <Msg>} events.
 
