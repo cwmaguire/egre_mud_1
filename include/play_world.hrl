@@ -17,7 +17,7 @@
 %%         |
 %%       Room 5,5  --- Exit 5,5:w <-> 6,5:e --- Room 6,5
 
--include_lib("egre/include/egre.hrl").
+-include("mud_handlers.hrl").
 
 -define(WORLD, [{room_5_5,
                     [{is_room, true},

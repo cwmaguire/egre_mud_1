@@ -15,7 +15,7 @@ fi
 
 # Everything after -erl_args is ignored by CT
 CT_OPTS="-config test/test.config ${CASES} -erl_args -config rel/sys.config " \
-  GERLSHMUD_LOG_PATH=$(pwd)/logs \
+  EGRE_MUD_1_LOG_PATH=$(pwd)/logs \
   make ct | tee  out
-cat log_wrappers/json_head <(sed -e 's/.*/&,/' logs/gerlshmud.log) log_wrappers/json_tail > logs/gerlshmud_log.js
+cat log_wrappers/json_head <(sed -e 's/.*/&,/' logs/egre_mud_1.log) log_wrappers/json_tail > logs/egre_mud_1_log.js
 cp log_wrappers/*.{js,css,html} logs/

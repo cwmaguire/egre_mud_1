@@ -1,9 +1,8 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(gerlshmud_SUITE).
+-module(mud_SUITE).
 -compile(export_all).
 
--include("gerlshmud.hrl").
--include("gerlshmud_test_worlds.hrl").
+-include("mud_test_worlds.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -define(WAIT100, receive after 100 -> ok end).
@@ -54,7 +53,7 @@ init_per_testcase(_, Config) ->
     application:set_env(gerlshmud, port, Port),
     {ok, _Started} = application:ensure_all_started(gerlshmud),
     {atomic, ok} = mnesia:clear_table(object),
-    {ok, _Pid} = gerlshmud_test_socket:start(),
+    {ok, _Pid} = mud_test_socket:start(),
     TestObject = spawn_link(fun mock_object/0),
     gerlshmud_index:put([{pid, TestObject}, {id, test_object}]),
     [{test_object, TestObject} | Config].

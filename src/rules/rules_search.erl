@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_search).
+-module(rules_search).
 
 -behaviour(egre_object).
 
@@ -10,8 +10,6 @@
 -export([attempt/3]).
 -export([succeed/2]).
 -export([fail/3]).
-
--define(PROPS, []).
 
 id(_Props, Owner, Pid) ->
     "search_for" ++ Owner ++ "_" ++ Pid.

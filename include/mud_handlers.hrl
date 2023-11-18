@@ -1,4 +1,7 @@
 -ifndef(MUD_HANDLERS_HRL).
+
+-define(PID(Value), {pid, Value}).
+
 -define(MUD_HANDLERS_HRL,already_included).
 
 -define(UNIVERSAL_HANDLERS, [mud_handler_set_child_property,

@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_attribute_look).
+-module(rules_attribute_look).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -66,7 +66,7 @@ is_owner(_, _) ->
 
 description(Props) when is_list(Props) ->
     Type = proplists:get_value(type, Props),
-    DescTemplate = egre_config:desc_template(Type),
+    DescTemplate = mud_config:desc_template(Type),
     log([{desc_template, DescTemplate},
          {desc_type, Type},
          {object, self()},

@@ -2,6 +2,6 @@
 
 # Convert logs to JSON array and feed into jq so I can just see certain fields
 
-#cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | {pid, id, owner, message, event_type}'
-#cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | select(.id == "room") | {pid, id, owner, character, stage, event_type, message}'
-cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[]'
+#cat <(echo "[") <(sed -e 's/.*/&,/' logs/egre_mud_1.log) <(echo "{}]") | jq --compact-output -a '.[] | {pid, id, owner, message, event_type}'
+#cat <(echo "[") <(sed -e 's/.*/&,/' logs/egre_mud_1.log) <(echo "{}]") | jq --compact-output -a '.[] | select(.id == "room") | {pid, id, owner, character, stage, event_type, message}'
+cat <(echo "[") <(sed -e 's/.*/&,/' logs/egre_mud_1.log) <(echo "{}]") | jq --compact-output -a '.[]'
