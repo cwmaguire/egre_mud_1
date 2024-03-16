@@ -1,5 +1,5 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_char_move).
+-module(rules_char_move).
 -behaviour(egre_handler).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
