@@ -37,7 +37,7 @@ succeed({Props,
 succeed({Props, _Msg}) ->
     Props.
 
-fail({Props, _Message, _Reason}) ->
+fail({Props, _Reason, _Message}) ->
     Props.
 
 take_damage(Attacker, Owner, Amount, EffectType, Props) ->

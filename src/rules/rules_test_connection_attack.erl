@@ -178,6 +178,6 @@ succeed({Props, _Msg}) ->
     throw(should_never_happen),
     Props.
 
-fail({Props, _Message, _Reason}) ->
+fail({Props, _Reason, _Message}) ->
     throw(should_never_happen),
     Props.
