@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_char_attack).
--behaviour(egre_handler).
+-module(rules_char_attack).
+-behaviour(egre_rules).
 
 -export([attempt/1]).
 -export([succeed/1]).

@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_char_enter_world).
--behaviour(egre_handler).
+-module(rules_char_enter_world).
+-behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).

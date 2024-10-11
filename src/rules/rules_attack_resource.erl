@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_attack_resource).
--behaviour(egre_handler).
+-module(rules_attack_resource).
+-behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
 %% respond to resources being added to the owner by reserving

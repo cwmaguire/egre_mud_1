@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_resource_tick).
--behaviour(egre_handler).
+-module(rules_resource_tick).
+-behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
 %% This is a tick handler for a resource process. Resource processes manage

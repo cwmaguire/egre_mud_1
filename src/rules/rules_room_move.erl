@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_room_move).
--behaviour(egre_handler).
+-module(rules_room_move).
+-behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
 -export([attempt/1]).

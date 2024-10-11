@@ -1,6 +1,6 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
--module(mud_handler_subitem_attack).
--behaviour(egre_handler).
+-module(rules_subitem_attack).
+-behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
 %% This handler is specific to sub-items and controls whether this sub-item
