@@ -19,6 +19,47 @@ x cast spell
 - resurrect
 
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-03-28   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+Why isn't parsing just part of a rule?
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-03-22   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+I need to move this to EM1, from EGRE. The graph shouldn't know
+anything about the properties of MUD objects.
+
+% TODO Does this handle {K, {PID, bodypart}} properties?
+% 2019-02-19
+procs(Props) ->
+    lists:foldl(fun({_, Pid}, Acc) when is_pid(Pid) ->
+                    [Pid | Acc];
+                   ({_, Pids = [Pid | _]}, Acc) when is_pid(Pid) ->
+                    Acc ++ Pids;
+                   ({item, {ItemPid, Ref}}, Acc) when is_pid(ItemPid), is_reference(Ref) ->
+                    [ItemPid | Acc];
+                   (_NotPidProperty, Acc) ->
+                    Acc
+                end, [], Props).
+
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-01-06   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+   OO O o o o...      __________________ _________________
+  O     ____          |                | |               |
+ ][_n_i_| (   _EM1__  |    EGRE MUD    | |     EGRE      |
+(__________|_[______]_|________________|_|_______________|
+  0--0--0      0  0       0       0         0        0
+
+M1 pulls along M, which pulls along E
+
+The actual MUD is what's driving this train; the MUD engine is necessary for the MUD, and the graph rules engine is necessary for the MUD engine.
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2023-11-17   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
@@ -83,7 +124,7 @@ Maybe I set them up with the appropriate process to tell when the quest is compl
 D'oh! I didn't have a {room, Room} property in my player character and the connection gear was depending on it. I've fixed the connection gear to use {owner, Room} instead.
 
 ┏━━━━━━━━━━━━━━━━┓
-┃   202w-08-29   ┃
+┃   2022-08-29   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
 The connection doesn't seem to be getting my {send, Player, <Msg>} events.
