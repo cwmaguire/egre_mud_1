@@ -19,6 +19,16 @@ x cast spell
 - resurrect
 
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-10-12   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+I've got the tests running using egremud and egre as separate projects.
+The player_move test is the only test I've run, so far, and it's failing.
+However, I fixed a bug in the egremud.app.src that was preventing egremud
+from even starting. I've also done some more cleanup to get all three projects
+working.
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2024-03-28   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
