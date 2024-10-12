@@ -2,7 +2,6 @@
 -module(mud_SUITE).
 -compile(export_all).
 
--include("mud.hrl").
 -include("mud_test_worlds.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
@@ -43,26 +42,28 @@ all() ->
      search_character].
 
 init_per_testcase(_, Config) ->
-    %gerlshmud_dbg:add(gerlshmud_object, handle_cast_),
-    %gerlshmud_dbg:add(gerlshmud_event_log, add_index_details),
+    egre_dbg:add(egremud_app),
+    %gerlshmud_dbg:add(egre_event_log, add_index_details),
 
     %dbg:tracer(),
-    %dbg:tpl(gerlshmud_event_log, '_', '_', [{'_', [], [{exception_trace}]}]),
+    %dbg:tpl(egre_event_log, '_', '_', [{'_', [], [{exception_trace}]}]),
+
+    ct:pal("application:get_all_env(kernel) ->~n~p~n", [application:get_all_env(kernel)]),
 
     Port = ct:get_config(port),
-    application:load(gerlshmud),
-    application:set_env(gerlshmud, port, Port),
-    {ok, _Started} = application:ensure_all_started(gerlshmud),
+    application:load(egremud),
+    application:set_env(egremud, port, Port),
+    {ok, _Started} = application:ensure_all_started(egremud),
     {atomic, ok} = mnesia:clear_table(object),
-    {ok, _Pid} = mud_test_socket:start(),
+    {ok, _Pid} = egremud_test_socket:start(),
     TestObject = spawn_link(fun mock_object/0),
-    gerlshmud_index:put([{pid, TestObject}, {id, test_object}]),
+    egre_index:put([{pid, TestObject}, {id, test_object}]),
     [{test_object, TestObject} | Config].
 
 end_per_testcase(_, _Config) ->
     ct:pal("~p stopping gerlshmud~n", [?MODULE]),
     receive after 1000 -> ok end,
-    gerlshmud_test_socket:stop(),
+    egremud_test_socket:stop(),
     application:stop(gerlshmud).
 
 
@@ -105,8 +106,8 @@ get_props(Pid) when is_pid(Pid) ->
 
 player_move(Config) ->
     %gerlshmud_dbg:add(gerlshmud_SUITE, start_obj),
-    %gerlshmud_dbg:add(gerlshmud_object, populate),
-    %gerlshmud_dbg:add(gerlshmud_object, handle_cast_),
+    %gerlshmud_dbg:add(egre_object, populate),
+    %gerlshmud_dbg:add(egre_object, handle_cast_),
     start(?WORLD_1),
     Player = get_pid(player),
     RoomNorth =  get_pid(room_nw),
@@ -136,7 +137,7 @@ player_move_exit_locked(Config) ->
     attempt(Config, Player, {Player, move, e}),
     ?WAIT100,
     ?assertMatch(RoomNorth, val(owner, Player)),
-    gerlshmud_object:set(ExitEastWest, {is_locked, false}),
+    egre_object:set(ExitEastWest, {is_locked, false}),
     attempt(Config, Player, {Player, move, e}),
     ?WAIT100,
     ?assertMatch(RoomEast, val(owner, Player)).
@@ -193,7 +194,7 @@ character_owner_add_remove(Config) ->
     [] = val(character, Bullet).
 
 player_attack(Config) ->
-    _SupPid = whereis(gerlshmud_object_sup),
+    _SupPid = whereis(egre_object_sup),
     %fprof:trace([start, {file, "my_prof.trace"}, {procs, [SupPid, self()]}]),
     start(?WORLD_3),
     ct:pal("~p:player_attack(Config) world 3 started~n", [?MODULE]),
@@ -233,8 +234,8 @@ player_resource_wait(Config) ->
     Fist = get_pid(p_fist_right),
     Stamina = get_pid(p_stamina),
     Zombie = get_pid(zombie),
-    gerlshmud_object:set(Stamina, {current, 5}),
-    gerlshmud_object:set(Stamina, {tick_time, 10000}),
+    egre_object:set(Stamina, {current, 5}),
+    egre_object:set(Stamina, {tick_time, 10000}),
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
     ct:pal("Waiting for player_resource_wait"),
     wait_loop(fun() -> val(hitpoints, z_hp) < 10 end, true, 5),
@@ -266,10 +267,10 @@ counterattack_behaviour(Config) ->
     start(?WORLD_3),
     Player = get_pid(player),
     Stamina = val(stamina, zombie),
-    gerlshmud_object:set(Stamina, {current, 5}),
-    gerlshmud_object:set(Stamina, {tick_time, 100000}),
+    egre_object:set(Stamina, {current, 5}),
+    egre_object:set(Stamina, {tick_time, 100000}),
     Dexterity = get_pid(dexterity0),
-    gerlshmud_object:set(Dexterity, {defence_hit_modifier, 0}),
+    egre_object:set(Dexterity, {defence_hit_modifier, 0}),
     ?WAIT100,
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
 
@@ -358,7 +359,7 @@ stop_attack_on_move(Config) ->
     %% Keep the attack going, but so that we can prove that it happened
     GiantHPAmt = 10000000,
     GiantHP =  get_pid(g_hp),
-    gerlshmud_object:set(GiantHP, {hitpoints, GiantHPAmt}),
+    egre_object:set(GiantHP, {hitpoints, GiantHPAmt}),
 
     ?WAIT100,
     attempt(Config, Player, {<<"force field">>, move, from, Room1, to, Player}),
@@ -649,8 +650,8 @@ counterattack_with_spell(Config) ->
     Player = get_pid(player),
 
     Stamina = val(stamina, giant),
-    gerlshmud_object:set(Stamina, {current, 5}),
-    gerlshmud_object:set(Stamina, {tick_time, 100000}),
+    egre_object:set(Stamina, {current, 5}),
+    egre_object:set(Stamina, {tick_time, 100000}),
 
     attempt(Config, Player, {Player, memorize, <<"fireball">>}),
     ?WAIT100,
@@ -769,20 +770,20 @@ decompose(Config) ->
     wait_for(Conditions, 3).
 
 search_character(_Config) ->
-    %gerlshmud_dbg:add(gerlshmud_event_log, log),
-    %gerlshmud_dbg:add(gerlshmud_event_log, handle_cast),
-    %gerlshmud_dbg:add(gerlshmud_object, log),
-    %gerlshmud_dbg:add(gerlshmud_event_log, flatten, 1),
+    %gerlshmud_dbg:add(egre_event_log, log),
+    %gerlshmud_dbg:add(egre_event_log, handle_cast),
+    %gerlshmud_dbg:add(egre_object, log),
+    %gerlshmud_dbg:add(egre_event_log, flatten, 1),
     start(?WORLD_12),
-    gerlshmud_test_socket:send(<<"AnyLoginWillDo">>),
-    gerlshmud_test_socket:send(<<"AnyPasswordWillDo">>),
+    egremud_test_socket:send(<<"AnyLoginWillDo">>),
+    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
     ?WAIT100,
-    _LoginMessages = gerlshmud_test_socket:messages(),
-    gerlshmud_test_socket:send(<<"search Arlene">>),
+    _LoginMessages = egre_test_socket:messages(),
+    egremud_test_socket:send(<<"search Arlene">>),
     ?WAIT100,
     ?WAIT100,
     ?WAIT100,
-    NakedDescriptions = gerlshmud_test_socket:messages(),
+    NakedDescriptions = egremud_test_socket:messages(),
 
     ExpectedDescriptions =
         [<<"Arlene has book name: book desc">>,
@@ -806,7 +807,7 @@ log(_Config) ->
     ct:sleep(500),
     Player = get_pid(player),
 
-    gerlshmud_event_log:log(Player, debug, [{foo, bar}]),
+    egre_event_log:log(Player, debug, [{foo, bar}]),
     ?WAIT100,
     ct:pal("JSON: ~p~n", [jsx:decode(last_line(LogFile))]),
     [{<<"foo">>, <<"bar">>},
@@ -814,7 +815,7 @@ log(_Config) ->
      {<<"process">>, _},
      {<<"process_name">>, <<"player">>}] = jsx:decode(last_line(LogFile)),
 
-    gerlshmud_event_log:log(Player, debug, [{foo, bar}, {props, [{player, Player}, {baz, 1}]}]),
+    egre_event_log:log(Player, debug, [{foo, bar}, {props, [{player, Player}, {baz, 1}]}]),
     ?WAIT100,
     ct:pal("JSON: ~p~n", [jsx:decode(last_line(LogFile))]),
     [{<<"props">>, [[<<"player">>, _], [<<"baz">>, 1]]},
@@ -823,7 +824,7 @@ log(_Config) ->
      {<<"process">>, _},
      {<<"process_name">>, <<"player">>}] = jsx:decode(last_line(LogFile)),
 
-    gerlshmud_event_log:log(Player, debug, [{foo, [1, <<"a">>, 2.0]}]),
+    egre_event_log:log(Player, debug, [{foo, [1, <<"a">>, 2.0]}]),
     ?WAIT100,
     ct:pal("JSON: ~p~n", [jsx:decode(last_line(LogFile))]),
     [{<<"foo">>, [1, <<"a">>, 2.0]},
@@ -839,11 +840,11 @@ last_line(Filename) ->
 
 start(Objects) ->
     IdPids = [{Id, start_obj(Id, Props)} || {Id, Props} <- Objects],
-    _Objs = [gerlshmud_object:populate(Pid, IdPids) || {_, Pid} <- IdPids],
+    _Objs = [egre_object:populate(Pid, IdPids) || {_, Pid} <- IdPids],
     timer:sleep(100).
 
 start_obj(Id, Props) ->
-    {ok, Pid} = supervisor:start_child(gerlshmud_object_sup, [Id, Props]),
+    {ok, Pid} = supervisor:start_child(egre_object_sup, [Id, Props]),
     Pid.
 
 attempt(Config, Target, Message) ->
@@ -857,7 +858,7 @@ mock_object() ->
                 {'$gen_call', _Msg = {From, MonitorRef}, props} ->
                     From ! {MonitorRef, _MockProps = []};
                 {attempt, Target, Message} ->
-                    gerlshmud_object:attempt(Target, Message, false);
+                    egre_object:attempt(Target, Message, false);
                 stop ->
                     exit(normal);
                 _Other ->
@@ -867,5 +868,5 @@ mock_object() ->
     mock_object().
 
 get_pid(Id) ->
-    #object{pid = Pid} = gerlshmud_index:get(Id),
+    #object{pid = Pid} = egre_index:get(Id),
     Pid.
