@@ -66,7 +66,7 @@ is_owner(_, _) ->
 
 description(Props) when is_list(Props) ->
     Type = proplists:get_value(type, Props),
-    DescTemplate = rules_template(Type),
+    DescTemplate = mud_config:desc_template(Type),
     log([{desc_template, DescTemplate},
          {desc_type, Type},
          {object, self()},
