@@ -2,6 +2,7 @@
 -module(mud_SUITE).
 -compile(export_all).
 
+-include("mud.hrl").
 -include("mud_test_worlds.hrl").
 -include_lib("eunit/include/eunit.hrl").
 

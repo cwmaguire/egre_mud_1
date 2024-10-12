@@ -1,6 +1,6 @@
 -ifndef(MUD_RULES_HRL).
 
--define(PID(Value), {pid, Value}).
+-include("mud.hrl").
 
 -define(MUD_RULES_HRL, already_included).
 
@@ -73,12 +73,12 @@
 -define(EFFECT_PROTOTYPE_RULES, {rules, [rules_effect_create]}).
 
 -define(EFFECT_RULES, {rules, [rules_effect_attack |
-                               ?UNIVERSAL_rules]}).
+                               ?UNIVERSAL_RULES]}).
 
--define(WEAPON_rules, {rules, [rules_attack |
-                               element(2, ?ITEM_rules)]}).
+-define(WEAPON_RULES, {rules, [rules_attack |
+                               element(2, ?ITEM_RULES)]}).
 
--define(ARMOR_rules, {rules, [rules_defend |
+-define(ARMOR_RULES, {rules, [rules_defend |
                               element(2, ?ITEM_RULES)]}).
 
 -endif.
