@@ -17,7 +17,7 @@
 %%         |
 %%       Room 5,5  --- Exit 5,5:w <-> 6,5:e --- Room 6,5
 
--include("mud_handlers.hrl").
+-include("mud_rules.hrl").
 
 -define(WORLD, [{room_5_5,
                     [{is_room, true},
@@ -27,41 +27,41 @@
                      {desc, <<"an empty space">>},
                      {icon, room},
                      {exit, exit_5_5_and_5_4},
-                     ?ROOM_HANDLERS]},
+                     ?ROOM_RULES]},
 
                 {room_5_4,
                     [{exit, exit_5_5_and_5_4},
                      {character, giant},
                      {icon, room},
-                     ?ROOM_HANDLERS]},
+                     ?ROOM_RULES]},
 
                 {room_5_3,
                     [{exit, exit_5_4_and_5_3},
                      {icon, room},
-                     ?ROOM_HANDLERS]},
+                     ?ROOM_RULES]},
 
                 {room_6_5,
                     [{exit, exit_5_5_and_6_5},
                      {icon, room},
-                     ?ROOM_HANDLERS]},
+                     ?ROOM_RULES]},
 
                 {exit_5_5_and_5_4,
                     [{{room, n}, room_5_4},
                      {{room, s}, room_5_5},
                      {icon, exit},
-                     ?EXIT_HANDLERS]},
+                     ?EXIT_RULES]},
 
                 {exit_5_4_and_5_3,
                     [{{room, n}, room_5_3},
                      {{room, s}, room_5_4},
                      {icon, exit},
-                     ?EXIT_HANDLERS]},
+                     ?EXIT_RULES]},
 
                 {exit_5_5_and_6_5,
                     [{{room, e}, room_6_5},
                      {{room, w}, room_5_5},
                      {icon, exit},
-                     ?EXIT_HANDLERS]},
+                     ?EXIT_RULES]},
 
                 {player,
                     [{name, <<"Bob">>},
@@ -77,19 +77,19 @@
                      {body_part, hand1},
                      {race, race0},
                      {icon, person},
-                     ?CHARACTER_HANDLERS]},
+                     ?CHARACTER_RULES]},
 
                 {p_hp,
                     [{hitpoints, 10},
                      {owner, player},
                      {icon, stat},
-                     ?HITPOINTS_HANDLERS]},
+                     ?HITPOINTS_RULES]},
 
                 {p_life,
                     [{is_alive, true},
                      {owner, player},
                      {icon, stat},
-                     ?LIFE_HANDLERS]},
+                     ?LIFE_RULES]},
 
                 {force_field,
                     [{owner, player},
@@ -100,7 +100,7 @@
                      {defence_damage_modifier, 100},
                      {is_defence, true},
                      {icon, technology},
-                     ?ITEM_HANDLERS]},
+                     ?ITEM_RULES]},
 
                 {sword,
                     [{desc, <<"single-edge, one-handed sword">>},
@@ -116,7 +116,7 @@
                      {is_auto_attack, true},
                      {resources, [{stamina, 5}]},
                      {icon, weapon},
-                     ?ITEM_HANDLERS]},
+                     ?ITEM_RULES]},
 
                 {fireball_spell,
                     [{desc, <<"fireball spell">>},
@@ -132,7 +132,7 @@
                      {is_auto_attack, true},
                      {resources, [{mana, 5}]},
                      {icon, spell},
-                     ?SPELL_HANDLERS]},
+                     ?SPELL_RULES]},
 
                 {fireball_effect,
                     [{desc, <<"fireball spell">>},
@@ -152,7 +152,7 @@
                      {defence_hit_modifier, 100},
                      {is_defence, true},
                      {icon, weapon},
-                     ?ITEM_HANDLERS]},
+                     ?ITEM_RULES]},
 
                 {strength0,
                     [{owner, player},
@@ -160,7 +160,7 @@
                      {value, 17},
                      {melee_damage_modifier, 100},
                      {icon, stat},
-                     ?ATTRIBUTE_HANDLERS]},
+                     ?ATTRIBUTE_RULES]},
 
                 {dexterity0,
                     [{owner, player},
@@ -168,7 +168,7 @@
                      {value, 15},
                      {melee_hit_modifier, 100},
                      {icon, stat},
-                     ?ATTRIBUTE_HANDLERS]},
+                     ?ATTRIBUTE_RULES]},
 
                 {p_stamina,
                     [{owner, player},
@@ -177,7 +177,7 @@
                      {tick_time, 10},
                      {max, 10},
                      {icon, stat},
-                     ?RESOURCE_HANDLERS]},
+                     ?RESOURCE_RULES]},
 
                 {p_mana,
                     [{owner, player},
@@ -187,7 +187,7 @@
                      {max, 50},
                      % TODO change this to meter icon
                      {icon, stat},
-                     ?RESOURCE_HANDLERS]},
+                     ?RESOURCE_RULES]},
 
                 {hand0,
                     [{name, <<"left hand">>},
@@ -196,7 +196,7 @@
                      {max_items, 1},
                      {item, p_fist},
                      {icon, body_part},
-                     ?BODY_PART_HANDLERS]},
+                     ?BODY_PART_RULES]},
 
                 {hand1,
                     [{name, <<"right hand">>},
@@ -204,7 +204,7 @@
                      {body_part, hand},
                      {max_items, 1},
                      {icon, body_part},
-                     ?BODY_PART_HANDLERS]},
+                     ?BODY_PART_RULES]},
 
                 {p_fist,
                     [{name, <<"left fist">>},
@@ -218,7 +218,7 @@
                      {is_auto_attack, true},
                      {resources, [{stamina, 5}]},
                      {icon, body_part},
-                     ?ITEM_HANDLERS]},
+                     ?ITEM_RULES]},
 
                 {p_back,
                     [{name, <<"back">>},
@@ -226,14 +226,14 @@
                      {body_part, back},
                      {max_items, 2},
                      {icon, body_part},
-                     ?BODY_PART_HANDLERS]},
+                     ?BODY_PART_RULES]},
 
                 {race0,
                     [{owner, player},
                      {type, race},
                      {desc, <<"human">>},
                      {icon, stat},
-                     ?ATTRIBUTE_HANDLERS]},
+                     ?ATTRIBUTE_RULES]},
 
                 {giant,
                     [{owner, room_5_4},
@@ -247,19 +247,19 @@
                      {attribute, race1},
                      {stamina, g_stamina},
                      {icon, person},
-                     ?CHARACTER_HANDLERS]},
+                     ?CHARACTER_RULES]},
 
                 {g_hp,
                     [{hitpoints, 310},
                      {owner, giant},
                      {icon, stat},
-                     ?HITPOINTS_HANDLERS]},
+                     ?HITPOINTS_RULES]},
 
                 {g_life,
                     [{is_alive, true},
                      {owner, giant},
                      {icon, stat},
-                     ?LIFE_HANDLERS]},
+                     ?LIFE_RULES]},
 
                 {g_hand_r,
                     [{name, <<"right hand">>},
@@ -267,7 +267,7 @@
                      {body_part, hand},
                      {item, g_club},
                      {icon, body_part},
-                     ?BODY_PART_HANDLERS]},
+                     ?BODY_PART_RULES]},
 
                 {strength1,
                     [{owner, giant},
@@ -275,7 +275,7 @@
                      {value, 17},
                      {melee_damage_modifier, 50},
                      {icon, stat},
-                     ?ATTRIBUTE_HANDLERS]},
+                     ?ATTRIBUTE_RULES]},
 
                 {dexterity1,
                     [{owner, giant},
@@ -284,7 +284,7 @@
                      {melee_hit_modifier, 50},
                      {defence_hit_modifier, 50},
                      {icon, stat},
-                     ?ATTRIBUTE_HANDLERS]},
+                     ?ATTRIBUTE_RULES]},
 
                 {g_stamina,
                     [{owner, giant},
@@ -293,7 +293,7 @@
                      {tick_time, 10},
                      {max, 10},
                      {icon, stat},
-                     ?RESOURCE_HANDLERS]},
+                     ?RESOURCE_RULES]},
 
                 {race1,
                     [{owner, giant},
@@ -301,7 +301,7 @@
                      {defence_damage_modifier, 50},
                      {desc, <<"giant">>},
                      {icon, stat},
-                     ?ATTRIBUTE_HANDLERS]},
+                     ?ATTRIBUTE_RULES]},
 
                 {g_club,
                     [{name, <<"giant club">>},
@@ -315,5 +315,5 @@
                      {is_auto_attack, true},
                      {resources, [{stamina, 5}]},
                      {icon, weapon},
-                     ?ITEM_HANDLERS]}
+                     ?ITEM_RULES]}
                  ]).
