@@ -42,8 +42,8 @@ all() ->
      search_character].
 
 init_per_testcase(_, Config) ->
-    egre_dbg:add(egremud_app),
-    %gerlshmud_dbg:add(egre_event_log, add_index_details),
+    %egre_dbg:add(egre_object),
+    %egre_dbg:add(egre_event_log, add_index_details),
 
     %dbg:tracer(),
     %dbg:tpl(egre_event_log, '_', '_', [{'_', [], [{exception_trace}]}]),
