@@ -37,7 +37,7 @@ describe(Source, Props) ->
     egre_object:attempt(Source, {send, Source, Description}).
 
 description(Props) when is_list(Props) ->
-    DescTemplate = egre_config:desc_template(room),
+    DescTemplate = mud_config:desc_template(room),
     log([<<"description template: ">>, DescTemplate]),
     Description = [[description_part(Props, Part)] || Part <- DescTemplate],
     log([<<"Description: ">>, Description]),

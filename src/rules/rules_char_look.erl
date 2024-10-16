@@ -85,7 +85,7 @@ describe(Source, Props, Context, deep) ->
     egre_object:attempt(Source, {Source, describe, self(), with, NewContext}).
 
 send_description(Source, Props, Context) ->
-    Description = egre_util:describe(character, Props),
+    Description = mud_util:describe(character, Props),
     egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 is_owner(MaybeOwner, Props) when is_pid(MaybeOwner) ->

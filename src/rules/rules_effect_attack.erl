@@ -86,16 +86,16 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Targ
            {effect, Self}],
 
     CharacterSubstitutions = [{<<"<target>">>, Target}],
-    AmountBin = <<" [", (egre_util:itob(FailRoll))/binary, "]">>,
+    AmountBin = <<" [", (mud_util:itob(FailRoll))/binary, "]">>,
     CharacterMsg =
         <<"You miss <target> with ",
-          (egre_util:atob(EffectType))/binary,
+          (mud_util:atob(EffectType))/binary,
           AmountBin/binary>>,
     egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
     ct:pal("~p: CharacterMsg~n\t~p~n", [?MODULE, CharacterMsg]),
 
     TargetSubstitutions = [{<<"<character>">>, Character}],
-    TargetMsg = <<"<character> misses you with ", (egre_util:atob(EffectType))/binary>>,
+    TargetMsg = <<"<character> misses you with ", (mud_util:atob(EffectType))/binary>>,
     TargetSubstitutions = [{<<"<target>">>, Target},
                            {<<"<character>">>, Character}],
     egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
@@ -129,16 +129,16 @@ succeed({Props, {Character, roll, IneffectiveAmount, for, effect, with, EffectTy
            {effect, Self}],
 
     CharacterSubstitutions = [{<<"<target>">>, Target}],
-    AmountBin = <<" [", (egre_util:itob(IneffectiveAmount))/binary, "]">>,
+    AmountBin = <<" [", (mud_util:itob(IneffectiveAmount))/binary, "]">>,
     CharacterMsg =
-        <<(egre_util:atob(EffectType))/binary,
+        <<(mud_util:atob(EffectType))/binary,
           " has no effect on <target> (",
           AmountBin/binary,
           ")">>,
     egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
 
     TargetSubstitutions = [{<<"<character>">>, Character}],
-    TargetMsg = <<"<character>'s ", (egre_util:atob(EffectType))/binary, " has no effect">>,
+    TargetMsg = <<"<character>'s ", (mud_util:atob(EffectType))/binary, " has no effect">>,
     TargetSubstitutions = [{<<"<target>">>, Target},
                            {<<"<character>">>, Character}],
     egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
@@ -154,19 +154,19 @@ succeed({Props, {Attacker, do, EffectAmount, 'of', EffectType, to, Target, with,
            {effect_type, EffectType}],
 
     AttackerSubstitutions = [{<<"<target>">>, self()}],
-    AmountBin = <<" [", (egre_util:itob(EffectAmount))/binary, "]">>,
+    AmountBin = <<" [", (mud_util:itob(EffectAmount))/binary, "]">>,
     AttackerMsg =
         <<"You do ",
           AmountBin/binary,
           " damage to <target> with ",
-          (egre_util:atob(EffectType))/binary>>,
+          (mud_util:atob(EffectType))/binary>>,
     egre_object:attempt(Attacker, {send, Attacker, AttackerMsg, AttackerSubstitutions}, _Sub0 = false),
 
     TargetSubstitutions = [{<<"<attacker>">>, Attacker}],
     TargetMsg = <<"<attacker> does ",
                   AmountBin/binary,
                   " damage to you with ",
-                  (egre_util:atob(EffectType))/binary>>,
+                  (mud_util:atob(EffectType))/binary>>,
     egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}, _Sub1 = false),
 
 

@@ -67,7 +67,7 @@ send_description(Source, Props, Context) ->
     egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 description(Props) when is_list(Props) ->
-    DescTemplate = egre_config:desc_template(body_part),
+    DescTemplate = mud_config:desc_template(body_part),
     log([{?EVENT, body_part_desc}, {template, DescTemplate}]),
     [[description_part(Props, Part)] || Part <- DescTemplate].
 

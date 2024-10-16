@@ -41,6 +41,6 @@ fail({Props, _Result, _Msg}) ->
     {Props, Log}.
 
 send_description(Source, Props, Context) ->
-    Description = egre_util:describe(item, Props),
+    Description = mud_util:describe(item, Props),
     SendMsg = {send, Source, [<<Context/binary>>, Description]},
     egre_object:attempt(Source, SendMsg).
