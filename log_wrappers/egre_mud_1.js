@@ -150,7 +150,7 @@ function add_log_line(log, beforeOrAfter = 'after'){
   add_image('event_source_icon', logDiv, log);
   add_image('event_target_icon', logDiv, log);
   add_pid('process', logDiv, log);
-  let heightListener = add_handler(logDiv, log);
+  let heightListener = add_rules_module(logDiv, log);
 
   add_maybe_pid('event_source', eventSpan, log);
   add_event_name(eventSpan, log);
@@ -223,22 +223,21 @@ function add_log_process(parent, log){
   parent.appendChild(logProcessChar2Span);
 }
 
-function add_handler(parent, log){
-  let handler = prop(log, 'handler');
-  handler = handler.split('_').slice(2).join(' ');
-  let handlerSpan = span(handler, 'module');
-  parent.appendChild(handlerSpan);
+function add_rules_module(parent, log){
+  let rules = prop(log, 'rules_module');
+  rules = rules.split('_').slice(1).join(' ');
+  let rulesSpan = span(rules, 'module');
+  parent.appendChild(rulesSpan);
 
   let handlerFun;
-  if(!handler){
-    handlerSpan.innerHTML = 'n/a';
-    //handlerSpan.style.width = '120px';
+  if(!rules){
+    rulesSpan.innerHTML = 'n/a';
     handlerFun =
       function(parentHeight){
         let parentHeightInt = parseInt(parentHeight);
-        let heightInt = parseInt(handlerSpan.style.height);
+        let heightInt = parseInt(rulesSpan.style.height);
         let top = (parentHeightInt - heightInt) / 2 - 2;
-        handlerSpan.style.top = top + 'px';
+        rulesSpan.style.top = top + 'px';
       }
   }else{
     handlerFun = function(){}
