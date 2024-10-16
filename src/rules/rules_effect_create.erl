@@ -35,7 +35,7 @@ succeed({Props, {Character, affect, Target, because, Attack}}) ->
            {?TARGET, Target},
            {handler, ?MODULE},
            {attack, Attack}],
-    ChildProps = replace_handlers_with_child_handlers(Props),
+    ChildProps = replace_rules_with_child_rules(Props),
     ChildPropsWithTarget = [{target, Target} | ChildProps],
     {ok, Pid} = supervisor:start_child(egre_object_sup, [undefined, ChildPropsWithTarget]),
     egre_object:attempt(Pid, {Pid, affect, Target}),
@@ -47,5 +47,5 @@ succeed({Props, _}) ->
 fail({Props, _, _}) ->
     Props.
 
-replace_handlers_with_child_handlers(Props) ->
-    lists:keystore(handlers, 1, Props, proplists:get_value(child_handlers, Props)).
+replace_rules_with_child_rules(Props) ->
+    lists:keystore(rules, 1, Props, proplists:get_value(child_rules, Props)).

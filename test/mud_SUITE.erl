@@ -208,7 +208,7 @@ player_attack(Config) ->
           fun() -> val(is_alive, z_life) == false end},
          {"Zombie hp < 1",
           fun() -> val(hitpoints, z_hp) =< 0 end}],
-    wait_for(Conditions, 20).
+    wait_for(Conditions, 4).
 
 wait_for(_NoUnmetConditions = [], _) ->
     ok;
@@ -838,6 +838,7 @@ last_line(Filename) ->
     ct:pal("~p: LastLine~n\t~p~n", [?MODULE, LastLine]),
     LastLine.
 
+%% TODO use egre:create_graph(Objects)
 start(Objects) ->
     IdPids = [{Id, start_obj(Id, Props)} || {Id, Props} <- Objects],
     _Objs = [egre_object:populate(Pid, IdPids) || {_, Pid} <- IdPids],

@@ -199,11 +199,11 @@ fail({Props, _, _}) ->
 
 calc_hit_roll(Props) ->
     Roll = proplists:get_value(hit_roll, Props, {0, 0}),
-    egre_roll:roll(Roll).
+    mud_roll:roll(Roll).
 
 calc_effect_roll(Props) ->
     EffectAmount = proplists:get_value(effect_roll, Props, 0),
-    egre_roll:roll(EffectAmount).
+    mud_roll:roll(EffectAmount).
 
 % TODO implement repeat logic for effects that keep going
 % maybe re-roll for hit?

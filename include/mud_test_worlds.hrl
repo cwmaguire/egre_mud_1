@@ -134,7 +134,7 @@
                     {lifecycle, once},
                     {hit_roll, {1, 10}},
                     {effect_roll, 10},
-                    {child_handlers, ?EFFECT_RULES}, %% e.g. {child_handlers, {handlers, [...]}}
+                    {child_rules, ?EFFECT_RULES}, %% e.g. {child_rules, {rules, [...]}}
                     ?EFFECT_PROTOTYPE_RULES]},
 
                   {dexterity0,
@@ -619,7 +619,7 @@
                     {lifecycle, once},
                     {hit_roll, {1, 10}},
                     {effect_roll, 30},
-                    {child_handlers, ?EFFECT_RULES}, %% e.g. {child_handlers, {handlers, [...]}}
+                    {child_rules, ?EFFECT_RULES}, %% e.g. {child_rules, {rules, [...]}}
                     ?EFFECT_PROTOTYPE_RULES]},
 
                   {p_back,
@@ -724,7 +724,7 @@
                     {lifecycle, once},
                     {hit_roll, {1, 10}},
                     {effect_roll, 30},
-                    {child_handlers, ?EFFECT_RULES}, %% e.g. {child_handlers, {handlers, [...]}}
+                    {child_rules, ?EFFECT_RULES}, %% e.g. {child_rules, {rules, [...]}}
                     ?EFFECT_PROTOTYPE_RULES]}
                  ]).
 
@@ -874,7 +874,7 @@
                      {lifecycle, once},
                      {hit_roll, {1, 10}},
                      {effect_roll, 10},
-                     {child_handlers, ?EFFECT_RULES},
+                     {child_rules, ?EFFECT_RULES},
                      ?EFFECT_PROTOTYPE_RULES]},
 
                    {giant,
