@@ -17,5 +17,10 @@ fi
 CT_OPTS="-config test/test.config ${CASES} -erl_args -config rel/sys.config " \
   EGRE_LOG_PATH=$(pwd)/logs \
   make ct | tee  out
-cat log_wrappers/json_head <(sed -e 's/.*/&,/' logs/egre.log) log_wrappers/json_tail > logs/egre_mud_1_log.js
-cp log_wrappers/*.{js,css,html} logs/
+
+if [[ -e logs/egre.log ]] ; then
+  cat log_wrappers/json_head <(sed -e 's/.*/&,/' logs/egre.log) log_wrappers/json_tail > logs/egre_mud_1_log.js
+  cp log_wrappers/*.{js,css,html} logs/
+else
+  echo "No logs/egre.log file found"
+fi
