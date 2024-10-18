@@ -1,7 +1,8 @@
-PROJECT = EGRE_MUD_1
-DEPS = egre_mud
+PROJECT = mud
+DEPS = egre egre_mud
 
 dep_egre_mud = git https://github.com/cwmaguire/egre_mud master
+dep_egre = git https://github.com/cwmaguire/egre master
 
 ## copied from erlang.mk and added +native.
 ## Brings counterattack_behaviour test down from 1+ seconds
