@@ -167,7 +167,7 @@ succeed({Props, {Target, die}}) ->
     Props2
     = case Target of
         X when X == Owner ->
-            CorpseCleanupMilis = application:get_env(egre, corpse_cleanup_milis, 10 * 60 * 1000),
+            CorpseCleanupMilis = application:get_env(mud, corpse_cleanup_milis, 10 * 60 * 1000),
             egre_object:attempt_after(CorpseCleanupMilis, self(), {cleanup, Owner}),
             lists:keystore(is_alive, 1, Props, {is_alive, false});
         _ ->

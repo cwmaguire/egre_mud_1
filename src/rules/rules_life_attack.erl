@@ -123,7 +123,7 @@ succeed({Props, {Owner, die}}) ->
          {object, self()},
          {props, Props},
          {?TARGET, Owner}]),
-    CorpseCleanupMilis = application:get_env(egre, corpse_cleanup_milis, 10 * 60 * 1000),
+    CorpseCleanupMilis = application:get_env(mud, corpse_cleanup_milis, 10 * 60 * 1000),
     egre_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
     lists:keystore(is_alive, 1, Props, {is_alive, false});
 

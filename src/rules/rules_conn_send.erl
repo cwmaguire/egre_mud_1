@@ -23,7 +23,7 @@ succeed({Props, {send, Player, Message}}) ->
            {?TARGET, Player},
            {player_message, Message}],
     {Conn} = proplists:get_value(conn, Props),
-    egre_conn:handle(Conn, {send, Message}),
+    egremud_conn:handle(Conn, {send, Message}),
     {Props, Log};
 succeed({Props, _Other}) ->
     Props.

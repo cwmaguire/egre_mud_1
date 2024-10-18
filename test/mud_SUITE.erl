@@ -48,12 +48,10 @@ init_per_testcase(_, Config) ->
     %dbg:tracer(),
     %dbg:tpl(egre_event_log, '_', '_', [{'_', [], [{exception_trace}]}]),
 
-    ct:pal("application:get_all_env(kernel) ->~n~p~n", [application:get_all_env(kernel)]),
-
     Port = ct:get_config(port),
     application:load(egremud),
     application:set_env(egremud, port, Port),
-    {ok, _Started} = application:ensure_all_started(egremud),
+    {ok, _Started} = application:ensure_all_started(mud),
     {atomic, ok} = mnesia:clear_table(object),
     {ok, _Pid} = egremud_test_socket:start(),
     TestObject = spawn_link(fun mock_object/0),
@@ -61,10 +59,10 @@ init_per_testcase(_, Config) ->
     [{test_object, TestObject} | Config].
 
 end_per_testcase(_, _Config) ->
-    ct:pal("~p stopping gerlshmud~n", [?MODULE]),
+    ct:pal("~p stopping egre_mud~n", [?MODULE]),
     receive after 1000 -> ok end,
     egremud_test_socket:stop(),
-    application:stop(gerlshmud).
+    application:stop(egre_mud).
 
 
 all_vals(Key, Obj) ->
@@ -105,9 +103,9 @@ get_props(Pid) when is_pid(Pid) ->
     end.
 
 player_move(Config) ->
-    %gerlshmud_dbg:add(gerlshmud_SUITE, start_obj),
-    %gerlshmud_dbg:add(egre_object, populate),
-    %gerlshmud_dbg:add(egre_object, handle_cast_),
+    %egre_dbg:add(mud, start_obj),
+    %egre_dbg:add(egre_object, populate),
+    %egre_dbg:add(egre_object, handle_cast_),
     start(?WORLD_1),
     Player = get_pid(player),
     RoomNorth =  get_pid(room_nw),
@@ -306,7 +304,7 @@ counterattack_behaviour(Config) ->
     ok.
 
 attack_with_modifiers(Config) ->
-    %gerlshmud_dbg:add(gerlshmud_handler_item_attack),
+    %egre_dbg:add(rules_item_attack),
     start(?WORLD_8),
     Room = get_pid(room1),
     Player = get_pid(player),
@@ -526,13 +524,14 @@ player_remove(Config) ->
     Helmet = get_pid(helmet),
     DexBuff = get_pid(dex_buff),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT100,
+    ?WAIT1000,
     [] = val(item, player),
     ?assertMatch({Helmet, _Ref}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _Ref0}, val(body_part, Helmet)),
     ?assertMatch({body_part, Head, head, _Ref1}, val(body_part, DexBuff)),
+    egre_dbg:add(rules_item_inject_self, attempt),
     attempt(Config, Player, {<<"helmet">>, move, from, <<"head">>, to, Player}),
-    ?WAIT100,
+    ?WAIT1000,
     ?assertMatch(Helmet, val(item, player)),
     [] = val(body_part, Helmet),
     [] = val(body_part, DexBuff),
@@ -552,15 +551,16 @@ player_remove(Config) ->
 
 look_player(_Config) ->
     start(?WORLD_7),
-    gerlshmud_test_socket:send(<<"AnyLoginWillDo">>),
-    gerlshmud_test_socket:send(<<"AnyPasswordWillDo">>),
+    egremud_test_socket:send(<<"AnyLoginWillDo">>),
+    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
     ?WAIT100,
-    _LoginMessages = gerlshmud_test_socket:messages(),
-    gerlshmud_test_socket:send(<<"look pete">>),
+    LoginMessages = egremud_test_socket:messages(),
+    ct:pal("~p:~p: LoginMessages~n\t~p~n", [?MODULE, ?FUNCTION_NAME, LoginMessages]),
+    egremud_test_socket:send(<<"look Pete">>),
     ?WAIT100,
     ?WAIT100,
     ?WAIT100,
-    NakedDescriptions = gerlshmud_test_socket:messages(),
+    NakedDescriptions = egremud_test_socket:messages(),
 
     ExpectedDescriptions =
         [<<"Pete -> 4.0m tall">>,
@@ -583,14 +583,14 @@ look_player(_Config) ->
 
 look_player_clothed(Config) ->
     start(?WORLD_7),
-    gerlshmud_test_socket:send(<<"AnyLoginWillDo">>),
-    gerlshmud_test_socket:send(<<"AnyPasswordWillDo">>),
+    egremud_test_socket:send(<<"AnyLoginWillDo">>),
+    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
     Giant = get_pid(giant),
     attempt(Config, Giant, {<<"pants">>, move, from, Giant, to, <<"legs">>}),
     ?WAIT100,
-    gerlshmud_test_socket:send(<<"look pete">>),
+    egremud_test_socket:send(<<"look pete">>),
     ?WAIT100,
-    ClothedDescriptions = gerlshmud_test_socket:messages(),
+    ClothedDescriptions = egremud_test_socket:messages(),
     ct:pal("ClothedDescriptions: ~p", [ClothedDescriptions]),
     ExpectedDescriptions =
         lists:sort([<<"Pete -> hands">>,
@@ -606,13 +606,13 @@ look_player_clothed(Config) ->
 
 look_room(_Config) ->
     start(?WORLD_7),
-    gerlshmud_test_socket:send(<<"AnyLoginWillDo">>),
-    gerlshmud_test_socket:send(<<"AnyPasswordWillDo">>),
+    egremud_test_socket:send(<<"AnyLoginWillDo">>),
+    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
     ?WAIT100,
-    _LoginMessages = gerlshmud_test_socket:messages(),
-    gerlshmud_test_socket:send(<<"look">>),
+    _LoginMessages = egremud_test_socket:messages(),
+    egremud_test_socket:send(<<"look">>),
     ?WAIT100,
-    Descriptions = lists:sort(gerlshmud_test_socket:messages()),
+    Descriptions = lists:sort(egremud_test_socket:messages()),
     ct:pal("Descriptions: ~p~n", [Descriptions]),
     Expected = lists:sort([<<"room -> character Bob">>,
                            <<"room -> character Pete">>,
@@ -622,13 +622,13 @@ look_room(_Config) ->
 
 look_item(_Config) ->
     start(?WORLD_7),
-    gerlshmud_test_socket:send(<<"AnyLoginWillDo">>),
-    gerlshmud_test_socket:send(<<"AnyPasswordWillDo">>),
+    egremud_test_socket:send(<<"AnyLoginWillDo">>),
+    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
     ?WAIT100,
-    _LoginMessages = gerlshmud_test_socket:messages(),
-    gerlshmud_test_socket:send(<<"look bread_">>),
+    _LoginMessages = egremud_test_socket:messages(),
+    egremud_test_socket:send(<<"look bread_">>),
     ?WAIT100,
-    Descriptions = lists:sort(gerlshmud_test_socket:messages()),
+    Descriptions = lists:sort(egremud_test_socket:messages()),
     ct:pal("Descriptions: ~p~n", [Descriptions]),
     Expected = lists:sort([<<"bread_: a loaf of bread">>]),
     ?assertMatch(Expected, Descriptions).
@@ -752,7 +752,7 @@ revive_process(_Config) ->
 
 decompose(Config) ->
     start(?WORLD_3),
-    application:set_env(gerlshmud, corpse_cleanup_milis, 1),
+    application:set_env(mud, corpse_cleanup_milis, 1),
     Player = get_pid(player),
     Zombie = get_pid(zombie),
     Room = get_pid(room),
@@ -770,10 +770,10 @@ decompose(Config) ->
     wait_for(Conditions, 3).
 
 search_character(_Config) ->
-    %gerlshmud_dbg:add(egre_event_log, log),
-    %gerlshmud_dbg:add(egre_event_log, handle_cast),
-    %gerlshmud_dbg:add(egre_object, log),
-    %gerlshmud_dbg:add(egre_event_log, flatten, 1),
+    %egre_dbg:add(egre_event_log, log),
+    %egre_dbg:add(egre_event_log, handle_cast),
+    %egre_dbg:add(egre_object, log),
+    %egre_dbg:add(egre_event_log, flatten, 1),
     start(?WORLD_12),
     egremud_test_socket:send(<<"AnyLoginWillDo">>),
     egremud_test_socket:send(<<"AnyPasswordWillDo">>),
@@ -802,7 +802,7 @@ search_character(_Config) ->
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),
     ct:pal("~p: Cwd~n\t~p~n", [?MODULE, Cwd]),
-    LogFile = "../gerlshmud.log",
+    LogFile = "../egre_ct.log",
     start(?WORLD_7),
     ct:sleep(500),
     Player = get_pid(player),
