@@ -11,7 +11,7 @@
     %sasl,
     egremud
   ]},
-  {mod, {mud_app, []}},
+  %{mod, {mud_app, []}},
   {env, [{corpse_cleanup_millis, 120000}, %% 2 minutes
          {desc_templates, [
              {character, [<<"character ">>, name]},
@@ -29,5 +29,5 @@
                                   ]
                           }]
          }]}
-]}
+]}.
 
