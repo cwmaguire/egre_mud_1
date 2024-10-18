@@ -5,16 +5,19 @@ const IMAGE_PATH = 'images/';
 let filters = (
   [{id: 'cb_has_type',
     label: 'has type',
+    hover: 'Does this event have the "event_type" field?',
     filter: has_type,
     initial: true},
 
    {id: 'cb_not_link',
     label: 'not link',
+    hover: 'Only show events that are not linking objects to each other.',
     filter: not_link,
     initial: true},
 
    {id: 'cb_not_populate',
     label: 'not populate',
+    hover: 'Only show events that are not "populate" events.',
     filter: not_populate,
     initial: true}
   ]
@@ -99,7 +102,7 @@ function add_filters(initial){
 
   for(let filter of filters){
     let filterSpan = span();
-    let label = span(filter.label);
+    let labelSpan = span(filter.label);
     let checkbox = document.createElement('INPUT');
     checkbox.type = 'checkbox';
     checkbox.id = filter.id;
@@ -107,8 +110,8 @@ function add_filters(initial){
     checkbox.addEventListener('change', filter_checkbox_change);
 
     filterSpan.appendChild(checkbox);
-    filterSpan.appendChild(label);
-    filtersDiv.appendChild(filterSpan);
+    filterSpan.appendChild(labelSpan);
+    filtersDiv.appendChild(hoverSpan(filterSpan, filter.hover));
   }
   document.body.appendChild(filtersDiv);
 }
@@ -175,15 +178,27 @@ function add_log_line(log, beforeOrAfter = 'after'){
 
 function add_stage(parent, log){
   let svg1;
+  let hoverText;
   let stage = prop(log, 'stage')
   if(stage == 'attempt'){
     svg1 = svg_circle('#1010FF', 'black');
+    hoverText = 'This is an attempt of an event. Event success or failure will be broadcast.';
   }else if(stage == 'succeed'){
     svg1 = svg_circle('#10A010', 'black');
+    hoverText = 'This event has succeeded; in other words, the event happened.'
   }else{
     svg1 = svg_circle('#FFFFFF', 'black');
+    hoverText = 'This is not an event attempt or event success, so maybe just a manually logged event.'
   }
-  parent.appendChild(svg1);
+  //svg1.className = 'hoverable'
+  //parent.appendChild(svg1);
+
+  let hoverableSpan = span(undefined, 'hoverable');
+  hoverableSpan.appendChild(svg1);
+  parent.appendChild(hoverableSpan);
+
+  let hoverSpan = span(hoverText, 'hoverLabel');
+  parent.appendChild(hoverSpan);
 }
 
 function add_room(parent, log){
@@ -224,24 +239,30 @@ function add_log_process(parent, log){
 }
 
 function add_rules_module(parent, log){
-  let rules = prop(log, 'rules_module');
-  rules = rules.split('_').slice(1).join(' ');
-  let rulesSpan = span(rules, 'module');
-  parent.appendChild(rulesSpan);
+  let rawRulesModule = prop(log, 'rules_module');
+  let hoverText = 'Raw "rules_module" property: ' + rawRulesModule;
+  let rules;
 
-  let handlerFun;
-  if(!rules){
-    rulesSpan.innerHTML = 'n/a';
-    handlerFun =
-      function(parentHeight){
-        let parentHeightInt = parseInt(parentHeight);
-        let heightInt = parseInt(rulesSpan.style.height);
-        let top = (parentHeightInt - heightInt) / 2 - 2;
-        rulesSpan.style.top = top + 'px';
-      }
-  }else{
-    handlerFun = function(){}
+  if(!rawRulesModule){
+    rules = 'n/a';
+    hoverText = 'no "rules_module" property found in log properties';
+  } else if(rawRulesModule == 'no_rules_module'){
+    rules = 'none';
+  } else {
+    rules = rawRulesModule.split('_').slice(1).join(' ');
   }
+
+  let rulesSpan = span(rules, 'module');
+
+  parent.appendChild(hoverSpan(rulesSpan, hoverText));
+
+  let handlerFun =
+    function(parentHeight){
+      let parentHeightInt = parseInt(parentHeight);
+      let heightInt = parseInt(rulesSpan.style.height);
+      let top = (parentHeightInt - heightInt) / 2 - 2;
+      rulesSpan.style.top = top + 'px';
+    };
 
   return handlerFun;
 }
@@ -387,6 +408,17 @@ function span(html, className){
     span_.className = className;
   }
   return span_;
+}
+
+function hoverSpan(element, hoverText){
+  let hoverableSpan = span(undefined, 'hoverable');
+  hoverableSpan.appendChild(element);
+  let hoverSpan = span(hoverText, 'hoverLabel');
+
+  let siblingSpan = span();
+  siblingSpan.appendChild(hoverableSpan);
+  siblingSpan.appendChild(hoverSpan);
+  return siblingSpan;
 }
 
 function img(){

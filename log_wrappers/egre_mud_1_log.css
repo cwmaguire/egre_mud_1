@@ -124,3 +124,17 @@ SVG {
 .message {
   word-wrap: normal;
 }
+
+.hoverLabel {
+  visibility: hidden;
+  display: none;
+  background-color: white;
+}
+
+/* When a "hoverable" is hovered over, show the sibling (~) hover label */
+.hoverable:hover ~ .hoverLabel {
+  visibility: visible;
+  position: absolute;
+  display: inline;
+  z-index: 2;
+}
