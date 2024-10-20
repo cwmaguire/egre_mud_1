@@ -839,10 +839,8 @@ last_line(Filename) ->
     ct:pal("~p: LastLine~n\t~p~n", [?MODULE, LastLine]),
     LastLine.
 
-%% TODO use egre:create_graph(Objects)
 start(Objects) ->
-    IdPids = [{Id, start_obj(Id, Props)} || {Id, Props} <- Objects],
-    _Objs = [egre_object:populate(Pid, IdPids) || {_, Pid} <- IdPids],
+    egre:create_graph(Objects),
     timer:sleep(100).
 
 start_obj(Id, Props) ->
