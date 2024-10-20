@@ -380,6 +380,9 @@ function add_log_text(parent, logDiv, log){
   for(let k in log){
     let d = div();
     d.innerText = k + ': ' + log[k];
+    if(k.startsWith('pid')){
+      d.style.backgroundColor = '#A0A000';
+    }
     logTextDiv.appendChild(d);
   }
   let mouseover = (
