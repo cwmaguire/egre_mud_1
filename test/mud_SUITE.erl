@@ -63,7 +63,7 @@ end_per_testcase(_, _Config) ->
     ct:pal("~p stopping egre_mud~n", [?MODULE]),
     receive after 1000 -> ok end,
     egremud_test_socket:stop(),
-    application:stop(egre_mud).
+    application:stop(mud).
 
 
 all_vals(Key, Obj) ->
