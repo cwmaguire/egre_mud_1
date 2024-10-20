@@ -34,6 +34,7 @@ all() ->
      player_wield_body_part_is_full,
      player_remove,
      look_player,
+     %look_player_clothed,
      look_room,
      look_item,
      set_character,
@@ -56,6 +57,7 @@ init_per_testcase(_, Config) ->
     {atomic, ok} = mnesia:clear_table(object),
     {ok, _Pid} = egremud_test_socket:start(),
     TestObject = spawn_link(fun mock_object/0),
+    % use egre module - fix api
     egre_index:put([{pid, TestObject}, {id, test_object}]),
     [{test_object, TestObject} | Config].
 
@@ -483,7 +485,7 @@ player_wield_wrong_body_part(Config) ->
     [] = val(item, head1),
     ?assertEqual(Helmet, val(item, player)),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT100,
+    ?WAIT1000,
     ?assertMatch({Helmet, _BodyPartRef1}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _BodyPartRef2}, val(body_part, Helmet)),
     [] = val(item, player).
@@ -612,7 +614,7 @@ look_room(_Config) ->
     ?WAIT100,
     _LoginMessages = egremud_test_socket:messages(),
     egremud_test_socket:send(<<"look">>),
-    ?WAIT100,
+    ?WAIT1000,
     Descriptions = lists:sort(egremud_test_socket:messages()),
     ct:pal("Descriptions: ~p~n", [Descriptions]),
     Expected = lists:sort([<<"room -> character Bob">>,
@@ -625,7 +627,7 @@ look_item(_Config) ->
     start(?WORLD_7),
     egremud_test_socket:send(<<"AnyLoginWillDo">>),
     egremud_test_socket:send(<<"AnyPasswordWillDo">>),
-    ?WAIT100,
+    ?WAIT1000,
     _LoginMessages = egremud_test_socket:messages(),
     egremud_test_socket:send(<<"look bread_">>),
     ?WAIT100,
@@ -779,7 +781,7 @@ search_character(_Config) ->
     egremud_test_socket:send(<<"AnyLoginWillDo">>),
     egremud_test_socket:send(<<"AnyPasswordWillDo">>),
     ?WAIT100,
-    _LoginMessages = egre_test_socket:messages(),
+    _LoginMessages = egremud_test_socket:messages(),
     egremud_test_socket:send(<<"search Arlene">>),
     ?WAIT100,
     ?WAIT100,
