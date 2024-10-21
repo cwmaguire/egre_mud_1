@@ -62,6 +62,7 @@ function initial_load(){
 }
 
 function load(filterIds = []){
+  console.clear();
   let handlers = [];
   let logs = [];
 
@@ -75,8 +76,14 @@ function load(filterIds = []){
   filtersToApply.map(f => elem(f.id).checked = true)
   let filteredLogs = filtersToApply.reduce((logs, f) => logs.filter(f.filter), logs);
 
+  let procIds = new Map();
+
   for(let log of filteredLogs){
-    handlers.push(add_log_line(log));
+    storeProcIds(procIds, log);
+  }
+
+  for(let log of filteredLogs){
+    handlers.push(add_log_line(procIds, log));
   }
 
   for(let [d, h1, h2] of handlers){
@@ -140,8 +147,20 @@ function clear(){
   }
 }
 
+function storeProcIds(procIds, log){
+  for(let [k, v] of Object.entries(log)){
+    if(k.endsWith('_id')){
+      let idKey = k;
+      let id = v;
+      let pidKey = idKey.substring(0, idKey.length - 3);
+      let pid = log[pidKey];
+      procIds.set(pid, id);
+    }
+  }
+}
 
-function add_log_line(log, beforeOrAfter = 'after'){
+
+function add_log_line(procIds, log, beforeOrAfter = 'after'){
   let logDiv = div();
 
   let eventSpan = span(undefined, 'event');
@@ -162,18 +181,25 @@ function add_log_line(log, beforeOrAfter = 'after'){
 
   add_result(logDiv, log);
   add_subscription(logDiv, log);
-  add_message(logDiv, log);
+  add_message(logDiv, log, procIds);
 
   if(beforeOrAfter == 'after'){
-    document.body.appendChild(logDiv);
+    add_to_bottom(logDiv);
   }else{
-    let firstLog = document.body.children[4];
-    document.body.insertBefore(logDiv, firstLog);
-
-    remove_overflow();
+    add_to_top(logDiv);
   }
 
   return [logDiv, heightListener, roomWidthListener];
+}
+
+function add_to_bottom(elem){
+    document.body.appendChild(elem);
+}
+
+function add_to_top(elem){
+    let firstLog = document.body.children[4];
+    document.body.insertBefore(elem, firstLog);
+    remove_overflow();
 }
 
 function add_stage(parent, log){
@@ -356,14 +382,128 @@ function add_subscription(parent, log){
   parent.appendChild(subscriptionSpan);
 }
 
-function add_message(parent, log){
+function add_message(parent, log, procIds){
+  console.dir(log);
   let msg = message(prop(log, 'message'));
-  let newMsg = prop(log, 'new_message');
-  if(newMsg){
-    msg += ' -> ' + newMsg;
+  const newMsg = prop(log, 'new_message');
+
+  if(msg){
+    add_partitioned_message(msg, procIds, parent);
+  }else{
+    parent.appendChild(span('&lt;no message&gt;', 'message'));
   }
-  let msgSpan = span(msg, 'message')
-  parent.appendChild(msgSpan);
+
+  if(newMsg){
+    parent.appendChild(span(' -> '));
+    add_partitioned_message(newMsg, procIds, parent);
+  }
+}
+
+function add_partitioned_message(msg, procIds, elem){
+  let msgSpan = span(undefined, 'message')
+  const partitionedMessage = partition_message(msg, procIds);
+  partitionedMessage.map(part => add_msg_part(part, msgSpan));
+  elem.appendChild(msgSpan);
+}
+
+function partition_message(msg, procIds){
+  let array;
+  if(Array.isArray(msg)){
+    array = partition_msg_array(flatten_array(msg), procIds);
+    console.count('array');
+  }else{
+    console.count('string');
+    // TODO try splitting the string on spaces to get an array.
+    // That way, we can just use the logic for arrays.
+    console.log(`msg: ${msg}, type of msg: ${typeof msg}`);
+    let array1 = partition_msg_string(msg, procIds);
+    console.log(`array 1: ${array1}`);
+    let splitMsg = msg.split(' ');
+    console.log(`split message: ${splitMsg}`);
+    let array2 = partition_msg_array(msg.split(' '), procIds);
+    console.log(`array 2: ${array2}`);
+    console.trace();
+    array = array1;
+  }
+
+  return array.map(part => add_pid_ids(part, procIds));
+}
+
+function flatten_array(array){
+  let newArray = array.slice();
+  while(has_array(newArray)){
+    newArray = newArray.flat();
+  }
+  return newArray;
+}
+
+function has_array(array){
+  return !array.every(x => !Array.isArray(x));
+}
+
+function partition_msg_array(array){
+  return array.map(box_pid);
+}
+
+function box_pid(maybePid){
+  const regex = /<\d{1,3}\.\d{1,3}\.\d{1,3}>/;
+  if(typeof maybePid !== 'string'){
+    console.log(`${maybePid} of type ${typeof maybePid} (is array? ${Array.isArray(maybePid)}) is not a string and can't be used with regex`);
+    return maybePid;
+  }
+  if(maybePid.match(regex)){
+    return {pid: maybePid};
+  }else{
+    return maybePid;
+  }
+}
+
+function add_msg_part(part, elem){
+  if(typeof part === 'object'){
+    const pidString = pid_string(part);
+    elem.appendChild(span(pidString));
+  }else{
+    elem.appendChild(span(part));
+  }
+}
+
+function pid_string({pid, id}){
+  return `${id}<br>${pid}`;
+}
+
+function add_pid_ids(part, procIds){
+  if(typeof part === 'object'){
+    part.id = procIds.get(part.pid);
+    return part;
+  }else{
+    return part;
+  }
+}
+
+function partition_msg_string(str, procIds){
+  const matches = find_pids(str);
+  return extract_pids(str, matches);
+}
+
+function find_pids(str){
+  const regex = /<\d{1,3}\.\d{1,3}\.\d{1,3}>/g;
+  const rawMatches = str.matchAll(regex)
+  let matches = [];
+  for(let match of rawMatches){
+      matches.push([match[0], match.index, match[0].length]);
+  }
+  return matches;
+}
+
+function extract_pids(str, matches){
+  const [, parts] = matches.reduce(extract_pids_, [str, [], 0]);
+  return parts;
+}
+
+function extract_pids_([str, strs, pos], [pid, idx, len]){
+  strs.push(str.substring(pos, idx));
+  strs.push({pid: pid});
+  return [str, strs, idx + len];
 }
 
 function add_log_text(parent, logDiv, log){
@@ -493,7 +633,7 @@ function color_from_int(i){
 }
 
 function to_hex(i){
-  var str = Math.round(i).toString(16);
+  let str = Math.round(i).toString(16);
   if(str.length == 1){
     return '0' + str;
   }else{
@@ -533,7 +673,9 @@ function websocket_connect(){
 
   socket.onmessage = function (event) {
     let log = JSON.parse(event.data);
-    add_log_line(log, 'before');
+    // TODO actually build up a running list of proc -> ID mappings
+    let emptyProcIds = new Map();
+    add_log_line(emptyProcIds, log, 'before');
   };
 }
 

@@ -123,6 +123,7 @@ SVG {
 
 .message {
   word-wrap: normal;
+  border: 1px solid red;
 }
 
 .hoverLabel {
