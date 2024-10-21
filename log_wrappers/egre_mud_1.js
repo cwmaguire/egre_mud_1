@@ -433,15 +433,15 @@ function maybe_pid_id_string(maybePid, procIds){
 }
 
 function add_log_text(parent, logDiv, log){
-  let logMouseoverSpan = span('Log');
+  let logMouseoverSpan = span('log', 'hoverable');
   logMouseoverSpan.style.fontSize = '8pt';
   let logTextDiv = div();
-  logTextDiv.style.display = 'none';
-  logTextDiv.style.fontSize = '8pt';
-  logTextDiv.style.zIndex = '2';
+  logTextDiv.className = 'hoverLabel';
+  logTextDiv.style.fontSize = '12pt';
+  logTextDiv.style.width = '50%';
+  logTextDiv.style.top = '10px';
   logTextDiv.style.position = 'fixed';
-  logTextDiv.style.left = '55%';
-  logTextDiv.style.background = 'white';
+  logTextDiv.style.left = '10%';
 
   for(let k in log){
     let d = div();
@@ -451,21 +451,11 @@ function add_log_text(parent, logDiv, log){
     }
     logTextDiv.appendChild(d);
   }
-  let mouseover = (
-    function(event){
-      logTextDiv.style.display = 'block';
-      logTextDiv.style.top = '10px';
-    }
-  )
-  let mouseout = (
-    function(event){
-      logTextDiv.style.display = 'none';
-    }
-  )
-  logMouseoverSpan.addEventListener('mouseover', mouseover);
-  logMouseoverSpan.addEventListener('mouseout', mouseout);
-  logDiv.appendChild(logMouseoverSpan);
-  parent.appendChild(logTextDiv);
+
+  let span1 = span();
+  span1.appendChild(logMouseoverSpan);
+  span1.appendChild(logTextDiv);
+  logDiv.appendChild(span1);
 }
 
 function span(html, className){
