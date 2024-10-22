@@ -174,11 +174,6 @@ function add_log_line(procIds, log, beforeOrAfter = 'after'){
   add_pid('process', logDiv, log);
   let heightListener = add_rules_module(logDiv, log);
 
-  add_maybe_pid('event_source', eventSpan, log);
-  add_event_name(eventSpan, log);
-  add_maybe_pid('event_target', eventSpan, log);
-  logDiv.appendChild(eventSpan);
-
   add_result(logDiv, log);
   add_subscription(logDiv, log);
   add_message(logDiv, log, procIds);
@@ -293,15 +288,6 @@ function add_rules_module(parent, log){
   return handlerFun;
 }
 
-function add_maybe_pid(typeKey, parent, log){
-  let value = prop(log, typeKey);
-  if(is_pid(value)){
-    add_pid(typeKey, parent, log);
-  }else{
-    parent.appendChild(span(value));
-  }
-}
-
 function add_pid(typeKey, parent, log){
   let idKey = typeKey + '_id';
   let pidSpan = span();
@@ -309,45 +295,12 @@ function add_pid(typeKey, parent, log){
 
   let defaultPid = '<0.0.0>';
   let pid = prop(log, typeKey, defaultPid);
-  let [charSpan1, charSpan2] = pid_char_spans(pid);
 
   pidSpan.className = 'process';
 
   pidSpan.appendChild(idSpan);
-  pidSpan.appendChild(charSpan1);
-  pidSpan.appendChild(charSpan2);
 
   parent.appendChild(pidSpan);
-}
-
-function pid_char_spans(pid){
-  let span1;
-  let span2;
-  let pidNum1;
-  let pidNum2;
-
-  if(pid == '<0.0.0>'){
-    span1 = span('_');
-    span1.style.color = 'black';
-    span2 = span('_');
-    span2.style.color = 'black';
-  } else {
-    pidNum1 = parseInt(pid.split('.')[1]);
-    pidNum2 = reverse_int(pidNum1);
-    span1 = pid_span(pidNum1);
-    span2 = pid_span(pidNum2);
-  }
-  span1.className = 'log_process_1';
-  span2.className = 'log_process_2';
-  return [span1, span2];
-}
-
-function pid_span(i){
-  let letter_ = letter(i);
-  let color = color_from_int(i);
-  let span_ = span(letter_);
-  span_.style.color = color;
-  return span_;
 }
 
 function add_event_name(parent, log){
@@ -383,8 +336,7 @@ function add_subscription(parent, log){
 }
 
 function add_message(parent, log, procIds){
-  console.dir(log);
-  let msg = message(prop(log, 'message'));
+  const msg = message(prop(log, 'message'));
   const newMsg = prop(log, 'new_message');
 
   if(msg){
@@ -436,17 +388,16 @@ function add_log_text(parent, logDiv, log){
   let logMouseoverSpan = span('log', 'hoverable');
   logMouseoverSpan.style.fontSize = '8pt';
   let logTextDiv = div();
-  logTextDiv.className = 'hoverLabel';
+  logTextDiv.className = 'hoverBox';
   logTextDiv.style.fontSize = '12pt';
-  logTextDiv.style.width = '50%';
+  //logTextDiv.style.width = '50%';
   logTextDiv.style.top = '10px';
-  logTextDiv.style.position = 'fixed';
   logTextDiv.style.left = '10%';
 
   for(let k in log){
     let d = div();
     d.innerText = k + ': ' + log[k];
-    if(k.startsWith('pid')){
+    if(k == 'pid' || k == 'pid_id'){
       d.style.backgroundColor = '#A0A000';
     }
     logTextDiv.appendChild(d);

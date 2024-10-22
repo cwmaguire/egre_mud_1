@@ -4,8 +4,8 @@ BODY {
 }
 DIV {
   /* something to do with resizing to contain the span inside */
-  height: auto;
-  overflow: auto;
+  /*overflow: auto;*/
+  /*display: inline-block;*/
 }
 SPAN {
   display: inline-block;
@@ -130,16 +130,25 @@ SVG {
   font-size: 12pt;
 }
 
-.hoverLabel {
+.hoverLabel, .hoverBox {
   visibility: hidden;
   display: none;
   background-color: white;
+  padding: 5px;
 }
 
 /* When a "hoverable" is hovered over, show the sibling (~) hover label */
-.hoverable:hover ~ .hoverLabel {
+/*.hoverable:hover ~ .hoverLabel {*/
+.hoverable:hover + .hoverLabel {
   visibility: visible;
   position: absolute;
   display: inline;
+  z-index: 2;
+}
+
+.hoverable:hover + .hoverBox {
+  visibility: visible;
+  position: fixed;
+  display: block;
   z-index: 2;
 }
