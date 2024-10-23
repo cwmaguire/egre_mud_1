@@ -36,7 +36,6 @@ succeed({Props, {Source, describe, Target, with, Context}}) ->
            {context, Context}],
     _ = case is_owner(Target, Props) of
             true ->
-                 %XXX will this block the pants from being shown? Should it?
                 describe(Source, Props, Context, deep);
             _ ->
                 ok

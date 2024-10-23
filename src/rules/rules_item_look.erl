@@ -13,15 +13,6 @@ attempt({#parents{}, Props, {Source, look, Self}}) when Self == self() ->
     log([{?EVENT, look},
          {?SOURCE, Source} ]),
     {succeed, true, Props};
-%attempt({#parents{},
-%         Props,
-%         {Source, describe, Self, with, Context}}) when Self == self() ->
-%    log([{stage, attempt},
-%         {?EVENT, describe},
-%         {?SOURCE, Source},
-%         {?TARGET, Self},
-%         {context, Context}]),
-%    {succeed, true, Props};
 attempt({#parents{owner = Owner},
          Props,
          {Source, describe, Owner, with, Context}}) ->
