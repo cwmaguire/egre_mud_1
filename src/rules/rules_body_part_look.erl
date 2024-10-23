@@ -9,11 +9,10 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Source, describe, Self, with, Context}}) when Self == self() ->
+attempt({#parents{}, Props, {Source, look, Self}}) when Self == self() ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
-           {?TARGET, Self},
-           {context, Context}],
+           {?TARGET, Self}],
     {succeed, true, Props, Log};
 attempt({#parents{owner = Owner}, Props, {Source, describe, Owner, with, Context}}) ->
     Log = [{?SOURCE, Source},
@@ -24,13 +23,12 @@ attempt({#parents{owner = Owner}, Props, {Source, describe, Owner, with, Context
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, describe, Self, with, Context}}) when Self == self() ->
+succeed({Props, {Source, look, Self}}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
-           {?TARGET, Self},
-           {context, Context}],
-    Props2 = describe(Source, Props, Context, deep),
-    {Props2, Log};
+           {?TARGET, Self}],
+    describe(Source, Props, <<>>, deep),
+    {Props, Log};
 succeed({Props, {Source, describe, Target, with, Context}}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
@@ -38,7 +36,8 @@ succeed({Props, {Source, describe, Target, with, Context}}) ->
            {context, Context}],
     _ = case is_owner(Target, Props) of
             true ->
-                describe(Source, Props, Context, shallow);
+                 %XXX will this block the pants from being shown? Should it?
+                describe(Source, Props, Context, deep);
             _ ->
                 ok
         end,

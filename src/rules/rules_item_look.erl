@@ -13,15 +13,15 @@ attempt({#parents{}, Props, {Source, look, Self}}) when Self == self() ->
     log([{?EVENT, look},
          {?SOURCE, Source} ]),
     {succeed, true, Props};
-attempt({#parents{},
-         Props,
-         {Source, describe, Self, with, Context}}) when Self == self() ->
-    log([{stage, attempt},
-         {?EVENT, describe},
-         {?SOURCE, Source},
-         {?TARGET, Self},
-         {context, Context}]),
-    {succeed, true, Props};
+%attempt({#parents{},
+%         Props,
+%         {Source, describe, Self, with, Context}}) when Self == self() ->
+%    log([{stage, attempt},
+%         {?EVENT, describe},
+%         {?SOURCE, Source},
+%         {?TARGET, Self},
+%         {context, Context}]),
+%    {succeed, true, Props};
 attempt({#parents{owner = Owner},
          Props,
          {Source, describe, Owner, with, Context}}) ->
@@ -33,7 +33,7 @@ attempt({#parents{owner = Owner},
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, look, Self}}) when Self == self() ->
+succeed({Props, {Source, look, Self}}) ->
     log([{?EVENT, look},
          {object, Self},
          {?SOURCE, Source},
