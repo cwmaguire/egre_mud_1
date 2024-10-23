@@ -20,6 +20,7 @@ description_part(_, RawText) when is_binary(RawText) ->
 description_part(Props, DescProp) ->
     prop_description(proplists:get_value(DescProp, Props, <<"??">>)).
 
+%% TODO not used?
 prop_description(undefined) ->
     [];
 prop_description(Value) when not is_pid(Value) ->
