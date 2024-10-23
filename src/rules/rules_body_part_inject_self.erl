@@ -9,6 +9,23 @@
 -export([succeed/1]).
 -export([fail/1]).
 
+attempt({#parents{}, Props, {Source, look, TargetName}})
+  when is_binary(TargetName) ->
+    ct:pal("Running body part inject self handler: ~p ~p ~p", [Source, look, TargetName]),
+    Log = [{?SOURCE, Source},
+           {?EVENT, look}],
+    case is_match(Props, TargetName) of
+        true ->
+            Log2 = [{?TARGET, self()} | Log],
+            NewMessage = {Source, look, self()},
+            Result = {resend, Source, NewMessage},
+            {Result, _Subscribe = false, Props, Log2};
+        _ ->
+            %Name = proplists:get_value(name, Props, ""),
+            % ct:pal("Body part (~p) name ~p does not match target name ~p", [self(), Name, TargetName]),
+            Log2 = [{?TARGET, TargetName} | Log],
+            {succeed, _Subscribe = false, Props, Log2}
+    end;
 attempt({#parents{owner = Owner},
          Props,
          {Item, move, from, Owner, to, BodyPartName}})
@@ -68,4 +85,4 @@ fail({Props, _, _}) ->
     Props.
 
 is_match(Props, Name) ->
-    match == re:run(proplists:get_value(name, Props, <<>>), Name, [{capture, none}]).
+    match == re:run(proplists:get_value(name, Props, <<>>), Name, [{capture, none}, caseless]).
