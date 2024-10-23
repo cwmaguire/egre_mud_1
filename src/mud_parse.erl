@@ -34,7 +34,9 @@ parse(Player, <<"search ", Object/binary>>) ->
     log([<<"Searching ">>, Object]),
     {Player, search, Object};
 
-parse(_, _) ->
+parse(_, Command) ->
+    % TODO log to JSON
+    io:format("~p:~p: Command~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Command]),
     {error, <<"Huh?">>}.
 
 log(_Terms) ->
