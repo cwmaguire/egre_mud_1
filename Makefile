@@ -1,5 +1,5 @@
 PROJECT = mud
-DEPS = egre egre_mud
+DEPS = egre egre_mud recon
 
 dep_egre_mud = git https://github.com/cwmaguire/egre_mud master
 dep_egre = git https://github.com/cwmaguire/egre master
