@@ -5,6 +5,8 @@ What do I _need_ for a MUD?
 x move
 x look
 x say
+- shout (1 room away)
+- emote ("emote farts" -> "Reginald farts")
 x get
 x put
 x attack
