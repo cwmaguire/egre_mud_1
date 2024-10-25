@@ -994,3 +994,46 @@
                      {desc, <<"shield desc">>},
                      {drop_on_death, true},
                      ?ITEM_RULES]}]).
+
+-define(WORLD_SAY,
+        [{room_n,
+          [{exit, exit_s},
+           {visitor, player},
+           {visitor, player2},
+           {icon, room},
+           {name, <<"room n">>},
+           {desc, <<"room n">>},
+           ?ROOM_RULES]},
+
+         {room_s,
+          [{exit, exit_n},
+           {visitor, player3},
+           {icon, room},
+           {name, <<"room s">>},
+           {desc, <<"room s">>},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room_n},
+           {icon, person},
+           {name, <<"Reginald">>},
+           ?CHARACTER_RULES]},
+
+         {player2,
+          [{owner, room_n},
+           {icon, person},
+           {name, <<"Archie">>},
+           ?CHARACTER_RULES]},
+
+         {player3,
+          [{owner, room_s},
+           {icon, person},
+           {name, <<"Jughead">>},
+           ?CHARACTER_RULES]},
+
+         {exit_ns,
+          [{{room, n}, room_n},
+           {{room, s}, room_s},
+           {icon, exit},
+           ?EXIT_RULES]}
+         ]).

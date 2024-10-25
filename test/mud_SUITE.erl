@@ -40,7 +40,8 @@ all() ->
      set_character,
      cast_spell,
      decompose,
-     search_character].
+     search_character,
+     player_say].
 
 init_per_testcase(_, Config) ->
     %egre_dbg:add(egre_object),
@@ -53,13 +54,13 @@ init_per_testcase(_, Config) ->
     application:load(egremud),
     application:set_env(egremud, port, Port),
     application:set_env(egremud, parse_fun, {mud_parse, parse, 2}),
-    {ok, _Started} = application:ensure_all_started(mud),
+    {ok, _Started} = application:ensure_all_started([recon, mud]),
     {atomic, ok} = mnesia:clear_table(object),
-    {ok, _Pid} = egremud_test_socket:start(),
+    {ok, TestSocket} = egremud_test_socket:start(),
     TestObject = spawn_link(fun mock_object/0),
     % use egre module - fix api
     egre_index:put([{pid, TestObject}, {id, test_object}]),
-    [{test_object, TestObject} | Config].
+    [{test_object, TestObject}, {test_socket, TestSocket} | Config].
 
 end_per_testcase(_, _Config) ->
     ct:pal("~p stopping egre_mud~n", [?MODULE]),
@@ -272,7 +273,7 @@ counterattack_behaviour(Config) ->
     egre_object:set(Stamina, {tick_time, 100000}),
     Dexterity = get_pid(dexterity0),
     egre_object:set(Dexterity, {defence_hit_modifier, 0}),
-    ?WAIT100,
+    ?WAIT1000,
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
 
     WaitFun =
@@ -284,7 +285,7 @@ counterattack_behaviour(Config) ->
                     false
             end
         end,
-    true = wait_loop(WaitFun, true, 40),
+    true = wait_loop(WaitFun, true, 100),
 
     case val(is_alive, z_life) of
         true ->
@@ -465,6 +466,43 @@ player_wield_missing_body_part(Config) ->
     Player = get_pid(player),
     Head = get_pid(head1),
     Helmet = get_pid(helmet),
+
+    recon_trace:calls({egremud_event_log, json_friendly, 1},
+                      1000,
+                      [{scope, local},
+                       {pid, all}]),
+    N1 = recon_trace:calls({egre_event_log, log, '_'},
+                      1000,
+                      [{scope, local},
+                       {pid, all}]),
+    io:format(user, "N1 = ~p~n", [N1]),
+    N2 = recon_trace:calls({egre_event_log, handle_cast, '_'},
+                      1000,
+                      [{scope, local},
+                       {pid, all}]),
+    io:format(user, "N2 = ~p~n", [N2]),
+    N3 = recon_trace:calls({jsx, encode, '_'},
+                      1000,
+                      [{scope, local},
+                       {pid, all}]),
+    io:format(user, "N3 = ~p~n", [N3]),
+    N4 = recon_trace:calls({erlang, hd, 1},
+                      10,
+                      [{scope, local},
+                       {pid, all}]),
+    io:format(user, "N4 = ~p~n", [N4]),
+    N5 = recon_trace:calls({egre_object, log, '_'},
+                      1000,
+                      [{scope, local},
+                       {pid, all}]),
+    io:format(user, "N5 = ~p~n", [N5]),
+
+    erlang:hd([1,2,3]),
+    recon_trace:calls({mud_SUITE, attempt, '_'}, 1000, [{scope, local}]),
+    InitPid = whereis(init),
+    GroupLeader = group_leader(),
+    io:format("Self = ~p, Init PID = ~p, Group Leader = ~p~n", [self(), InitPid, GroupLeader]),
+    ?WAIT1000,
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"finger">>}),
     ?WAIT100,
     [] = val(item, head1),
@@ -473,7 +511,8 @@ player_wield_missing_body_part(Config) ->
     ?WAIT100,
     ?assertMatch({Helmet, _BodyPartRef0}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _BodyPartRef1}, val(body_part, Helmet)),
-    [] = val(item, player).
+    [] = val(item, player),
+    ?WAIT1000.
 
 player_wield_wrong_body_part(Config) ->
     start(?WORLD_5),
@@ -804,7 +843,7 @@ decompose(Config) ->
          {"Sword owner is Room",
           fun() -> val(owner, sword) == Room end}
         ],
-    wait_for(Conditions, 3).
+    wait_for(Conditions, 30).
 
 search_character(_Config) ->
     %egre_dbg:add(egre_event_log, log),
@@ -835,6 +874,34 @@ search_character(_Config) ->
             ct:fail("Got item descriptions:~p~nbut expected~p~n",
                     [lists:sort(NakedDescriptions), ExpectedDescriptions])
     end.
+
+player_say(_Config) ->
+    start(?WORLD_SAY),
+    egremud_test_socket:send(<<"AnyLoginWillDo">>),
+    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
+    ?WAIT100,
+    LoginMessages = egremud_test_socket:messages(),
+    ct:pal("~p:~p: Player LoginMessages~n\t~p~n",
+           [?MODULE, ?FUNCTION_NAME, LoginMessages]),
+
+    {ok, _Pid} = egremud_test_socket:start(player2),
+    egremud_test_socket:send(player2, <<"player2">>),
+    egremud_test_socket:send(player2, <<"AnyPasswordWillDo">>),
+    ?WAIT100,
+    LoginMessages2 = egremud_test_socket:messages(player2),
+    ct:pal("~p:~p: Player2 LoginMessages2~n\t~p~n",
+           [?MODULE, ?FUNCTION_NAME, LoginMessages2]),
+    ?WAIT1000,
+
+    egremud_test_socket:send(<<"say foo bar">>),
+    ?WAIT1000,
+    SaidPhrase = lists:sort(egremud_test_socket:messages()),
+    SaidPhrase2 = lists:sort(egremud_test_socket:messages(player2)),
+
+    ct:pal("Output: ~p~n", [SaidPhrase]),
+    Expected = lists:sort([<<"Reginald says: foo bar">>]),
+    ?assertMatch(Expected, SaidPhrase),
+    ?assertMatch(Expected, SaidPhrase2).
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

@@ -21,7 +21,8 @@
                                   rules_char_inject_self,
                                   rules_char_enter_world,
                                   rules_char_search,
-                                  rules_char_cleanup |
+                                  rules_char_cleanup,
+                                  rules_char_say |
                                   ?UNIVERSAL_RULES]}).
 
 -define(ITEM_RULES, {rules, [rules_item_look,
