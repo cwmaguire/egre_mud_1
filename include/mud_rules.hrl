@@ -22,7 +22,8 @@
                                   rules_char_enter_world,
                                   rules_char_search,
                                   rules_char_cleanup,
-                                  rules_char_say |
+                                  rules_char_say,
+                                  rules_char_shout |
                                   ?UNIVERSAL_RULES]}).
 
 -define(ITEM_RULES, {rules, [rules_item_look,
@@ -49,7 +50,8 @@
                                   ?UNIVERSAL_RULES]}).
 
 -define(EXIT_RULES, {rules, [rules_exit_move,
-                             rules_exit_look |
+                             rules_exit_look,
+                             rules_exit_shout |
                              ?UNIVERSAL_RULES]}).
 
 -define(HITPOINTS_RULES, {rules, [rules_hitpoints_attack |

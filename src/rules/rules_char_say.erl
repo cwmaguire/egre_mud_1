@@ -16,16 +16,21 @@ attempt({#parents{owner = Room}, Props, {Self, says, Phrase}})
     Name = proplists:get_value(name, Props),
     NewMessage = {Name, says, Phrase, in, Room},
     {{resend, Self, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
-attempt({#parents{owner = Room}, Props, {Player, says, Phrase, in, Room}}) ->
+attempt({#parents{owner = Room}, Props, {Player, says, _Phrase, in, Room}}) ->
+    Log = [{?SOURCE, Player},
+           {?EVENT, says},
+           {?TARGET, Room}],
+    {succeed, _Subscribe = true, Props, Log};
+attempt(_) ->
+    undefined.
+
+succeed({Props, {Player, says, Phrase, in, Room}}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, says},
            {?TARGET, Room}],
     Conn = proplists:get_value(conn, Props),
     egre:attempt(Conn, {send, self(), <<Player/binary, " says: ", Phrase/binary>>}),
-    {succeed, _Subscribe = false, Props, Log};
-attempt(_) ->
-    undefined.
-
+    {Props, Log};
 succeed({Props, _}) ->
     Props.
 

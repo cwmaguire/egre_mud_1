@@ -38,6 +38,10 @@ parse(Player, <<"say ", Phrase/binary>>) ->
     log([<<"Saying ">>, Phrase]),
     {Player, says, Phrase};
 
+parse(Player, <<"shout ", Phrase/binary>>) ->
+    log([<<"Shouting ">>, Phrase]),
+    {Player, shouts, Phrase};
+
 parse(_, Command) ->
     % TODO log to JSON
     io:format("~p:~p: Command~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Command]),

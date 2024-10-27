@@ -1037,3 +1037,68 @@
            {icon, exit},
            ?EXIT_RULES]}
          ]).
+
+-define(WORLD_SHOUT,
+        [{living_room,
+          [{exit, exit_living_room_kitchen},
+           {visitor, player},
+           {visitor, player2},
+           {icon, room},
+           {name, <<"Living room">>},
+           {desc, <<"Unliving room of undead">>},
+           ?ROOM_RULES]},
+
+         {kitchen,
+          [{exit, exit_living_room_kitchen},
+           {exit, exit_kitchen_bathroom},
+           {visitor, player3},
+           {icon, room},
+           {name, <<"kitchen">>},
+           {desc, <<"blood-spattered kitchen">>},
+           ?ROOM_RULES]},
+
+         {bathroom,
+          [{exit, exit_kitchen_bathroom},
+           {visitor, player4},
+           {icon, room},
+           {name, <<"bathroom">>},
+           {desc, <<"filthy bathroom">>},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, living_room},
+           {icon, person},
+           {name, <<"Reginald">>},
+           ?CHARACTER_RULES]},
+
+         {player2,
+          [{owner, living_room},
+           {icon, person},
+           {name, <<"Archie">>},
+           ?CHARACTER_RULES]},
+
+         {player3,
+          [{owner, kitchen},
+           {icon, person},
+           {name, <<"Jughead">>},
+           ?CHARACTER_RULES]},
+
+         {player4,
+          [{owner, bathroom},
+           {icon, person},
+           {name, <<"Moose">>},
+           ?CHARACTER_RULES]},
+
+         {exit_living_room_kitchen,
+          [{{room, living_room}, living_room},
+           {{room, kitchen}, kitchen},
+           {icon, exit},
+           ?EXIT_RULES]},
+
+         {exit_kitchen_bathroom,
+          [{{room, kitchen}, kitchen},
+           {{room, bathroom}, bathroom},
+           {icon, exit},
+           ?EXIT_RULES]}
+         ]).
+

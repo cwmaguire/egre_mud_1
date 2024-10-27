@@ -5,8 +5,6 @@
 -include("mud_test_worlds.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--define(WAIT100, receive after 100 -> ok end).
--define(WAIT1000, receive after 1000 -> ok end).
 
 % TODO test updating a skill when a target is killed with a weapon (or when damage is dealt, or both)
 
@@ -44,28 +42,21 @@ all() ->
      player_say].
 
 init_per_testcase(_, Config) ->
-    %egre_dbg:add(egre_object),
-    %egre_dbg:add(egre_event_log, add_index_details),
-
-    %dbg:tracer(),
-    %dbg:tpl(egre_event_log, '_', '_', [{'_', [], [{exception_trace}]}]),
-
     Port = ct:get_config(port),
     application:load(egremud),
     application:set_env(egremud, port, Port),
     application:set_env(egremud, parse_fun, {mud_parse, parse, 2}),
     {ok, _Started} = application:ensure_all_started([recon, mud]),
     {atomic, ok} = mnesia:clear_table(object),
-    {ok, TestSocket} = egremud_test_socket:start(),
     TestObject = spawn_link(fun mock_object/0),
     % use egre module - fix api
     egre_index:put([{pid, TestObject}, {id, test_object}]),
-    [{test_object, TestObject}, {test_socket, TestSocket} | Config].
+    [{test_object, TestObject} | Config].
 
 end_per_testcase(_, _Config) ->
     ct:pal("~p stopping egre_mud~n", [?MODULE]),
     receive after 1000 -> ok end,
-    egremud_test_socket:stop(),
+    %egremud_test_socket:stop(),
     application:stop(mud).
 
 
@@ -117,7 +108,7 @@ player_move(Config) ->
 
     ?assertMatch(RoomNorth, val(owner, Player)),
     attempt(Config, Player, {Player, move, s}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch(RoomSouth, val(owner, Player)).
 
 player_move_fail(Config) ->
@@ -126,7 +117,7 @@ player_move_fail(Config) ->
     RoomNorth =  get_pid(room_nw),
     ?assertMatch(RoomNorth, val(owner, Player)),
     attempt(Config, Player, {Player, move, non_existent_exit}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch(RoomNorth, val(owner, Player)).
 
 player_move_exit_locked(Config) ->
@@ -137,11 +128,11 @@ player_move_exit_locked(Config) ->
     ExitEastWest =  get_pid(exit_ew),
     ?assertMatch(RoomNorth, val(owner, Player)),
     attempt(Config, Player, {Player, move, e}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch(RoomNorth, val(owner, Player)),
     egre_object:set(ExitEastWest, {is_locked, false}),
     attempt(Config, Player, {Player, move, e}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch(RoomEast, val(owner, Player)).
 
 player_get_item(Config) ->
@@ -151,7 +142,7 @@ player_get_item(Config) ->
     true = has(Sword, room),
     false = has(Sword, player),
     attempt(Config, Player, {Player, get, <<"sword">>}),
-    ?WAIT100,
+    wait(100),
     true = has(Sword, player).
 
 player_drop_item(Config) ->
@@ -160,7 +151,7 @@ player_drop_item(Config) ->
     Helmet = get_pid(helmet),
     true = has(Helmet, player),
     attempt(Config, Player, {Player, drop, <<"helmet">>}),
-    ?WAIT100,
+    wait(100),
     [] = all(item, Player),
     true = has(Helmet, room).
 
@@ -173,7 +164,7 @@ character_owner_add_remove(Config) ->
     Clip = get_pid(clip),
     Bullet = get_pid(bullet),
     attempt(Config, Player, {Player, get, <<"rifle">>}),
-    ?WAIT100,
+    wait(100),
     true = has(Rifle, player),
     %WaitFun =
         %fun() ->
@@ -187,7 +178,7 @@ character_owner_add_remove(Config) ->
     ?assertMatch(Player, val(character, Clip)),
     ?assertMatch(Player, val(character, Bullet)),
     attempt(Config, Player, {Player, drop, <<"rifle">>}),
-    ?WAIT100,
+    wait(100),
     false = has(Rifle, player),
     [] = val(character, Rifle),
     [] = val(character, Suppressor),
@@ -197,14 +188,10 @@ character_owner_add_remove(Config) ->
 
 player_attack(Config) ->
     _SupPid = whereis(egre_object_sup),
-    %fprof:trace([start, {file, "my_prof.trace"}, {procs, [SupPid, self()]}]),
     start(?WORLD_3),
-    ct:pal("~p:player_attack(Config) world 3 started~n", [?MODULE]),
     Player = get_pid(player),
-    ct:pal("~p: Player~n\t~p~n", [?MODULE, Player]),
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
     receive after 1000 -> ok end,
-    %fprof:trace(stop),
     Conditions =
         [{"Zombie is dead",
           fun() -> val(is_alive, z_life) == false end},
@@ -226,9 +213,6 @@ wait_for(Conditions, Count) ->
 
 run_condition({_Desc, Fun}) ->
     Fun().
-
-    %false = val(is_alive, z_life),
-    %true = val(hitpoints, z_hp) =< 0.
 
 player_resource_wait(Config) ->
     start(?WORLD_3),
@@ -273,7 +257,7 @@ counterattack_behaviour(Config) ->
     egre_object:set(Stamina, {tick_time, 100000}),
     Dexterity = get_pid(dexterity0),
     egre_object:set(Dexterity, {defence_hit_modifier, 0}),
-    ?WAIT1000,
+    wait(1000),
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
 
     WaitFun =
@@ -314,15 +298,15 @@ attack_with_modifiers(Config) ->
     Player = get_pid(player),
     %% TODO make sure that the giant is counterattacking
     _Giant = get_pid(giant),
-    ?WAIT100,
+    wait(100),
     attempt(Config, Player, {<<"force field">>, move, from, Room, to, Player}),
     attempt(Config, Player, {<<"shield">>, move, from, Room, to, Player}),
-    ?WAIT100,
+    wait(100),
     attempt(Config, Player, {<<"force field">>, move, from, Player, to, first_available_body_part}),
     attempt(Config, Player, {<<"shield">>, move, from, Player, to, first_available_body_part}),
-    ?WAIT100,
+    wait(100),
     attempt(Config, Player, {Player, attack, <<"pete">>}),
-    ?WAIT100,
+    wait(100),
 
     %% The giant shouldn't be able to attack the player at all,
     %% so the giant should die and the player should be alive.
@@ -363,15 +347,15 @@ stop_attack_on_move(Config) ->
     GiantHP =  get_pid(g_hp),
     egre_object:set(GiantHP, {hitpoints, GiantHPAmt}),
 
-    ?WAIT100,
+    wait(100),
     attempt(Config, Player, {<<"force field">>, move, from, Room1, to, Player}),
     attempt(Config, Player, {<<"shield">>, move, from, Room1, to, Player}),
-    ?WAIT100,
+    wait(100),
     attempt(Config, Player, {<<"force field">>, move, from, Player, to, first_available_body_part}),
     attempt(Config, Player, {<<"shield">>, move, from, Player, to, first_available_body_part}),
-    ?WAIT100,
+    wait(100),
     attempt(Config, Player, {Player, attack, <<"pete">>}),
-    ?WAIT100,
+    wait(100),
 
     WaitFun1 =
         fun() ->
@@ -419,6 +403,13 @@ wait_value(ObjectId, Key, ExpectedValue, Count) ->
         end,
     true = wait_loop(WaitFun, ExpectedValue, Count).
 
+wait_loop(_Fun, _Count = 0) ->
+    ok;
+wait_loop(Fun, Count) when Count > 0 ->
+    Fun(),
+    wait(100),
+    wait_loop(Fun, Count - 1).
+
 wait_loop(Fun, ExpectedValue, _Count = 0) ->
     ct:pal("Mismatched function result:~n\tFunction: ~p~n\tResult: ~p",
            [erlang:fun_to_list(Fun), ExpectedValue]),
@@ -428,7 +419,7 @@ wait_loop(Fun, ExpectedValue, Count) ->
         true ->
             true;
         false ->
-            ?WAIT100,
+            wait(100),
             wait_loop(Fun, ExpectedValue, Count - 1)
     end.
 
@@ -439,8 +430,8 @@ player_wield(Config) ->
     Head = get_pid(head1),
     ?assertMatch(Helmet, val(item, Player)),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT100,
-    ?WAIT100,
+    wait(100),
+    wait(100),
     WaitFun =
         fun() ->
             val(item, player)
@@ -456,7 +447,7 @@ player_wield_first_available(Config) ->
     Head = get_pid(head1),
     Helmet = get_pid(helmet),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, first_available_body_part}),
-    ?WAIT100,
+    wait(100),
     [] = val(item, Player),
     ?assertMatch({Helmet, _BodyPartRef0}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _BodyPartRef1}, val(body_part, Helmet)).
@@ -466,53 +457,17 @@ player_wield_missing_body_part(Config) ->
     Player = get_pid(player),
     Head = get_pid(head1),
     Helmet = get_pid(helmet),
-
-    recon_trace:calls({egremud_event_log, json_friendly, 1},
-                      1000,
-                      [{scope, local},
-                       {pid, all}]),
-    N1 = recon_trace:calls({egre_event_log, log, '_'},
-                      1000,
-                      [{scope, local},
-                       {pid, all}]),
-    io:format(user, "N1 = ~p~n", [N1]),
-    N2 = recon_trace:calls({egre_event_log, handle_cast, '_'},
-                      1000,
-                      [{scope, local},
-                       {pid, all}]),
-    io:format(user, "N2 = ~p~n", [N2]),
-    N3 = recon_trace:calls({jsx, encode, '_'},
-                      1000,
-                      [{scope, local},
-                       {pid, all}]),
-    io:format(user, "N3 = ~p~n", [N3]),
-    N4 = recon_trace:calls({erlang, hd, 1},
-                      10,
-                      [{scope, local},
-                       {pid, all}]),
-    io:format(user, "N4 = ~p~n", [N4]),
-    N5 = recon_trace:calls({egre_object, log, '_'},
-                      1000,
-                      [{scope, local},
-                       {pid, all}]),
-    io:format(user, "N5 = ~p~n", [N5]),
-
-    erlang:hd([1,2,3]),
-    recon_trace:calls({mud_SUITE, attempt, '_'}, 1000, [{scope, local}]),
-    InitPid = whereis(init),
-    GroupLeader = group_leader(),
-    io:format("Self = ~p, Init PID = ~p, Group Leader = ~p~n", [self(), InitPid, GroupLeader]),
-    ?WAIT1000,
+    wait(1000),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"finger">>}),
-    ?WAIT100,
+    wait(100),
     [] = val(item, head1),
     ?assertMatch(Helmet, val(item, player)),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch({Helmet, _BodyPartRef0}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _BodyPartRef1}, val(body_part, Helmet)),
     [] = val(item, player),
-    ?WAIT1000.
+    wait(1000).
 
 player_wield_wrong_body_part(Config) ->
     start(?WORLD_5),
@@ -520,11 +475,11 @@ player_wield_wrong_body_part(Config) ->
     Head = get_pid(head1),
     Helmet = get_pid(helmet),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"finger">>}),
-    ?WAIT100,
+    wait(100),
     [] = val(item, head1),
     ?assertEqual(Helmet, val(item, player)),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT1000,
+    wait(1000),
     ?assertMatch({Helmet, _BodyPartRef1}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _BodyPartRef2}, val(body_part, Helmet)),
     [] = val(item, player).
@@ -542,18 +497,18 @@ player_wield_body_part_is_full(Config) ->
     [] = all(item, finger1),
     [] = all(item, finger2),
     attempt(Config, Player, {<<"ring1">>, move, from, Player, to, <<"finger1">>}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch([Ring2], all(item, player)),
     ?assertMatch([{Ring1, _BodyPartRef1}], all(item, finger1)),
     ?assertMatch({body_part, Finger1, finger, _BodyPartRef2}, val(body_part, Ring1)),
     [] = all(item, finger2),
     attempt(Config, Player, {<<"ring2">>, move, from, Player, to, <<"finger1">>}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch([Ring2], all(item, player)),
     ?assertMatch([{Ring1, _BodyPartRef3}], all(item, finger1)),
     [] = all(item, finger2),
     attempt(Config, Player, {<<"ring2">>, move, from, Player, to, first_available_body_part}),
-    ?WAIT100,
+    wait(100),
     [] = all(item, player),
     ?assertMatch([{Ring1, _BodyPartRef4}], all(item, finger1)),
     ?assertMatch([{Ring2, _BodyPartRef5}], all(item, finger2)),
@@ -566,26 +521,26 @@ player_remove(Config) ->
     Helmet = get_pid(helmet),
     DexBuff = get_pid(dex_buff),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT1000,
+    wait(1000),
     [] = val(item, player),
     ?assertMatch({Helmet, _Ref}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _Ref0}, val(body_part, Helmet)),
     ?assertMatch({body_part, Head, head, _Ref1}, val(body_part, DexBuff)),
     egre_dbg:add(rules_item_inject_self, attempt),
     attempt(Config, Player, {<<"helmet">>, move, from, <<"head">>, to, Player}),
-    ?WAIT1000,
+    wait(1000),
     ?assertMatch(Helmet, val(item, player)),
     [] = val(body_part, Helmet),
     [] = val(body_part, DexBuff),
     [] = val(item, head1),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"head">>}),
-    ?WAIT100,
+    wait(100),
     [] = val(item, player),
     ?assertMatch({Helmet, _Ref2}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _Ref3}, val(body_part, Helmet)),
     ?assertMatch({body_part, Head, head, _Ref4}, val(body_part, DexBuff)),
     attempt(Config, Player, {<<"helmet">>, move, from, current_body_part, to, Player}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch(Helmet, val(item, player)),
     [] = val(body_part, Helmet),
     [] = val(body_part, DexBuff),
@@ -593,16 +548,10 @@ player_remove(Config) ->
 
 look_player(_Config) ->
     start(?WORLD_7),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
-    ?WAIT1000,
-    LoginMessages = egremud_test_socket:messages(),
-    ct:pal("~p:~p: LoginMessages~n\t~p~n", [?MODULE, ?FUNCTION_NAME, LoginMessages]),
-    egremud_test_socket:send(<<"look Pete">>),
-    ?WAIT100,
-    ?WAIT100,
-    ?WAIT100,
-    NakedDescriptions = egremud_test_socket:messages(),
+    login(player),
+    egremud_test_socket:send(player, <<"look Pete">>),
+    wait(300),
+    NakedDescriptions = egremud_test_socket:messages(player),
 
     ExpectedDescriptions =
         [<<"Pete -> 4.0m tall">>,
@@ -625,14 +574,12 @@ look_player(_Config) ->
 
 look_player_clothed(Config) ->
     start(?WORLD_7),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
+    login(player),
     Giant = get_pid(giant),
     attempt(Config, Giant, {<<"pants">>, move, from, Giant, to, <<"legs">>}),
-    ?WAIT1000,
-    _LoginMessages = egremud_test_socket:messages(),
-    egremud_test_socket:send(<<"look pete">>),
-    ?WAIT1000,
+    wait(1000),
+    egremud_test_socket:send(player, <<"look pete">>),
+    wait(1000),
     ClothedDescriptions = egremud_test_socket:messages(),
     ct:pal("ClothedDescriptions: ~p", [ClothedDescriptions]),
     SortedClothedDescriptions = lists:sort(ClothedDescriptions),
@@ -653,19 +600,14 @@ look_player_clothed(Config) ->
 
 look_giants_legs(Config) ->
     start(?WORLD_7),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
+    login(player),
     Giant = get_pid(giant),
     attempt(Config, Giant, {<<"pants">>, move, from, Giant, to, <<"legs">>}),
-    ?WAIT1000,
-    _LoginMessages = egremud_test_socket:messages(),
-    recon_trace:calls({egremud_conn, live, 3}, 1000),
-    egremud_test_socket:send(<<"look legs">>),
-    ?WAIT1000,
+    wait(1000),
+    egremud_test_socket:send(player, <<"look legs">>),
+    wait(1000),
     ClothedDescriptions = egremud_test_socket:messages(),
-    ct:pal("ClothedDescriptions: ~p", [ClothedDescriptions]),
     SortedClothedDescriptions = lists:sort(ClothedDescriptions),
-    ct:pal("~p:~p: SortedClothedDescriptions~n\t~p~n", [?MODULE, ?FUNCTION_NAME, SortedClothedDescriptions]),
     ExpectedDescriptions =
         lists:sort([<<"Pete -> body part hands">>,
                     <<"Pete -> body part legs">>,
@@ -677,19 +619,15 @@ look_giants_legs(Config) ->
                     <<"Pete -> 4.0m tall">>,
                     <<"Pete -> gender: male">>,
                     <<"character Pete">>]),
-    ct:pal("~p:~p: ExpectedDescriptions~n\t~p~n", [?MODULE, ?FUNCTION_NAME, ExpectedDescriptions]),
-    ?assertMatch(ExpectedDescriptions, lists:sort(ClothedDescriptions)).
+    ?assertMatch(ExpectedDescriptions, lists:sort(SortedClothedDescriptions)).
 
 look_room(_Config) ->
     start(?WORLD_7),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
-    ?WAIT100,
-    _LoginMessages = egremud_test_socket:messages(),
-    egremud_test_socket:send(<<"look">>),
-    ?WAIT1000,
+
+    login(player),
+    egremud_test_socket:send(player, <<"look">>),
+    wait(1000),
     Descriptions = lists:sort(egremud_test_socket:messages()),
-    ct:pal("Descriptions: ~p~n", [Descriptions]),
     Expected = lists:sort([<<"room -> character Bob">>,
                            <<"room -> character Pete">>,
                            <<"room -> bread_: a loaf of bread">>,
@@ -698,14 +636,10 @@ look_room(_Config) ->
 
 look_item(_Config) ->
     start(?WORLD_7),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
-    ?WAIT1000,
-    _LoginMessages = egremud_test_socket:messages(),
-    egremud_test_socket:send(<<"look bread_">>),
-    ?WAIT100,
-    Descriptions = lists:sort(egremud_test_socket:messages()),
-    ct:pal("Descriptions: ~p~n", [Descriptions]),
+    login(player),
+    egremud_test_socket:send(player, <<"look bread_">>),
+    wait(100),
+    Descriptions = lists:sort(egremud_test_socket:messages(player)),
     Expected = lists:sort([<<"bread_: a loaf of bread">>]),
     ?assertMatch(Expected, Descriptions).
 
@@ -715,7 +649,7 @@ set_character(Config) ->
     Dog = get_pid(dog),
     Collar = get_pid(collar),
     attempt(Config, Dog, {Collar, move, from, Room, to, Dog}),
-    ?WAIT100,
+    wait(100),
     ?assertMatch(Dog, val(character, collar)),
     ?assertMatch(Dog, val(character, transmitter)),
     ?assertMatch(Dog, val(character, stealth)).
@@ -730,7 +664,7 @@ counterattack_with_spell(Config) ->
     egre_object:set(Stamina, {tick_time, 100000}),
 
     attempt(Config, Player, {Player, memorize, <<"fireball">>}),
-    ?WAIT100,
+    wait(100),
     true = val(is_memorized, fireball_spell),
 
     attempt(Config, Giant, {Giant, attack, <<"bob">>}),
@@ -756,7 +690,7 @@ cast_spell(Config) ->
     Player = get_pid(player),
     _Giant = get_pid(giant),
     attempt(Config, Player, {Player, memorize, <<"fireball">>}),
-    ?WAIT100,
+    wait(100),
     true = val(is_memorized, fireball_spell),
     attempt(Config, Player, {Player, attack, <<"pete">>}),
     WaitFun =
@@ -769,17 +703,14 @@ cast_spell(Config) ->
             end
         end,
     true = wait_loop(WaitFun, true, 30),
-    ?WAIT100,
+    wait(100),
     10 = val(hitpoints, p_hp),
     true = val(is_alive, p_life),
     false = val(is_alive, g_life).
 
 revive_process(_Config) ->
     start(?WORLD_3),
-
     PlayerV1 = get_pid(player),
-    ct:pal("~p: PlayerV1~n\t~p~n", [?MODULE, PlayerV1]),
-
     Room = val(owner, player),
     true = is_pid(Room),
     HP = val(hitpoints, player),
@@ -801,7 +732,7 @@ revive_process(_Config) ->
     ?assertMatch(PlayerV1, val(owner, p_stamina)),
 
     exit(PlayerV1, kill),
-    ?WAIT100,
+    wait(100),
 
     PlayerV2 = get_pid(player),
     false = PlayerV1 == PlayerV2,
@@ -834,7 +765,7 @@ decompose(Config) ->
     Room = get_pid(room),
     Sword = get_pid(sword),
     attempt(Config, Player, {Player, cause, 1000, 'of', fire, to, Zombie, with, undefined}),
-    ?WAIT1000,
+    wait(1000),
     Conditions =
         [{"Zombie process is dead",
           fun() -> is_process_alive(Zombie) == false end},
@@ -846,20 +777,11 @@ decompose(Config) ->
     wait_for(Conditions, 30).
 
 search_character(_Config) ->
-    %egre_dbg:add(egre_event_log, log),
-    %egre_dbg:add(egre_event_log, handle_cast),
-    %egre_dbg:add(egre_object, log),
-    %egre_dbg:add(egre_event_log, flatten, 1),
     start(?WORLD_12),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
-    ?WAIT100,
-    _LoginMessages = egremud_test_socket:messages(),
-    egremud_test_socket:send(<<"search Arlene">>),
-    ?WAIT100,
-    ?WAIT100,
-    ?WAIT100,
-    NakedDescriptions = egremud_test_socket:messages(),
+    login(player),
+    egremud_test_socket:send(player, <<"search Arlene">>),
+    wait(300),
+    NakedDescriptions = egremud_test_socket:messages(player),
 
     ExpectedDescriptions =
         [<<"Arlene has book name: book desc">>,
@@ -877,31 +799,50 @@ search_character(_Config) ->
 
 player_say(_Config) ->
     start(?WORLD_SAY),
-    egremud_test_socket:send(<<"AnyLoginWillDo">>),
-    egremud_test_socket:send(<<"AnyPasswordWillDo">>),
-    ?WAIT100,
-    LoginMessages = egremud_test_socket:messages(),
-    ct:pal("~p:~p: Player LoginMessages~n\t~p~n",
-           [?MODULE, ?FUNCTION_NAME, LoginMessages]),
+    login(player2),
+    login(player),
+    login(player3),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player),
+                  egremud_test_socket:messages(player2),
+                  egremud_test_socket:messages(player3)
+          end,
+    wait_loop(Fun, 5),
+    egremud_test_socket:send(player, <<"say foo bar">>),
+    wait(200),
+    PlayerReceived = egremud_test_socket:messages(player),
+    Player2Received = egremud_test_socket:messages(player2),
+    Player3Received = egremud_test_socket:messages(player3),
+    Expected = [<<"Reginald says: foo bar">>],
+    ?assertMatch(Expected, PlayerReceived),
+    ?assertMatch(Expected, Player2Received),
+    ?assertMatch([], Player3Received).
 
-    {ok, _Pid} = egremud_test_socket:start(player2),
-    egremud_test_socket:send(player2, <<"player2">>),
-    egremud_test_socket:send(player2, <<"AnyPasswordWillDo">>),
-    ?WAIT100,
-    LoginMessages2 = egremud_test_socket:messages(player2),
-    ct:pal("~p:~p: Player2 LoginMessages2~n\t~p~n",
-           [?MODULE, ?FUNCTION_NAME, LoginMessages2]),
-    ?WAIT1000,
-
-    egremud_test_socket:send(<<"say foo bar">>),
-    ?WAIT1000,
-    SaidPhrase = lists:sort(egremud_test_socket:messages()),
-    SaidPhrase2 = lists:sort(egremud_test_socket:messages(player2)),
-
-    ct:pal("Output: ~p~n", [SaidPhrase]),
-    Expected = lists:sort([<<"Reginald says: foo bar">>]),
-    ?assertMatch(Expected, SaidPhrase),
-    ?assertMatch(Expected, SaidPhrase2).
+player_shout(_Config) ->
+    start(?WORLD_SHOUT),
+    login(player),
+    login(player2),
+    login(player3),
+    login(player4),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player),
+                  egremud_test_socket:messages(player2),
+                  egremud_test_socket:messages(player3),
+                  egremud_test_socket:messages(player4)
+          end,
+    wait_loop(Fun, 5),
+    egremud_test_socket:send(player, <<"shout foo bar">>),
+    wait(200),
+    PlayerReceived = egremud_test_socket:messages(player),
+    Player2Received = egremud_test_socket:messages(player2),
+    Player3Received = egremud_test_socket:messages(player3),
+    Player4Received = egremud_test_socket:messages(player4),
+    ExpectedInLivingRoom = [<<"Reginald shouts: foo bar">>],
+    ?assertMatch(ExpectedInLivingRoom, PlayerReceived),
+    ?assertMatch(ExpectedInLivingRoom, Player2Received),
+    ExpectedInKitchen = [<<"Reginald shouts: foo bar from living_room">>],
+    ?assertMatch(ExpectedInKitchen, Player3Received),
+    ?assertMatch([], Player4Received).
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),
@@ -912,7 +853,7 @@ log(_Config) ->
     Player = get_pid(player),
 
     egre_event_log:log(Player, debug, [{foo, bar}]),
-    ?WAIT100,
+    wait(100),
     ct:pal("JSON: ~p~n", [jsx:decode(last_line(LogFile))]),
     [{<<"foo">>, <<"bar">>},
      {<<"level">>, <<"debug">>},
@@ -920,7 +861,7 @@ log(_Config) ->
      {<<"process_name">>, <<"player">>}] = jsx:decode(last_line(LogFile)),
 
     egre_event_log:log(Player, debug, [{foo, bar}, {props, [{player, Player}, {baz, 1}]}]),
-    ?WAIT100,
+    wait(100),
     ct:pal("JSON: ~p~n", [jsx:decode(last_line(LogFile))]),
     [{<<"props">>, [[<<"player">>, _], [<<"baz">>, 1]]},
      {<<"foo">>, <<"bar">>},
@@ -929,7 +870,7 @@ log(_Config) ->
      {<<"process_name">>, <<"player">>}] = jsx:decode(last_line(LogFile)),
 
     egre_event_log:log(Player, debug, [{foo, [1, <<"a">>, 2.0]}]),
-    ?WAIT100,
+    wait(100),
     ct:pal("JSON: ~p~n", [jsx:decode(last_line(LogFile))]),
     [{<<"foo">>, [1, <<"a">>, 2.0]},
      {<<"level">>, <<"debug">>},
@@ -954,6 +895,13 @@ attempt(Config, Target, Message) ->
     TestObject = proplists:get_value(test_object, Config),
     TestObject ! {attempt, Target, Message}.
 
+login(Player) ->
+    egremud_test_socket:start(Player),
+    egremud_test_socket:send(Player, atom_to_binary(Player)),
+    egremud_test_socket:send(Player, <<"AnyPasswordWillDo">>),
+    wait(300),
+    _LoginMessages = egremud_test_socket:messages(Player).
+
 mock_object() ->
     receive
         X ->
@@ -973,3 +921,12 @@ mock_object() ->
 get_pid(Id) ->
     #object{pid = Pid} = egre_index:get(Id),
     Pid.
+
+wait(Millis) ->
+    %ct:pal("~p: Waiting ~p~n", [self(), Millis]),
+    receive X ->
+        ct:pal("Received ~p~n", [X])
+    after Millis ->
+         ok
+    end.
+    %ct:pal("~p: Waited ~p~n", [self(), Millis]).
