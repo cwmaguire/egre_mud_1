@@ -21,6 +21,31 @@ x cast spell
 - resurrect
 
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-10-26   ┃
+┗━━━━━━━━━━━━━━━━┛
+Conversation from Slack:
+
+Terry: How do we know we’ve traversed the graph?
+chris: Umm, I'm not sure we do.
+       ... I suppose we could add tests that fail an attempt, and make sure that the
+       succeed broadcasts never happen. I think I have some tests like that.
+       Also, we don't traverse the whole graph, there's a TTL which is currently
+       "don't go more than one room away"
+       Another issue I thought of is that you can't have multiple fails: this could be
+       confusing if you get different ordering at different times; e.g. one time the
+       door won't open because it's locked, another time because the door isn't in the
+       current room.
+       i.e. the current code doesn't allow for multiple fails, so it might be
+       confusing for the player if they kept getting different reasons for failure.
+       ░ Player: open door
+       ░ Game: the door is locked
+       ░ Player: open door
+       ░ Game: what door?
+       ... which is one of the reasons why I need a customizable TTL for events that
+       should be more or less restricted
+       I have something like that with broadcasting down a body or item hierarchy
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2024-10-12   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
