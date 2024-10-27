@@ -7,7 +7,7 @@
 %% Captures reservation events reserving this process' character's resource
 %% by name and then resends it with this processes pid instead.
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).

@@ -46,6 +46,8 @@ init_per_testcase(_, Config) ->
     application:load(egremud),
     application:set_env(egremud, port, Port),
     application:set_env(egremud, parse_fun, {mud_parse, parse, 2}),
+    application:set_env(egre, extract_fun, {mud_util, extract_record, 1}),
+    application:set_env(egre, serialize_fun, {mud_util, serialize, 2}),
     {ok, _Started} = application:ensure_all_started([recon, mud]),
     {atomic, ok} = mnesia:clear_table(object),
     TestObject = spawn_link(fun mock_object/0),

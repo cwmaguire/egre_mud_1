@@ -3,7 +3,7 @@
 -behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% object behaviour
 -export([attempt/1]).

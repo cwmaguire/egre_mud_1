@@ -7,7 +7,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% Exit might not be a cardinal direction like "south", so saying "Direction"
 %% doesn't always make sense. e.g. "portal" is not a direction.

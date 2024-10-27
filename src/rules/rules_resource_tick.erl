@@ -10,7 +10,7 @@
 %% process or processes in line depending on how much each next successive
 %% process needs.
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 -export([attempt/1]).
 -export([succeed/1]).

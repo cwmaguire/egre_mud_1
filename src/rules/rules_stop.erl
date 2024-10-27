@@ -5,7 +5,7 @@
 
 %% @doc stop and re-broadcast
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% object behaviour
 -export([attempt/1]).

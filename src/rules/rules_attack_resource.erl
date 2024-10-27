@@ -16,7 +16,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 attempt({#parents{character = Character,
                   owner = Owner},

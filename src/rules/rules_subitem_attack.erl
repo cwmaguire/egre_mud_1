@@ -24,7 +24,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% Attacking: hit and damage
 attempt({#parents{top_item = TopItem},

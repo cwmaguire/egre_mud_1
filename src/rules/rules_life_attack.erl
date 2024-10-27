@@ -7,7 +7,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% We have been killed
 attempt({#parents{owner = Owner}, Props, Msg = {Source, killed, Owner, with, _AttackVector}}) ->

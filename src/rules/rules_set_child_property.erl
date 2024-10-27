@@ -17,7 +17,7 @@
 %% need to specify what value we're clearing out. If that value is already
 %% set to something else then we should leave it as is.
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% object behaviour
 -export([attempt/1]).

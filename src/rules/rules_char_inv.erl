@@ -7,7 +7,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
--include_lib("egre/include/egre.hrl").
+-include("mud.hrl").
 
 %% Injects the room, which might indicate this should be in ...room_inject_self,
 %% except the character has a 'room' property, which is faster.
