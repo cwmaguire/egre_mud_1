@@ -13,6 +13,13 @@ else
   exit
 fi
 
+# Make sure we have the latest test suite compiled
+touch test/mud_SUITE.erl
+
+# Compile all of the dependencies in case we're making changes here
+# instead of in their own projects
+make FULL=1 all deps
+
 # Everything after -erl_args is ignored by CT
 CT_OPTS="-config test/test.config ${CASES} -erl_args -config rel/sys.config " \
   EGRE_LOG_PATH=$(pwd)/logs \
