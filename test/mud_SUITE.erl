@@ -39,7 +39,8 @@ all() ->
      cast_spell,
      decompose,
      search_character,
-     player_say].
+     player_say,
+     player_shout].
 
 init_per_testcase(_, Config) ->
     Port = ct:get_config(port),
@@ -56,10 +57,24 @@ init_per_testcase(_, Config) ->
     [{test_object, TestObject} | Config].
 
 end_per_testcase(_, _Config) ->
+    logout(player),
+    logout(player2),
+    logout(player3),
+    logout(player4),
     ct:pal("~p stopping egre_mud~n", [?MODULE]),
-    receive after 1000 -> ok end,
-    %egremud_test_socket:stop(),
-    application:stop(mud).
+    application:stop(recon),
+    Applications0 = application:which_applications(),
+    ct:pal("~p:~p: Applications0~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Applications0]),
+    Result = application:stop(mud),
+    application:stop(egremud),
+    application:stop(egre),
+    ct:pal("~p:~p: Result~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Result]),
+    Applications = application:which_applications(),
+    ct:pal("~p:~p: Applications~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Applications]),
+    wait(1000),
+    Applications2 = application:which_applications(),
+    ct:pal("~p:~p: Applications2~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Applications2]).
+
 
 
 all_vals(Key, Obj) ->
@@ -93,7 +108,7 @@ get_props(Obj) when is_atom(Obj) ->
 get_props(Pid) when is_pid(Pid) ->
     case is_process_alive(Pid) of
         true ->
-            {_RecordName, Props} = sys:get_state(Pid),
+            {_RecordName, Props, _ExtractRecordFun} = sys:get_state(Pid),
             Props;
         false ->
             undefined
@@ -217,7 +232,7 @@ run_condition({_Desc, Fun}) ->
     Fun().
 
 player_resource_wait(Config) ->
-    start(?WORLD_3),
+    start(?WORLD_RESOURCE_WAIT),
     Player = get_pid(player),
     Fist = get_pid(p_fist_right),
     Stamina = get_pid(p_stamina),
@@ -460,6 +475,7 @@ player_wield_missing_body_part(Config) ->
     Head = get_pid(head1),
     Helmet = get_pid(helmet),
     wait(1000),
+    ?assertMatch(Helmet, val(item, player)),
     attempt(Config, Player, {<<"helmet">>, move, from, Player, to, <<"finger">>}),
     wait(100),
     [] = val(item, head1),
@@ -582,7 +598,7 @@ look_player_clothed(Config) ->
     wait(1000),
     egremud_test_socket:send(player, <<"look pete">>),
     wait(1000),
-    ClothedDescriptions = egremud_test_socket:messages(),
+    ClothedDescriptions = egremud_test_socket:messages(player),
     ct:pal("ClothedDescriptions: ~p", [ClothedDescriptions]),
     SortedClothedDescriptions = lists:sort(ClothedDescriptions),
     ct:pal("~p:~p: SortedClothedDescriptions~n\t~p~n", [?MODULE, ?FUNCTION_NAME, SortedClothedDescriptions]),
@@ -608,7 +624,7 @@ look_giants_legs(Config) ->
     wait(1000),
     egremud_test_socket:send(player, <<"look legs">>),
     wait(1000),
-    ClothedDescriptions = egremud_test_socket:messages(),
+    ClothedDescriptions = egremud_test_socket:messages(player),
     SortedClothedDescriptions = lists:sort(ClothedDescriptions),
     ExpectedDescriptions =
         lists:sort([<<"Pete -> body part hands">>,
@@ -629,7 +645,7 @@ look_room(_Config) ->
     login(player),
     egremud_test_socket:send(player, <<"look">>),
     wait(1000),
-    Descriptions = lists:sort(egremud_test_socket:messages()),
+    Descriptions = lists:sort(egremud_test_socket:messages(player)),
     Expected = lists:sort([<<"room -> character Bob">>,
                            <<"room -> character Pete">>,
                            <<"room -> bread_: a loaf of bread">>,
@@ -903,6 +919,9 @@ login(Player) ->
     egremud_test_socket:send(Player, <<"AnyPasswordWillDo">>),
     wait(300),
     _LoginMessages = egremud_test_socket:messages(Player).
+
+logout(Player) ->
+    egremud_test_socket:stop(Player).
 
 mock_object() ->
     receive
