@@ -13,6 +13,16 @@ else
   exit
 fi
 
+# pull in the latest files from the deps so I don't have to worry
+# about patching changes back to the original repos when I make
+# changes to the deps/egre{,_mud}/src files. This way I can edit
+# ~/dev/egre{,_mud}/src/ files directly.
+# (-u means only copy newer files)
+cp -u ~/dev/egre/src/* deps/egre/src/
+cp -u ~/dev/egre/include/* deps/egre/include/
+cp -u ~/dev/egre_mud/src/* deps/egre_mud/src/
+cp -u ~/dev/egre_mud/include/* deps/egre_mud/include/
+
 # Make sure we have the latest test suite compiled
 touch test/mud_SUITE.erl
 
