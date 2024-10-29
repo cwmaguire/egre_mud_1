@@ -224,6 +224,162 @@
                     {drop_on_death, true},
                     ?ITEM_RULES]}]).
 
+-define(WORLD_RESOURCE_WAIT,
+                 [{room,
+                   [{visitor, player},
+                    {visitor, zombie},
+                    {icon, room},
+                    ?ROOM_RULES]},
+
+                  {player,
+                   [{owner, room},
+                    {hitpoints, p_hp},
+                    {life, p_life},
+                    {attribute, dexterity0},
+                    {attack_types, [melee]},
+                    %% TODO: why is stamina a first class property
+                    %% instead of just an attribute?
+                    %% It might not matter what the index of the property
+                    %% is if we don't look them up by index
+                    {resource, p_stamina},
+                    {body_part, p_hand_right},
+                    {icon, person},
+                    ?CHARACTER_RULES]},
+
+                  {p_hp,
+                   [{hitpoints, 1000},
+                    {owner, player},
+                    {icon, stat},
+                    ?HITPOINTS_RULES]},
+
+                  {p_life,
+                   [{is_alive, true},
+                    {owner, player},
+                    {icon, stat},
+                    ?LIFE_RULES]},
+
+                  {p_hand_right,
+                   [{name, <<"right hand">>},
+                    {item, p_fist_right},
+                    {owner, player},
+                    {max_items, 1},
+                    {body_part, hand},
+                    {icon, body_part},
+                    ?BODY_PART_RULES]},
+
+                  {p_fist_right,
+                   [{name, <<"right fist">>},
+                    {owner, p_hand_right},
+                    {character, player},
+                    {wielding_body_parts, [hand]},
+                    {body_part, {?PID(p_hand_right), hand}},
+                    {is_attack, true},
+                    {is_defence, false},
+                    {should_attack_module, mud_attack_melee},
+                    {should_defend_module, mud_defence_melee},
+                    {effect_prototype, p_fist_melee_effect_prototype},
+                    {attack_type, melee},
+                    {resources, [{stamina, 5}]},
+                    {icon, weapon},
+                    ?WEAPON_RULES]},
+
+                  {p_fist_melee_effect_prototype,
+                   [{owner, p_fist_right},
+                    {character, player},
+                    {type, blunt_force},
+                    {lifecycle, once},
+                    {hit_roll, {1, 9}},
+                    {effect_roll, 10},
+                    {child_rules, ?EFFECT_RULES}, %% e.g. {child_rules, {rules, [...]}}
+                    ?EFFECT_PROTOTYPE_RULES]},
+
+                  {dexterity0,
+                   [{attack_hit_modifier, 1},
+                    {defence_hit_modifier, 99},
+                    {owner, player},
+                    {character, player},
+                    {icon, stat}, ?ATTRIBUTE_RULES]},
+
+                  {p_stamina,
+                   [{owner, player},
+                    {type, stamina},
+                    {per_tick, 1},
+                    {tick_time, 100},
+                    {max, 10},
+                    {icon, resource},
+                    ?RESOURCE_RULES]},
+
+                  {zombie,
+                   [{owner, room},
+                    {attack_wait, 10},
+                    {name, <<"zombie">>},
+                    {hitpoints, z_hp},
+                    {life, z_life},
+                    {attribute, dexterity1},
+                    {body_part, z_hand},
+                    %% TODO Do something with this
+                    %% "melee" can even be an attack command that's
+                    %% more specific than just attack:
+                    %% "spell zombie"
+                    %% "melee zombie"
+                    %% "shoot zombie"
+                    {attack_types, [melee]},
+                    {stamina, z_stamina},
+                    {icon, person},
+                    ?CHARACTER_RULES]},
+
+                  {z_hand,
+                   [{name, <<"left hand">>},
+                    {owner, zombie},
+                    {body_part, hand},
+                    {max_items, 1},
+                    {item, sword},
+                    {icon, person},
+                    ?BODY_PART_RULES]},
+
+                  {z_hp,
+                   [{hitpoints, 10},
+                    {owner, zombie},
+                    {icon, stat},
+                    ?HITPOINTS_RULES]},
+
+                  {z_life,
+                   [{is_alive, true},
+                    {owner, zombie},
+                    {icon, stat},
+                    ?LIFE_RULES]},
+
+                  {dexterity1,
+                   [{attack_hit_modifier, 1},
+                    {owner, zombie},
+                    {character, zombie},
+                    {icon, stat},
+                    ?ATTRIBUTE_RULES]},
+
+                  {z_stamina,
+                   [{owner, zombie},
+                    {type, stamina},
+                    {per_tick, 1},
+                    {tick_time, 500},
+                    {max, 10},
+                    {current, 0},
+                    {icon, resource},
+                    ?RESOURCE_RULES]},
+
+                  {sword,
+                   [{attack_damage_modifier, 5},
+                    {owner, z_hand},
+                    % I don't think an item is supposed to know what its character is
+                    %{character, zombie},
+                    {is_attack, true},
+                    {is_auto_attack, true},
+                    {resources, [{stamina, 5}]},
+                    {wielding_body_parts, [hand]},
+                    {body_part, {?PID(z_hand), hand}},
+                    {icon, weapon},
+                    {drop_on_death, true},
+                    ?ITEM_RULES]}]).
+
 -define(WORLD_4, [{room,
                    [{visitor, player},
                     ?ROOM_RULES]},
