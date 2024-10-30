@@ -18,7 +18,7 @@ FROM_NEW_LINE_TO_COLON='`[^`:]*:'
 UNTIL_NEW_LINE='\([^`]*'
 NEW_ATTEMPT="${FROM_NEW_LINE_TO_COLON}attempt${UNTIL_NEW_LINE}"
 
-for f in src/handlers/gerlshmud_handler_*
+for f in src/rules/rules_*
 do
   echo -e "\n$f"
   cat $f | \
