@@ -9,10 +9,6 @@
 
 -include("mud.hrl").
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ATTEMPT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 attempt({#parents{owner = Attack},
          Props,
          {Self, affect, Target}})
@@ -41,10 +37,6 @@ attempt({_Parents,
 
 attempt({_, _, _Msg}) ->
     undefined.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% SUCCEED
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 succeed({Props, {_Self, affect, Target}}) ->
     Attack = proplists:get_value(owner, Props),
@@ -92,14 +84,12 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Targ
           (mud_util:atob(EffectType))/binary,
           AmountBin/binary>>,
     egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
-    ct:pal("~p: CharacterMsg~n\t~p~n", [?MODULE, CharacterMsg]),
 
     TargetSubstitutions = [{<<"<character>">>, Character}],
     TargetMsg = <<"<character> misses you with ", (mud_util:atob(EffectType))/binary>>,
     TargetSubstitutions = [{<<"<target>">>, Target},
                            {<<"<character>">>, Character}],
     egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
-    ct:pal("~p: TargetMsg~n\t~p~n", [?MODULE, TargetMsg]),
     {Props, Log};
 
 succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, on, Target, with, Self}})

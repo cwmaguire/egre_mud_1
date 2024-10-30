@@ -40,7 +40,8 @@ all() ->
      decompose,
      search_character,
      player_say,
-     player_shout].
+     player_shout,
+     get_experience_from_killing].
 
 init_per_testcase(_, Config) ->
     Port = ct:get_config(port),
@@ -61,21 +62,11 @@ end_per_testcase(_, _Config) ->
     logout(player2),
     logout(player3),
     logout(player4),
-    ct:pal("~p stopping egre_mud~n", [?MODULE]),
     application:stop(recon),
-    Applications0 = application:which_applications(),
-    ct:pal("~p:~p: Applications0~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Applications0]),
-    Result = application:stop(mud),
+    application:stop(mud),
     application:stop(egremud),
     application:stop(egre),
-    ct:pal("~p:~p: Result~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Result]),
-    Applications = application:which_applications(),
-    ct:pal("~p:~p: Applications~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Applications]),
-    wait(1000),
-    Applications2 = application:which_applications(),
-    ct:pal("~p:~p: Applications2~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Applications2]).
-
-
+    wait(1000).
 
 all_vals(Key, Obj) ->
     Props = case get_props(Obj) of
@@ -862,9 +853,36 @@ player_shout(_Config) ->
     ?assertMatch(ExpectedInKitchen, Player3Received),
     ?assertMatch([], Player4Received).
 
+get_experience_from_killing(Config) ->
+    start(?WORLD_EXP_FROM_KILL),
+    login(player),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player)
+          end,
+    wait_loop(Fun, 5),
+    Player = get_pid(player),
+
+    attempt(Config, Player, {Player, attack, <<"rat">>}),
+    wait(3000),
+    Conditions1 =
+        [{"Rat is dead",
+          fun() -> val(is_alive, r_life) == false end},
+         {"Player has experience",
+          fun() -> val(gained, p_exp) > 1 end}],
+    wait_for(Conditions1, 5),
+
+    attempt(Config, Player, {Player, attack, <<"big rat">>}),
+    wait(3000),
+    Conditions2 =
+        [{"Big Rat is dead",
+          fun() -> val(is_alive, br_life) == false end},
+         {"Player has experience",
+          fun() -> val(gained, p_exp) == 4 end}],
+    wait_for(Conditions2, 5).
+
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),
-    ct:pal("~p: Cwd~n\t~p~n", [?MODULE, Cwd]),
+    ct:pal("~p: Cwd ~p", [?MODULE, Cwd]),
     LogFile = "../egre_ct.log",
     start(?WORLD_7),
     ct:sleep(500),
@@ -903,7 +921,7 @@ last_line(Filename) ->
 
 start(Objects) ->
     egre:create_graph(Objects),
-    timer:sleep(100).
+    timer:sleep(300).
 
 start_obj(Id, Props) ->
     {ok, Pid} = supervisor:start_child(egre_object_sup, [Id, Props]),

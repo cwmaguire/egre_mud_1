@@ -84,4 +84,7 @@
 -define(ARMOR_RULES, {rules, [rules_defend |
                               element(2, ?ITEM_RULES)]}).
 
+-define(EXPERIENCE_RULES, {rules, [rules_experience_gain |
+                                   ?UNIVERSAL_RULES]}).
+
 -endif.

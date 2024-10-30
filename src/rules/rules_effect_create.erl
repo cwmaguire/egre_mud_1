@@ -9,10 +9,6 @@
 
 -include("mud.hrl").
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ATTEMPT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 attempt({#parents{owner = Attack,
                   character = Character},
          Props,
@@ -24,10 +20,6 @@ attempt({#parents{owner = Attack,
     {succeed, true, Props, Log};
 attempt(_Other = {_, _, _Msg}) ->
     undefined.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% SUCCEED
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 succeed({Props, {Character, affect, Target, because, Attack}}) ->
     Log = [{?EVENT, attack},

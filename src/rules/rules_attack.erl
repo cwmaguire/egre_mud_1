@@ -9,11 +9,6 @@
 
 -include("mud.hrl").
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ATTEMPT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% Attacking
 attempt({#parents{character = Character},
          Props,
          {Character, attack, Target}}) ->
@@ -40,28 +35,25 @@ attempt({#parents{character = Character},
      end,
      {Props, Log};
 
-%% We've told ourself, specifically, to attack but can't, then fail the attempt that is specific to us
+%% We've told ourself, specifically, to attack but can't, then fail the attempt
+%% that is specific to us
 attempt({#parents{character = Character},
          Props,
          {Character, Attack, Target, with, Self}})
   when Self == self(),
        Attack == attack; Attack == counter_attack ->
     IsAttacking = proplists:get_value(is_attacking, Props, false),
+    ShouldAttack = should_attack(Props),
+
     Log = [{?EVENT, attack},
            {?SOURCE, Character},
            {?TARGET, Target},
            {is_attacking, IsAttacking}],
-    case (not IsAttacking) andalso should_attack(Props) of
+
+    case (not IsAttacking) andalso ShouldAttack of
         true ->
-            ct:pal("~p: IsAttacking~n\t~p~n", [?MODULE, IsAttacking]),
-            ShouldAttack = should_attack(Props),
-            ct:pal("~p: ShouldAttack~n\t~p~n", [?MODULE, ShouldAttack]),
             {succeed, true, Props, Log};
-        {false, Message} ->
-            ct:pal("~p: Message~n\t~p~n", [?MODULE, Message]),
-            {{fail, Message}, false, Props, Log};
         _ ->
-            ct:pal("~p: IsAttacking~n\t~p~n", [?MODULE, IsAttacking]),
             %% If _other_ vectors aren't yet attacking the Target then they'll join in.
             %% I'm not sure how that would happen unless the player can set what they're
             %% attacking with for each individual attack. In that case they'll need to
@@ -110,10 +102,6 @@ attempt({#parents{character = Character},
 attempt({_, _, _Msg}) ->
     undefined.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% SUCCEED
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 succeed({Props, {Attacker, killed, Target, with, AttackVector}}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Attacker},
@@ -150,7 +138,6 @@ succeed({Props, {Attacker, Attack, Target, with, Self}})
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            ct:pal("~p: IsAttacking~n\t~p~n", [?MODULE, IsAttacking]),
             reserve(Character, Props),
             Props2 = lists:keystore(target, 1, Props, {target, Target}),
             Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, true}),
@@ -213,7 +200,9 @@ reserve(Character, Props) when is_list(Props) ->
     [reserve(Character, Resource, Amount) || {Resource, Amount} <- proplists:get_value(resources, Props, [])].
 
 reserve(Character, Resource, Amount) ->
-    egre_object:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, self()}).
+    egre_object:attempt(self(),
+                        {Character, reserve, Amount,
+                         'of', Resource, for, self()}).
 
 unreserve(Character, Props) when is_list(Props) ->
     [unreserve(Character, Resource) || {Resource, _Amt} <- proplists:get_value(resources, Props, [])];

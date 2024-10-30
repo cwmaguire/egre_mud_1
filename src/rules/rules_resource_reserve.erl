@@ -48,7 +48,6 @@ succeed({Props, {Character, reserve, Amount, 'of', Self, for, Proc}})
                  false ->
                     [{reservations, Reservations ++ [{Proc, Amount}]} | proplists:delete(reservations, Props)]
              end,
-    %io:format("New props (with reservations): ~p~n", [Props2]),
     Props3 = update_tick(Props2),
     {Props3, Log};
 succeed({Props, {Character, unreserve, Self, for, Proc}})
