@@ -222,6 +222,23 @@ wait_for(Conditions, Count) ->
 run_condition({_Desc, Fun}) ->
     Fun().
 
+wait_for_sorted_messages(Character, Expected, Count) ->
+    wait_for_sorted_messages(Character, Expected, [], Count).
+
+wait_for_sorted_messages(Character, Expected, Received, Count) when Count =< 0 ->
+    ct:fail("Failed waiting for ~p socket messages: ~p~nReceived: ~p",
+            [Character, Expected, Received]);
+wait_for_sorted_messages(Character, Expected, Received, Count) ->
+    New = egremud_test_socket:messages(Character),
+    Sorted = lists:sort(New ++ Received),
+    case Sorted of
+        Expected ->
+            ok;
+        _ ->
+            wait(1000),
+            wait_for_sorted_messages(Character, Expected, Received, Count - 1)
+    end.
+
 player_resource_wait(Config) ->
     start(?WORLD_RESOURCE_WAIT),
     Player = get_pid(player),
@@ -879,6 +896,41 @@ get_experience_from_killing(Config) ->
          {"Player has experience",
           fun() -> val(gained, p_exp) == 4 end}],
     wait_for(Conditions2, 5).
+
+level_up(Config) ->
+    start(?WORLD_LEVEL_UP),
+    login(player),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player)
+          end,
+    wait_loop(Fun, 5),
+    Player = get_pid(player),
+
+    attempt(Config, Player, {Player, gains, 10, experience}),
+    wait(300),
+    Props = get_props(p_level),
+    ct:pal("~p:~p: Props~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Props]),
+    Level = val(level, p_level),
+    ct:pal("~p:~p: Level~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Level]),
+
+    Conditions1 =
+        [{"Player is level 1",
+          fun() -> val(level, p_level) == 1 end}],
+    wait_for(Conditions1, 5),
+
+    wait_for_sorted_messages(player, [<<"You have reached level 1">>], 5),
+
+    attempt(Config, Player, {Player, gains, 10, experience}),
+    wait(300),
+    ?assertEqual(1, val(level, p_level), "Not enough exp for level 2, should be level 1 still."),
+
+    attempt(Config, Player, {Player, gains, 40, experience}),
+    wait(300),
+
+    ExpectedMessages = [<<"You have reached level 2">>,
+                        <<"You have reached level 3">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5),
+    ?assertEqual(3, val(level, p_level), "Enough exp for 2 levels, should be up to level 3.").
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

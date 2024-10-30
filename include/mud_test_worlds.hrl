@@ -1442,3 +1442,28 @@
            {current, 0},
            {icon, resource},
            ?RESOURCE_RULES]}]).
+
+-define(WORLD_LEVEL_UP,
+        [{room,
+          [{visitor, player},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {exp, p_exp},
+           {level, p_level},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         {p_exp,
+          [{owner, player},
+           {gained, 0},
+           {gives, 0},
+           ?EXPERIENCE_RULES]},
+
+         {p_level,
+          [{owner, player},
+           {level, 0},
+           {levels, [{1, 10}, {2, 25}, {3, 60}]},
+           ?LEVEL_RULES]}]).

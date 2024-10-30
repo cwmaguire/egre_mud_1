@@ -87,4 +87,7 @@
 -define(EXPERIENCE_RULES, {rules, [rules_experience_gain |
                                    ?UNIVERSAL_RULES]}).
 
+-define(LEVEL_RULES, {rules, [rules_level_gain |
+                              ?UNIVERSAL_RULES]}).
+
 -endif.
