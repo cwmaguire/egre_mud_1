@@ -5,7 +5,7 @@ What do I _need_ for a MUD?
 x move
 x look
 x say
-- shout (1 room away)
+x shout (1 room away)
 - emote ("emote farts" -> "Reginald farts")
 x get
 x put
@@ -19,6 +19,11 @@ x cast spell
 - activate quest
 - complete quest
 - resurrect
+- build the MUD from within the MUD (rooms, items, etc.)
+- roles (e.g. admin rights)
+
+Nice to haves:
+- custom TTL
 
 ┏━━━━━━━━━━━━━━━━┓
 ┃   2024-10-26   ┃
