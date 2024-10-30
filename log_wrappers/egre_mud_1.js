@@ -375,7 +375,7 @@ function has_array(array){
 
 function maybe_pid_id_string(maybePid, procIds){
   const regex = /<\d{1,3}\.\d{1,3}\.\d{1,3}>/;
-  if(maybePid.match(regex)){
+  if(('' + maybePid).match(regex)){
     let pid = maybePid;
     let id = procIds.get(pid);
     return `${id}<br>${pid}`;
