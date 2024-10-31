@@ -38,23 +38,33 @@ succeed({Props, {_, init}}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
            {?TARGET, self()}],
-          Owner = proplists:get_value(owner, Props),
-          egre:attempt(Owner, {Owner, achievement, self()}, false),
+    Owner = proplists:get_value(owner, Props),
+    egre:attempt(Owner, {Owner, achievement, self()}, false),
     {Props, Log};
 succeed({Props, {Owner, achievement, _Self, ack}}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, achievement_ack},
            {?TARGET, self()}],
+    case proplists:get_value(allow_previous, Props) of
+        true ->
           Owner = proplists:get_value(owner, Props),
-          egre:attempt(Owner, {Owner, metrics, get, trees_chopped}, false),
+          egre:attempt(Owner, {Owner, metrics, get, trees_chopped}, false);
+        _ ->
+          ok
+    end,
     {Props, Log};
 succeed({Props, {Owner, metrics, trees_chopped, NumTreesChopped}}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
            {?TARGET, self()}],
-    UpdatedCount = proplists:get_value(count, Props) + NumTreesChopped,
-    ct:pal("~p:~p: UpdatedCount~n\t~p~n", [?MODULE, ?FUNCTION_NAME, UpdatedCount]),
-    NewProps = maybe_trigger_achievement(Owner, Props, UpdatedCount),
+    NewProps = case proplists:get_value(allow_previous, Props) of
+        true ->
+            UpdatedCount = proplists:get_value(count, Props) + NumTreesChopped,
+            ct:pal("~p:~p: UpdatedCount~n\t~p~n", [?MODULE, ?FUNCTION_NAME, UpdatedCount]),
+            maybe_trigger_achievement(Owner, Props, UpdatedCount);
+        _ ->
+            Props
+    end,
     {NewProps, Log};
 succeed({Props, {Owner, chopped, tree, Tree}}) ->
     Log = [{?SOURCE, Owner},

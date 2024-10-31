@@ -1506,13 +1506,6 @@
            {metrics, #{trees_chopped => 3}},
            ?CHARACTER_METRICS_RULES]}]).
 
-         %{p_achievement_historical,
-         % [{owner, player},
-         %  {count, 0},
-         %  {target, 3},
-         %  {done, false},
-         %  ?ACHIEVEMENT_HISTORICAL_RULES]}]).
-
 -define(WORLD_HISTORICAL_ACHIEVEMENT_NOT_ENOUGH,
         [{room,
           [{visitor, player},
@@ -1529,12 +1522,5 @@
          {p_metrics,
           [{owner, player},
            {metrics, #{}},
-           ?CHARACTER_METRICS_RULES]},
-
-         {p_achievement_historical,
-          [{owner, player},
-           {count, 0},
-           {target, 3},
-           {done, false},
-           ?ACHIEVEMENT_HISTORICAL_RULES]}]).
+           ?CHARACTER_METRICS_RULES]}]).
 

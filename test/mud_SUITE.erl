@@ -1006,13 +1006,45 @@ historical_achievement_enough(Config) ->
     ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
-historical_achievement_not_enough(_Config) ->
     % 1. not enough metrics to complete quest -> watch for more
 
     % start achievement
     % update metrics
     % watch for achievement completion
-    ok.
+historical_achievement_not_enough(Config) ->
+    start(?WORLD_HISTORICAL_ACHIEVEMENT_ENOUGH),
+    login(player),
+    drain_socket(player),
+    Player = get_pid(player),
+
+    attempt(Config, Player, {Player, metrics, add, trees_chopped, 10}),
+    Conditions =
+        [{"Metrics set to 10 chopped trees",
+          fun() ->
+              #{trees_chopped := Count} = val(metrics, p_metrics),
+              Count >= 10
+          end}],
+    wait_for(Conditions, 5),
+
+    AchievementProps =
+        [{owner, Player},
+         {count, 0},
+         {target, 1},
+         {done, false},
+         {allow_previous, false},
+         ?ACHIEVEMENT_GOT_WOOD_1_RULES],
+
+    {ok, Achievement}
+        = supervisor:start_child(egre_object_sup,
+                                 [p_achievement, AchievementProps]),
+    wait(400),
+    ?assertNot(val(done, p_achievement),
+               "Achievement 'Got Wood?' should not be done"),
+
+    egre:attempt(Achievement, {Player, chopped, tree, <<"Tree">>}),
+
+    ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),
@@ -1103,3 +1135,9 @@ wait(Millis) ->
          ok
     end.
     %ct:pal("~p: Waited ~p~n", [self(), Millis]).
+
+drain_socket(Player) ->
+    Fun = fun() ->
+              egremud_test_socket:messages(Player)
+          end,
+    wait_loop(Fun, 5).
