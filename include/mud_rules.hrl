@@ -23,7 +23,8 @@
                                   rules_char_search,
                                   rules_char_cleanup,
                                   rules_char_say,
-                                  rules_char_shout |
+                                  rules_char_shout,
+                                  rules_char_achievement |
                                   ?UNIVERSAL_RULES]}).
 
 -define(ITEM_RULES, {rules, [rules_item_look,
@@ -90,4 +91,11 @@
 -define(LEVEL_RULES, {rules, [rules_level_gain |
                               ?UNIVERSAL_RULES]}).
 
+-define(ACHIEVEMENT_GOT_WOOD_1_RULES,
+        {rules, [rules_achievement_got_wood_1 |
+         ?UNIVERSAL_RULES]}).
+
+-define(CHARACTER_METRICS_RULES,
+        {rules, [rules_char_metrics |
+         ?UNIVERSAL_RULES]}).
 -endif.

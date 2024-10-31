@@ -41,7 +41,10 @@ all() ->
      search_character,
      player_say,
      player_shout,
-     get_experience_from_killing].
+     get_experience_from_killing,
+     achievement,
+    historical_achievement_enough,
+    historical_achievement_not_enough].
 
 init_per_testcase(_, Config) ->
     Port = ct:get_config(port),
@@ -231,12 +234,13 @@ wait_for_sorted_messages(Character, Expected, Received, Count) when Count =< 0 -
 wait_for_sorted_messages(Character, Expected, Received, Count) ->
     New = egremud_test_socket:messages(Character),
     Sorted = lists:sort(New ++ Received),
+    ct:pal("~p:~p: Sorted~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Sorted]),
     case Sorted of
         Expected ->
             ok;
         _ ->
             wait(1000),
-            wait_for_sorted_messages(Character, Expected, Received, Count - 1)
+            wait_for_sorted_messages(Character, Expected, Sorted, Count - 1)
     end.
 
 player_resource_wait(Config) ->
@@ -931,6 +935,84 @@ level_up(Config) ->
                         <<"You have reached level 3">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5),
     ?assertEqual(3, val(level, p_level), "Enough exp for 2 levels, should be up to level 3.").
+
+achievement(Config) ->
+    start(?WORLD_ACHIEVEMENT),
+    login(player),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player)
+          end,
+    wait_loop(Fun, 5),
+
+    %recon_trace:calls({mud_SUITE, get_pid, return_trace}, 40, [{scope, local}]),
+    Player = get_pid(player),
+
+    attempt(Config, Player, {Player, chopped, tree, 1}),
+    wait(300),
+
+    ?assertNot(val(done, p_achievement_got_wood_1), "Only 1 tree chopped, no achievement"),
+    attempt(Config, Player, {Player, chopped, tree, 2}),
+    attempt(Config, Player, {Player, chopped, tree, 3}),
+
+    Conditions =
+        [{"Achievement 'Got Wood?' is done",
+          fun() -> val(done, p_achievement_got_wood_1) end}],
+    wait_for(Conditions, 5),
+
+    ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
+
+% scenario:
+% 2. enough metrics to complete quest
+historical_achievement_enough(Config) ->
+    start(?WORLD_HISTORICAL_ACHIEVEMENT_ENOUGH),
+    login(player),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player)
+          end,
+    wait_loop(Fun, 5),
+
+    %recon_trace:calls({mud_SUITE, get_pid, return_trace}, 40, [{scope, local}]),
+    Player = get_pid(player),
+
+    attempt(Config, Player, {Player, metrics, add, trees_chopped, 10}),
+    wait(300),
+
+    Conditions =
+        [{"Metrics set to 10 chopped trees",
+          fun() ->
+              #{trees_chopped := Count} = val(metrics, p_metrics),
+              Count >= 10
+          end}],
+    wait_for(Conditions, 5),
+
+    AchievementProps =
+        [{owner, Player},
+         {count, 0},
+         {target, 10},
+         {done, false},
+         ?ACHIEVEMENT_GOT_WOOD_1_RULES],
+
+    {ok, Pid} = supervisor:start_child(egre_object_sup, [p_achievement, AchievementProps]),
+    ct:pal("~p:~p: achievement Pid~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Pid]),
+    Props = get_props(Pid),
+    ct:pal("~p:~p: Props~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Props]),
+
+    Conditions2 =
+        [{"Achievement 'Got Wood?' is done",
+          fun() -> val(done, p_achievement) end}],
+    wait_for(Conditions2, 5),
+
+    ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
+
+historical_achievement_not_enough(_Config) ->
+    % 1. not enough metrics to complete quest -> watch for more
+
+    % start achievement
+    % update metrics
+    % watch for achievement completion
+    ok.
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

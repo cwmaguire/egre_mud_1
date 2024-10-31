@@ -1467,3 +1467,74 @@
            {level, 0},
            {levels, [{1, 10}, {2, 25}, {3, 60}]},
            ?LEVEL_RULES]}]).
+
+-define(WORLD_ACHIEVEMENT,
+        [{room,
+          [{visitor, player},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {icon, person},
+           {achievement, p_achievement_got_wood_1},
+           ?CHARACTER_RULES]},
+
+         {p_achievement_got_wood_1,
+          [{owner, player},
+           {trigger, trees_chopped},
+           {count, 0},
+           {target, 3},
+           {done, false},
+           ?ACHIEVEMENT_GOT_WOOD_1_RULES]}]).
+
+-define(WORLD_HISTORICAL_ACHIEVEMENT_ENOUGH,
+        [{room,
+          [{visitor, player},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {icon, person},
+           {metrics, p_metrics},
+           %{achievement, p_achievement_historical},
+           ?CHARACTER_RULES]},
+
+         {p_metrics,
+          [{owner, player},
+           {metrics, #{trees_chopped => 3}},
+           ?CHARACTER_METRICS_RULES]}]).
+
+         %{p_achievement_historical,
+         % [{owner, player},
+         %  {count, 0},
+         %  {target, 3},
+         %  {done, false},
+         %  ?ACHIEVEMENT_HISTORICAL_RULES]}]).
+
+-define(WORLD_HISTORICAL_ACHIEVEMENT_NOT_ENOUGH,
+        [{room,
+          [{visitor, player},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {icon, person},
+           {metrics, p_metrics},
+           {achievement, p_achievement_historical},
+           ?CHARACTER_RULES]},
+
+         {p_metrics,
+          [{owner, player},
+           {metrics, #{}},
+           ?CHARACTER_METRICS_RULES]},
+
+         {p_achievement_historical,
+          [{owner, player},
+           {count, 0},
+           {target, 3},
+           {done, false},
+           ?ACHIEVEMENT_HISTORICAL_RULES]}]).
+

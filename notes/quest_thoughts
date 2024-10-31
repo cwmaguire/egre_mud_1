@@ -1,0 +1,70 @@
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-10-29   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+Terry and I were talking about what quests should look like.
+
+Everything in the MUD is a trigger: rules take events which trigger new events
+and changes to object properties, as well as spawning or stopping new objects.
+
+A quest is a trigger: you do something to activate the quest and then you do something
+to trigger the success or failure of the quest. However, levels and achievements
+are also triggers.
+
+There are lots of mechanics in quests:
+- is trigger visible?
+  - Some quests might not be visible until you unlock them
+    - e.g. through quest dialog
+- are achievements required after the trigger is active
+  - If you've already killed the rat in the sewer, will the quest giver
+    know that already? Or do we have to do it again?
+- does activating a trigger auto-complete the trigger (or do you have to "finish")
+  - Do you have to say "Yes, I'll take the quest" and then "Hey, I've finished the
+    quest"? Or, can when you say "Yes, I'll take the quest" does the quest giver
+    notice that you've already done it?
+- Must you always acquire the quest, or can some quests, like achievements,
+  be given to you automatically?
+- Is there quest chaining?
+  - Do I have to complete sub quests to complete the overall quest?
+  - Can one quest completion automatically trigger a new quest?
+- If two quests both require the same triggers, how does a quest "claim"
+  the triggers
+  - e.g. two quests each requiring 1 rat be killed can both be completed by killing
+         a single rat
+  - You could require quest items be turned in to mitigate that
+- Are events prior to the existence of a trigger counted at a discount?
+  - e.g. a new achievement is added to the world to chop down 100 trees for Christmas,
+         and you get 50% of the trees you've chopped in the past credited towards
+         the achievement
+
+The answer to all of these questions is, YES!
+EGRE can handle any situation. The goal of this MUD, as a reference implementation,
+is to demonstrate all kinds of things that can be done.
+
+Scenarios:
+
+1. Character kills rat, character gets 1 experience - DONE
+2. Character kills big rat, character gets 2 experience - DONE
+3. Character gets 10 experience, character gains a level - DONE
+4. Character chops down 5 trees, character gets achievement "got wood?" - DONE
+5. Character says keyword to NPC, character is awarded quest
+6. Character completes a quest requirement, nothing happens
+7. Character completes all quest requirements, nothing happens
+8. Character completes all quest requirements, quest is completed, rewards given
+9. Character says keyword to NPC after already meeting requirements,
+
+Possible trigger object properties:
+
+{trigger,
+  [{unique_id, got_wood},
+   {activation, ________},
+   {name, "Got Wood?"},
+   {description, "Chop down 10 trees."},
+   {backstory, "blah blah"}, % multi paragraph
+   {next_trigger, go_wood_2},
+   {count_previous_actions, true/false},
+   {success_trigger_1, ________},
+   ...
+   ]}
+
+{Character, chopped, tree, Tree}
