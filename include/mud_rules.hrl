@@ -24,7 +24,8 @@
                                   rules_char_cleanup,
                                   rules_char_say,
                                   rules_char_shout,
-                                  rules_char_achievement |
+                                  rules_char_achievement,
+                                  rules_char_quest |
                                   ?UNIVERSAL_RULES]}).
 
 -define(ITEM_RULES, {rules, [rules_item_look,
@@ -93,9 +94,13 @@
 
 -define(ACHIEVEMENT_GOT_WOOD_1_RULES,
         {rules, [rules_achievement_got_wood_1 |
-         ?UNIVERSAL_RULES]}).
+                 ?UNIVERSAL_RULES]}).
+
+-define(QUEST_KILL_FIVE_RATS_WITH_BARE_HANDS_RULES,
+        {rules, [rules_quest_kill_five_rats_with_bare_hands |
+                 ?UNIVERSAL_RULES]}).
 
 -define(CHARACTER_METRICS_RULES,
         {rules, [rules_char_metrics |
-         ?UNIVERSAL_RULES]}).
+                 ?UNIVERSAL_RULES]}).
 -endif.

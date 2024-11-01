@@ -11,7 +11,7 @@
 
 attempt({#parents{}, Props, {Self, achievement, Achievement}})
   when Self == self() ->
-    Log = [{?EVENT, metrics},
+    Log = [{?EVENT, achievement_registration},
            {?SOURCE, Achievement},
            {?TARGET, self()}],
     {succeed, _ShouldSubscribe = true, Props, Log};
@@ -20,7 +20,7 @@ attempt(_) ->
 
 succeed({Props, {_Self, achievement, Achievement}}) ->
     Log = [{?SOURCE, self()},
-           {?EVENT, init},
+           {?EVENT, achievement_registration},
            {?TARGET, self()}],
     egre:attempt(Achievement, {self(), achievement, Achievement, ack}, false),
     {[{achievement, Achievement} | Props], Log};

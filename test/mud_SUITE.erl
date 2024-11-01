@@ -1006,11 +1006,6 @@ historical_achievement_enough(Config) ->
     ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
-    % 1. not enough metrics to complete quest -> watch for more
-
-    % start achievement
-    % update metrics
-    % watch for achievement completion
 historical_achievement_not_enough(Config) ->
     start(?WORLD_HISTORICAL_ACHIEVEMENT_ENOUGH),
     login(player),
@@ -1044,6 +1039,20 @@ historical_achievement_not_enough(Config) ->
     egre:attempt(Achievement, {Player, chopped, tree, <<"Tree">>}),
 
     ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
+
+ask_for_quest(_Config) ->
+    start(?WORLD_GET_QUEST),
+    Player = login(player),
+    drain_socket(player),
+
+    egremud_test_socket:send(player, <<"say Quest please!">>),
+    wait(400),
+    Quest = get_pid(p_quest),
+    ?assertEqual(Player, val(owner, p_quest)),
+    ?assertEqual(Quest, val(quest, player)),
+
+    ExpectedMessages = [<<"You've received a quest!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
 log(_Config) ->
@@ -1102,7 +1111,8 @@ login(Player) ->
     egremud_test_socket:send(Player, atom_to_binary(Player)),
     egremud_test_socket:send(Player, <<"AnyPasswordWillDo">>),
     wait(300),
-    _LoginMessages = egremud_test_socket:messages(Player).
+    _LoginMessages = egremud_test_socket:messages(Player),
+    get_pid(Player).
 
 logout(Player) ->
     egremud_test_socket:stop(Player).

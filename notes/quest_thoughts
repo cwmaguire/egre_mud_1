@@ -48,9 +48,9 @@ Scenarios:
 3. Character gets 10 experience, character gains a level - DONE
 4. Character chops down 5 trees, character gets achievement "got wood?" - DONE
 5. Character says keyword to NPC, character is awarded quest
-6. Character completes a quest requirement, nothing happens
-7. Character completes all quest requirements, nothing happens
-8. Character completes all quest requirements, quest is completed, rewards given
+6. Character completes a quest requirement, but not all of them, nothing happens
+7. Character completes all quest requirements but doesn't "check in", nothing happens
+8. Character completes all quest requirements, doesn't "check in" but quest is completed, rewards given
 9. Character says keyword to NPC after already meeting requirements,
 
 Possible trigger object properties:

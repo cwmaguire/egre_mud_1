@@ -14,7 +14,7 @@ attempt({#parents{owner = Room}, Props, {Self, says, Phrase}})
     Log = [{?EVENT, says},
            {?SOURCE, Self}],
     Name = proplists:get_value(name, Props),
-    NewMessage = {Name, says, Phrase, in, Room},
+    NewMessage = {Self, Name, says, Phrase, in, Room},
     {{resend, Self, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
 attempt({#parents{owner = Room}, Props, {Player, says, _Phrase, in, Room}}) ->
     Log = [{?SOURCE, Player},
@@ -24,7 +24,7 @@ attempt({#parents{owner = Room}, Props, {Player, says, _Phrase, in, Room}}) ->
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, says, Phrase, in, Room}}) ->
+succeed({Props, {_Self, Player, says, Phrase, in, Room}}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, says},
            {?TARGET, Room}],

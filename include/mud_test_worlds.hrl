@@ -1524,3 +1524,26 @@
            {metrics, #{}},
            ?CHARACTER_METRICS_RULES]}]).
 
+-define(WORLD_GET_QUEST,
+        [{room,
+          [{visitor, player},
+           {visitor, shopkeeper},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {name, <<"Peter">>},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         {shopkeeper,
+          [{owner, room},
+           {name, <<"Brenda">>},
+           {icon, person},
+           {player_quest, [{trigger, {say, <<"Quest please!">>}},
+                           {props, [{name, <<"Kill five rats "
+                                             "with your bare hands">>},
+                                     ?QUEST_KILL_FIVE_RATS_WITH_BARE_HANDS_RULES]}]},
+           ?CHARACTER_RULES]}]).
+
