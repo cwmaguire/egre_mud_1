@@ -10,16 +10,12 @@
 -include("mud.hrl").
 
 %% We have been killed
-attempt({#parents{owner = Owner}, Props, Msg = {Source, killed, Owner, with, _AttackVector}}) ->
-    log([<<"attempt: ">>, Msg, <<", props: ">>, Props]),
-                log([{stage, attempt},
-                     {?EVENT, killed},
-                     {object, self()},
-                     {props, Props},
-                     {?SOURCE, Source},
-                     {?TARGET, Owner},
-                     {message, Msg},
-                     {sub, true}]),
+attempt({#parents{owner = Owner},
+         Props,
+         {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
+    log([{?EVENT, killed},
+         {?SOURCE, Source},
+         {?TARGET, Owner}]),
     {succeed, _Subscribe = true, Props};
 
 %% We have died
@@ -34,7 +30,9 @@ attempt({#parents{owner = Owner}, Props, Msg = {Owner, die}}) ->
     {succeed, _Subscribe = true, Props};
 
 %% Something is attack us and we are dead
-attempt({#parents{owner = Owner}, Props, Msg = {Attacker, calc, Hit, on, Owner, with, AttackVector}}) ->
+attempt({#parents{owner = Owner},
+         Props,
+         Msg = {Attacker, calc, Hit, on, Owner, with, AttackVector}}) ->
     log([{stage, attempt},
          {?EVENT, calc_hit},
          {object, self()},
@@ -105,15 +103,16 @@ attempt({#parents{},
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, killed, Owner, with, AttackVector}}) ->
-    log([{stage, succeed},
-         {?EVENT, killed},
-         {object, self()},
-         {props, Props},
+succeed({Props, {Self, init}}) ->
+    log([{?EVENT, init},
+         {?SOURCE, Self},
+         {?TARGET, Self}]),
+    Props;
+
+succeed({Props, {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
+    log([{?EVENT, killed},
          {?SOURCE, Source},
-         {?TARGET, Owner},
-         {handler, ?MODULE},
-         {attack_vector, AttackVector}]),
+         {?TARGET, Owner}]),
     egre_object:attempt(self(), {Owner, die}),
     Props;
 
@@ -127,7 +126,9 @@ succeed({Props, {Owner, die}}) ->
     egre_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
     lists:keystore(is_alive, 1, Props, {is_alive, false});
 
-succeed({Props, _Msg}) ->
+succeed({Props, Msg}) ->
+    ct:pal("~p rules_life_attack received unexpected succeed: ~p",
+           [self(), Msg]),
     throw(should_never_happen),
     Props.
 

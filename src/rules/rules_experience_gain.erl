@@ -10,7 +10,7 @@
 -export([fail/1]).
 
 attempt({#parents{owner = Owner}, Props,
-         {Source, killed, Owner, with, _AttackVector}}) ->
+         {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
            {?TARGET, Owner}],
@@ -24,7 +24,7 @@ attempt({#parents{owner = Owner}, Props,
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, killed, Owner, with, _AttackEffect}}) ->
+succeed({Props, {Source, killed, Owner, with, _AttackEffect, with, _Context}}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, killed},
            {?TARGET, Owner}],

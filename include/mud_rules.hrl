@@ -25,14 +25,16 @@
                                   rules_char_say,
                                   rules_char_shout,
                                   rules_char_achievement,
-                                  rules_char_quest |
+                                  rules_char_quest,
+                                  rules_char_effect |
                                   ?UNIVERSAL_RULES]}).
 
 -define(ITEM_RULES, {rules, [rules_item_look,
                              rules_item_inv,
                              rules_item_inject_self,
                              rules_item_search,
-                             rules_item_cleanup |
+                             rules_item_cleanup,
+                             rules_item_effect |
                              ?UNIVERSAL_RULES]}).
 
 -define(CONN_RULES, {rules, [rules_conn_enter_world,
@@ -80,7 +82,8 @@
 -define(EFFECT_RULES, {rules, [rules_effect_attack |
                                ?UNIVERSAL_RULES]}).
 
--define(WEAPON_RULES, {rules, [rules_attack |
+-define(WEAPON_RULES, {rules, [rules_attack,
+                               rules_weapon_effect |
                                element(2, ?ITEM_RULES)]}).
 
 -define(ARMOR_RULES, {rules, [rules_defend |
@@ -103,4 +106,11 @@
 -define(CHARACTER_METRICS_RULES,
         {rules, [rules_char_metrics |
                  ?UNIVERSAL_RULES]}).
+
+-define(TIME_RULES,
+        {rules, [rules_time_effect]}).
+
+-define(QUEST_KILL_RAT_AT_NOON_WITH_FIST_WEARING_GLOVE,
+        {rules, [rules_quest_kill_rat_at_noon_with_fist_wearing_glove]}).
+
 -endif.

@@ -29,13 +29,6 @@ succeed({Props, {Owner, achievement, _Self, ack}}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, achievement_ack},
            {?TARGET, self()}],
-    case proplists:get_value(allow_previous, Props) of
-        true ->
-          Owner = proplists:get_value(owner, Props),
-          egre:attempt(Owner, {Owner, metrics, get, trees_chopped}, false);
-        _ ->
-          ok
-    end,
     {Props, Log};
 succeed({Props, _}) ->
     Props.

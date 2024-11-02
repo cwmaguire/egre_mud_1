@@ -43,8 +43,9 @@ all() ->
      player_shout,
      get_experience_from_killing,
      achievement,
-    historical_achievement_enough,
-    historical_achievement_not_enough].
+     historical_achievement_enough,
+     historical_achievement_not_enough,
+     ask_for_quest].
 
 init_per_testcase(_, Config) ->
     Port = ct:get_config(port),
@@ -962,8 +963,6 @@ achievement(Config) ->
     ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
-% scenario:
-% 2. enough metrics to complete quest
 historical_achievement_enough(Config) ->
     start(?WORLD_HISTORICAL_ACHIEVEMENT_ENOUGH),
     login(player),
@@ -1054,6 +1053,26 @@ ask_for_quest(_Config) ->
 
     ExpectedMessages = [<<"You've received a quest!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
+
+finish_quest(Config) ->
+    start(?WORLD_COMPLETE_QUEST),
+    Player = login(player),
+    drain_socket(player),
+
+    attempt(Config, Player, {Player, attack, <<"rat">>}),
+    Conditions = [{"Rat is dead", fun() -> val(is_alive, r_life) == false end}],
+    wait_for(Conditions, 5),
+
+    wait(400),
+    ?assertNot(val(is_complete, p_quest)),
+
+    attempt(Config, Player, {Player, attack, <<"rat">>}),
+    Conditions2 = [{"Rat is dead", fun() -> val(is_alive, r_life) == false end}],
+    wait_for(Conditions2, 5),
+
+    Conditions3 = [{"Quest complete", fun() -> val(is_complete, p_quest) end}],
+    wait_for(Conditions3, 4).
+
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

@@ -74,7 +74,7 @@ attempt({#parents{},
 
 attempt({#parents{},
          Props,
-         {Attacker, killed, Target, with, AttackVector}}) ->
+         {Attacker, killed, Target, with, AttackVector, with, _Context}}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, killed},
            {?SOURCE, Target},
@@ -102,7 +102,7 @@ attempt({#parents{character = Character},
 attempt({_, _, _Msg}) ->
     undefined.
 
-succeed({Props, {Attacker, killed, Target, with, AttackVector}}) ->
+succeed({Props, {Attacker, killed, Target, with, AttackVector, with, _Context}}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Attacker},
            {?TARGET, Target},

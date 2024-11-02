@@ -11,7 +11,7 @@
 
 attempt({#parents{owner = Owner},
          Props,
-         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack}}) ->
+         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, _Context}}) ->
     Log = [{?EVENT, Effect},
            {?SOURCE, Attacker},
            {?TARGET, Owner},
@@ -26,12 +26,12 @@ attempt(_) ->
     undefined.
 
 succeed({Props,
-         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack}}) ->
+         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, Context}}) ->
     Log = [{?EVENT, Effect},
            {?TARGET, Owner},
            {from, Attacker},
            {Effect, Amount}],
-    {Props2, Log2} = take_damage(Attacker, Owner, Amount, Effect, Props),
+    {Props2, Log2} = take_damage(Attacker, Owner, Amount, Effect, Props, Context),
     {Props2, Log2 ++ Log};
 
 succeed({Props, _Msg}) ->
@@ -40,7 +40,7 @@ succeed({Props, _Msg}) ->
 fail({Props, _Reason, _Message}) ->
     Props.
 
-take_damage(Attacker, Owner, Amount, EffectType, Props) ->
+take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
     Owner = proplists:get_value(owner, Props),
     Hp = proplists:get_value(hitpoints, Props, 0) - Amount,
     Log = [{hp, Hp}],
@@ -49,7 +49,7 @@ take_damage(Attacker, Owner, Amount, EffectType, Props) ->
     case Hp of
         X when X < 1 ->
             Owner = proplists:get_value(owner, Props),
-            egre:attempt(Owner, {Attacker, killed, Owner, with, EffectType});
+            egre:attempt(Owner, {Attacker, killed, Owner, with, EffectType, with, Context});
         _ ->
             ok
     end,

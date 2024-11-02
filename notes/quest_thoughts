@@ -1,4 +1,91 @@
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-02   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+For quests we ended up just adding a "Context" onto effects (i.e. the actual thing in an
+attack that kills something) to track what the state of the world was when the attack was
+taking place: if the effect kills something, then that Context is added to the kill event.
+The quest (so far there's only a killing quest) will check the context against it's list of
+objectives and update the count, as well as completing the quest if the count is high enough.
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-10-31   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+I'm thinking that each quest / achievement / level we add should require adding to the
+metrics that are required to be tracked for the player. If you want to track their mining
+level, then you have to having a mining metric. "Infinite CPU, infinite RAM, infinite
+bandwidth." It's okay to have a 1GB "database" map in a process to track all the metrics.
+I don't want to get bogged down in reality before I get something working. No on, realistically,
+is ever going to run this monstrosity, so practical considerations are moot.
+
+So, if a quest requires killing seven red dragons at night with the sword of Gilbert, while
+whearing The Silly Hat, then that's a metric that needs to be recorded:
+dragons_killed_at_night_while_wielding_sword_of_gilbert_wearing_silly_hat.
+Maybe there's a way to break that up into a compound key:
+#{{dragons_killed,
+   at_night,
+   wearing_gilbert,
+   wearing_silly_hat} => 1}
+
+Or, should we have separate process for that quest metric?
+
+If you have a quest that has 50 conditions to meet, should we keep that around
+forever?
+
+For every quest requirement combination (while wearing, while wielding, at night)
+We'll have to add that to every "killed" event that happens. ... and potentially
+ever attack: how would you know what the player was wearing if you didn't track it
+at the time the target dies? You can't go back (currently) and say "What were you
+wearing at this time?"
+
+  Although that's a possibility.
+  I don't really want to get into timing issues though: this could run on different
+  servers with different clocks.
+  Better to keep each event, and everything required to subscribe to that event,
+  within the event itself.
+
+  We could add a map to each event with all the relevant details.
+  This MUD doesn't need to be fast. It's okay to take a full minute of real time to
+  assemble *each* attack message. It's a proof of concept, not a proof of
+  feasibility.
+
+"Add details list"
+
+  [wielding, wearing, room, time]   % if you have information in this list, add it to
+                                    % the info map
+
+Object A -- [] --> Object B -- [{wearing, glove}] --> Object C -- [{wielding, sword}] --> Object D
+Object A -- [] --> Object C -- [{wielding, sword}] --> Object B -- [{wearing, glove}] --> Object D
+
+  InfoMap =
+      #{{wielding, <0.101.0>} => sword,,[
+        {wearing, <0.102.0} => cape,
+        {wearing, <0.103.0} => pants,
+        {time, <0.104.0} => noon,
+        {room, <0.105.0>} => dessert_plateau_oasis_ne_1}
+
+  These fields don't need to be used in the routing and triggering of the event,
+  only in the quests that need parts of it.
+
+  Since you can't match on elements of a list in the function head, each
+  object will have to look in the event to see if they need to add themselves.
+  Lots of them will have to anyway, so that should be fine.
+
+Logically, an event includes the context it's in.
+Even if we include 1000 details, that pales in comparison to real world events:
+- what was the players blood pressure?
+- what was the political situation?
+- how much money did they have in their bank account?
+- what was the weather like?
+- how old were they?
+- what time was it?
+- what was the date?
+- what languages did they speak
+- what were they wearing?
+- etc.
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2024-10-29   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
@@ -47,8 +134,8 @@ Scenarios:
 2. Character kills big rat, character gets 2 experience - DONE
 3. Character gets 10 experience, character gains a level - DONE
 4. Character chops down 5 trees, character gets achievement "got wood?" - DONE
-5. Character says keyword to NPC, character is awarded quest
-6. Character completes a quest requirement, but not all of them, nothing happens
+5. Character says keyword to NPC, character is awarded quest - DONE
+6. Character completes a quest requirement, but not all of them, nothing happens - DONE
 7. Character completes all quest requirements but doesn't "check in", nothing happens
 8. Character completes all quest requirements, doesn't "check in" but quest is completed, rewards given
 9. Character says keyword to NPC after already meeting requirements,

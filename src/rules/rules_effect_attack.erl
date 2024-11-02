@@ -103,7 +103,8 @@ succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, o
            {handler, ?MODULE},
            {effect, Self}],
 
-    EffectEvent = {Character, cause, EffectAmount, 'of', EffectType, to, Target, with, Self},
+    Context = [],
+    EffectEvent = {Character, cause, EffectAmount, 'of', EffectType, to, Target, with, Self, with, Context},
     egre_object:attempt(Target, EffectEvent, false),
 
     maybe_repeat(Props, Log);
