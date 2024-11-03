@@ -559,7 +559,7 @@ player_remove(Config) ->
     ?assertMatch({Helmet, _Ref}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _Ref0}, val(body_part, Helmet)),
     ?assertMatch({body_part, Head, head, _Ref1}, val(body_part, DexBuff)),
-    egre_dbg:add(rules_item_inject_self, attempt),
+    %egre_dbg:add(rules_item_inject_self, attempt),
     attempt(Config, Player, {<<"helmet">>, move, from, <<"head">>, to, Player}),
     wait(1000),
     ?assertMatch(Helmet, val(item, player)),
@@ -900,16 +900,6 @@ get_experience_from_killing(Config) ->
 
     attempt(Config, Player, {Player, attack, <<"big rat">>}),
     wait(3000),
-
-    Conditions4 =
-        [{"Big Rat is dead",
-          fun() -> val(is_alive, br_life) == false end}],
-    wait_for(Conditions4, 5),
-
-    Conditions3 =
-        [{"Player has experience",
-          fun() -> val(gained, p_exp) == 4 end}],
-    wait_for(Conditions3, 5),
 
     Conditions2 =
         [{"Big Rat is dead",
