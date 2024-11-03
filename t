@@ -38,6 +38,9 @@ CT_OPTS="-config test/test.config ${CASES} -erl_args -config rel/sys.config " \
 if [[ -e logs/egre.log ]] ; then
   cat log_wrappers/json_head <(sed -e 's/.*/&,/' logs/egre.log) log_wrappers/json_tail > logs/egre_mud_1_log.js
   cp log_wrappers/*.{js,css,html} logs/
+
+  # create jq-compatible json
+  log_to_json
 else
   echo "No logs/egre.log file found"
 fi
