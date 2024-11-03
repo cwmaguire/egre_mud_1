@@ -1,0 +1,8 @@
+# 2024-10-26
+# CM
+# Compile the test module to source so we can see what the code looks
+# like once the macros are compiled in.
+# -P is the "compile to source" flag
+# -pz deps/egre is required for the -include_lib directive
+
+erlc -P -I include/ -pz deps/egre/ test/mud_SUITE.erl
