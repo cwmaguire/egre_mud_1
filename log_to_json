@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# 2024-11-03
+# Chris Maguire
+# Output the individual JSON objects as a list to a file.
+# Add a trailing object because I didn't figure out how to address
+# all but the last line in sed
+
+# see jq_log and jq_raw for query examples
+
+cat <(echo "[") <(sed -e 's/$/,/' logs/egre.log) <(echo "{}]") > jq_json

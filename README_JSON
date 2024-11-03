@@ -1,0 +1,47 @@
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-03   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+This is a note for myself before I create yet *another* script to conver the log output
+to jq-compatible output.
+
+There are *THREE* scripts that do this:
+
+What's kind of funny is that I did the last one over a year after the first two and solved it
+the exact same way.
+
+
+jq_log
+
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ░
+  ░ #!/bin/bash
+  ░ # Convert logs to JSON array and feed into jq so I can just see certain fields
+  ░ #cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | {pid, id, owner, message, event_type}'
+  ░ #cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | select(.id == "room") | {pid, id, owner, character, stage, event_type, message}'
+  ░ #cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | {pid, id, owner, character, stage, event_type, message}'
+  ░ #cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | select(.event_type != "populate") | {pid, id, name, owner, character, stage, event_type, conn, message}'
+  ░ cat <(echo "[") <(sed -e 's/.*/&,/' logs/gerlshmud.log) <(echo "{}]") | jq --compact-output -a '.[] | select(.event_type != "populate") | {pid, id, conn, event_type, stage, message}'
+  ░
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+
+jq_raw
+
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ░
+  ░ #!/bin/bash
+  ░ # Convert logs to JSON array and feed into jq so I can just see certain fields
+  ░ #cat <(echo "[") <(sed -e 's/.*/&,/' logs/egre_mud_1.log) <(echo "{}]") | jq --compact-output -a '.[] | {pid, id, owner, message, event_type}'
+  ░ #cat <(echo "[") <(sed -e 's/.*/&,/' logs/egre_mud_1.log) <(echo "{}]") | jq --compact-output -a '.[] | select(.id == "room") | {pid, id, owner, character, stage, event_type, message}'
+  ░ cat <(echo "[") <(sed -e 's/.*/&,/' logs/egre_mud_1.log) <(echo "{}]") | jq --compact-output -a '.[]'
+  ░
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+log_to_json
+
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ░
+  ░ cat <(echo "[") <(sed -e 's/$/,/' logs/egre.log) <(echo "{}]") > jq_json
+  ░
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
