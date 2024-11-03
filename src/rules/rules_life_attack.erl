@@ -10,7 +10,7 @@
 -include("mud.hrl").
 
 %% We have been killed
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
     log([{?EVENT, killed},
@@ -19,7 +19,7 @@ attempt({#parents{owner = Owner},
     {succeed, _Subscribe = true, Props};
 
 %% We have died
-attempt({#parents{owner = Owner}, Props, Msg = {Owner, die}}) ->
+attempt({#{owner := Owner}, Props, Msg = {Owner, die}}) ->
     log([{stage, attempt},
          {?EVENT, die},
          {object, self()},
@@ -30,7 +30,7 @@ attempt({#parents{owner = Owner}, Props, Msg = {Owner, die}}) ->
     {succeed, _Subscribe = true, Props};
 
 %% Something is attack us and we are dead
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          Msg = {Attacker, calc, Hit, on, Owner, with, AttackVector}}) ->
     log([{stage, attempt},
@@ -49,7 +49,7 @@ attempt({#parents{owner = Owner},
         _ ->
             {succeed, false, Props}
     end;
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          Msg = {Attacker, calc, Types, damage, Damage, to, Owner, with, AttackVector}}) ->
     log([{stage, attempt},
@@ -69,7 +69,7 @@ attempt({#parents{owner = Owner},
         _ ->
             {succeed, false, Props}
     end;
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          _Msg = {Self, attack, Attacker}})
   when Self == self() ->
@@ -83,7 +83,7 @@ attempt({#parents{owner = Owner},
         _ ->
             {succeed, false, Props}
     end;
-attempt({#parents{},
+attempt({#{},
          Props,
          _Msg = {Searcher, search, Self}})
   when Self == self() ->

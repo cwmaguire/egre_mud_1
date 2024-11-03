@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({_Parents, Props, {Char, shouts, _Phrase, in, Room}}) ->
+attempt({#{}, Props, {Char, shouts, _Phrase, in, Room}}) ->
     Log = [{?EVENT, shouts},
            {?SOURCE, Char},
            {?TARGET, Room}],

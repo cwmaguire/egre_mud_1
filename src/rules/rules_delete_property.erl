@@ -10,7 +10,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{},
+attempt({#{},
          Props,
          {delete, Pid}}) ->
     Log = [{?SOURCE, Pid},

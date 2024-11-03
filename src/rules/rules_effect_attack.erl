@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{owner = Attack},
+attempt({#{owner := Attack},
          Props,
          {Self, affect, Target}})
   when Self == self() ->
@@ -19,7 +19,7 @@ attempt({#parents{owner = Attack},
     ShouldSubscribe = proplists:get_value(target, Props, undefined) == Target,
     {succeed, ShouldSubscribe, Props, Log};
 
-attempt({_Parents,
+attempt({#{},
          Props,
          {_Character, roll, _Roll, for, HitOrEffect, with, EffectType, on, Target, with, Self}})
   when Self == self(),

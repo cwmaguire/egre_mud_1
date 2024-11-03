@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({_Parents,
+attempt({#{},
          Props,
          {Self, enter_world, in, room, with, Conn}}) when Self == self() ->
     Log = [{?SOURCE, Self},
@@ -24,7 +24,7 @@ attempt({_Parents,
             NewMessage = {Self, enter_world, in, Room, with, Conn},
             {{resend, Self, NewMessage}, true, Props, Log2}
     end;
-attempt({_Parents,
+attempt({#{},
          Props,
          {Self, enter_world, in, Room, with, _Conn}}) when Self == self(), is_pid(Room) ->
     Log = [{?SOURCE, Self},

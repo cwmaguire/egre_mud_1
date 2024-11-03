@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{},
+attempt({#{type := Type},
          Props,
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Self,
@@ -19,7 +19,7 @@ attempt({#parents{},
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
-    Context2 = [{kill, proplists:get_value(type, Props, <<"missing char type">>)} | Context],
+    Context2 = [{kill, Type} | Context],
     NewMessage = {Character, cause,
                   EffectAmount, 'of', EffectType,
                   to, Self,

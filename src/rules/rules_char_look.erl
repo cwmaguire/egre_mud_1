@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Source, look, TargetName}})
+attempt({#{}, Props, {Source, look, TargetName}})
   when Source =/= self(),
        is_binary(TargetName) ->
     Log = [{?EVENT, look},
@@ -24,23 +24,23 @@ attempt({#parents{}, Props, {Source, look, TargetName}})
             Log2 = [{?TARGET, TargetName} | Log],
             {succeed, false, Props, Log2}
     end;
-attempt({#parents{owner = Room},
+attempt({#{owner := Room},
          Props,
-        _JustPlainLook = {SelfSource, look}})
-  when SelfSource == self() ->
-    Log = [{?SOURCE, SelfSource},
+         {Self, look}})
+  when Self == self() ->
+    Log = [{?SOURCE, Self},
            {?EVENT, look},
            {?TARGET, Room}],
-    NewMessage = {SelfSource, look, Room},
-    {{resend, SelfSource, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
-attempt({#parents{},
+    NewMessage = {Self, look, Room},
+    {{resend, Self, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
+attempt({#{},
          Props,
          {Source, look, Self}}) when Self == self() ->
     Log = [{?SOURCE, Source},
            {?EVENT, look},
            {?TARGET, Self}],
     {succeed, true, Props, Log};
-attempt({#parents{owner = OwnerRoom},
+attempt({#{owner := OwnerRoom},
          Props,
          _DescFromParent = {Source, describe, OwnerRoom, with, RoomContext}}) ->
     Log = [{?SOURCE, Source},

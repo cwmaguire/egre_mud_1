@@ -6,7 +6,7 @@
 -export([atob/1]).
 -export([itob/1]).
 -export([describe/2]).
--export([extract_record/1]).
+-export([extract_from_props/1]).
 -export([serialize/2]).
 
 atob(Atom) ->
@@ -30,21 +30,33 @@ prop_description(undefined) ->
 prop_description(Value) when not is_pid(Value) ->
     Value.
 
-extract_record(Props) ->
+extract_from_props(Props) ->
     Owner = proplists:get_value(owner, Props),
     Character = proplists:get_value(character, Props),
     TopItem = proplists:get_value(top_item, Props),
     BodyPart = proplists:get_value(body_part, Props),
-    Parents = #parents{owner = Owner,
-                       character = Character,
-                       top_item = TopItem,
-                       body_part = BodyPart},
+    %Parents = #parents{owner = Owner,
+                       %character = Character,
+                       %top_item = TopItem,
+                       %body_part = BodyPart},
+
+    KeyFromElem = fun({K, _}) -> K end,
+    ValFromElem = fun({_, V}) -> V end,
+    GroupedItems = maps:groups_from_list(KeyFromElem, ValFromElem, Props),
+    FirstEventParam = maps:map(fun unwrap_single_vals/2, GroupedItems),
+
     LogProps = [{owner, Owner},
                 {character, Character},
                 {top_item, TopItem},
                 {body_part, BodyPart}],
 
-    {Parents, LogProps}.
+    {FirstEventParam, LogProps}.
+
+
+unwrap_single_vals(_, [V]) ->
+    V;
+unwrap_single_vals(_, Vs) ->
+    Vs.
 
 serialize(BodyPart = #body_part{}, JsonFun) ->
     body_part_to_binary(BodyPart, JsonFun);

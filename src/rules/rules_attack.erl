@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, attack, Target}}) ->
     Log = [{?SOURCE, Character},
@@ -18,7 +18,7 @@ attempt({#parents{character = Character},
     {succeed, true, Props, Log};
 
 %% If our character is attacking and we're not, tell ourself, specifically, to attempt an attack
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, Attack, Target}})
   when is_pid(Target),
@@ -37,20 +37,20 @@ attempt({#parents{character = Character},
 
 %% We've told ourself, specifically, to attack but can't, then fail the attempt
 %% that is specific to us
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, Attack, Target, with, Self}})
   when Self == self(),
-       Attack == attack; Attack == counter_attack ->
-    IsAttacking = proplists:get_value(is_attacking, Props, false),
-    ShouldAttack = should_attack(Props),
+       Attack == attack;
+       Attack == counter_attack ->
 
+    IsAttacking = proplists:get_value(is_attacking, Props, false),
     Log = [{?EVENT, attack},
            {?SOURCE, Character},
            {?TARGET, Target},
            {is_attacking, IsAttacking}],
 
-    case (not IsAttacking) andalso ShouldAttack of
+    case (not IsAttacking) andalso should_attack(Props) of
         true ->
             {succeed, true, Props, Log};
         _ ->
@@ -58,10 +58,11 @@ attempt({#parents{character = Character},
             %% I'm not sure how that would happen unless the player can set what they're
             %% attacking with for each individual attack. In that case they'll need to
             %% set what their default counterattack is.
+            ct:pal("~p not attacking", [self()]),
             {succeed, false, Props, Log}
     end;
 
-attempt({#parents{},
+attempt({#{},
          Props,
          {Resource, allocate, Required, 'of', Type, to, Self}})
   when Self == self() ->
@@ -72,7 +73,7 @@ attempt({#parents{},
            {?TARGET, Self}],
     {succeed, true, Props, Log};
 
-attempt({#parents{},
+attempt({#{},
          Props,
          {Attacker, killed, Target, with, AttackVector, with, _Context}}) ->
     Log = [{?SOURCE, Attacker},
@@ -87,12 +88,12 @@ attempt({#parents{},
             {succeed, false, Props, Log}
     end;
 
-attempt({#parents{character = Character}, Props, {Character, stop_attack}}) ->
+attempt({#{character := Character}, Props, {Character, stop_attack}}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, stop_attack}],
     {succeed, true, Props, Log};
 
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, die}}) ->
     Log = [{?SOURCE, Character},
@@ -115,7 +116,8 @@ succeed({Props, {Attacker, killed, Target, with, AttackVector, with, _Context}})
 
 succeed({Props, {Character, Attack, Target}})
   when is_pid(Target),
-       Attack == attack; Attack == counter_attack ->
+       Attack == attack;
+       Attack == counter_attack ->
     Log = [{?SOURCE, Character},
            {?EVENT, Attack},
            {?TARGET, Target}],

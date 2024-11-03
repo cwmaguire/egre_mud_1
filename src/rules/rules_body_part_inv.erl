@@ -11,7 +11,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Self, to, Owner}})
   when Self == self(),
@@ -21,7 +21,7 @@ attempt({#parents{owner = Owner},
            {?SOURCE, Self},
            {?TARGET, Owner}],
     {succeed, has_item_with_ref(Item, Props), Props, Log};
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Owner, to, Self}})
   when Self == self(),
@@ -35,7 +35,7 @@ attempt({#parents{owner = Owner},
     {Result, _Subscribe = true, Props, Log};
 % We know both the target body part and the valid body parts for the item so
 % we can see if this body part has space and if this body part matches the item.
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Owner, to, Self, limited, to, ItemBodyParts}})
   when Self == self(),
@@ -65,14 +65,14 @@ attempt({#parents{owner = Owner},
 %% - 'first_available_body_part' if we don't know which part it will be yet
 %% - 'limited', 'to', 'item_body_parts' if we don't know what body part types are valid
 %%   for the body part.
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Owner, to, first_available_body_part}})
   when is_pid(Item) ->
     NewMessage = {Item, move, from, Owner, to, first_available_body_part, limited, to, item_body_parts},
     Result = {resend, Owner, NewMessage},
     {Result, _Subscribe = true, Props};
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Owner, to, first_available_body_part, limited, to, ItemBodyParts}})
   when is_pid(Item),
@@ -95,7 +95,7 @@ attempt({#parents{owner = Owner},
                     | Log],
             {succeed, _Subscribe = false, Props, Log2}
     end;
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Owner, to, Self, on, body_part, type, BodyPartType}})
   when Self == self() ->

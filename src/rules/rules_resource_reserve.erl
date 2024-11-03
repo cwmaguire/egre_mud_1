@@ -10,7 +10,7 @@
 -export([fail/1]).
 
 % If something reserves us and we have the same owner (character).
-attempt({#parents{owner = Owner}, Props, {Owner, reserve, Amount, 'of', Self, for, Proc}})
+attempt({#{owner := Owner}, Props, {Owner, reserve, Amount, 'of', Self, for, Proc}})
   when Self == self() ->
     Log = [{?SOURCE, Owner},
            {?EVENT, reserve},
@@ -18,14 +18,14 @@ attempt({#parents{owner = Owner}, Props, {Owner, reserve, Amount, 'of', Self, fo
            {?TARGET, Self},
            {for, Proc}],
     {succeed, true, Props, Log};
-attempt({#parents{owner = Owner}, Props, {Owner, unreserve, Self, for, Proc}})
+attempt({#{owner := Owner}, Props, {Owner, unreserve, Self, for, Proc}})
   when Self == self() ->
     Log = [{?SOURCE, Owner},
            {?EVENT, unreserve},
            {?TARGET, Self},
            {for, Proc}],
     {succeed, true, Props, Log};
-attempt({#parents{}, Props, {Self, update_tick}}) when Self == self() ->
+attempt({#{}, Props, {Self, update_tick}}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, update_tick}],
     {succeed, false, Props, Log};

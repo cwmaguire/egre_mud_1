@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{},
+attempt({#{},
          Props,
          {Object, Action, ItemName}})
   when is_binary(ItemName) andalso
@@ -27,7 +27,7 @@ attempt({#parents{},
         _ ->
             {succeed, _Subscribe = false, Props}
     end;
-attempt({_Owner, Props, {ItemName, move, from, Source, to, Target}})
+attempt({#{}, Props, {ItemName, move, from, Source, to, Target}})
   when is_binary(ItemName) ->
     case is_name(Props, ItemName) of
         true ->

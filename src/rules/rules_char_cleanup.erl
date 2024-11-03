@@ -9,11 +9,11 @@
 
 -include("mud.hrl").
 
-attempt({#parents{owner = Room}, Props, {Self, cleanup}}) when Self == self() ->
+attempt({#{owner := Room}, Props, {Self, cleanup}}) when Self == self() ->
     Log = [{?TARGET, Self},
            {?EVENT, cleanup}],
     {{resend, Self, {Self, cleanup, body_parts, [], in, Room}}, true, Props, Log};
-attempt({#parents{}, Props, {Self, cleanup, body_parts, _BodyParts, in, _Room}})
+attempt({#{}, Props, {Self, cleanup, body_parts, _BodyParts, in, _Room}})
   when Self == self() ->
     {succeed, true, Props};
 attempt({_, _, _Msg}) ->

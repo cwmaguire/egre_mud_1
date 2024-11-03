@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({_Owner, Props, {Char, move, from, Source, to, Target, via, Exit}})
+attempt({#{}, Props, {Char, move, from, Source, to, Target, via, Exit}})
   when Source == self(); Target == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, move},
@@ -17,7 +17,7 @@ attempt({_Owner, Props, {Char, move, from, Source, to, Target, via, Exit}})
            {to, Target},
            {exit, Exit}],
     {succeed, true, Props, Log};
-attempt({_Owner, Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() ->
+attempt({#{}, Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, enter_world},
            {room, Self},

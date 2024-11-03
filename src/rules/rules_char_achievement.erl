@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Self, achievement, Achievement}})
+attempt({#{}, Props, {Self, achievement, Achievement}})
   when Self == self() ->
     Log = [{?EVENT, achievement_registration},
            {?SOURCE, Achievement},

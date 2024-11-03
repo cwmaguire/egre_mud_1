@@ -10,14 +10,14 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner}, Props, {Owner, metrics, get, _Metric}}) ->
+attempt({#{owner := Owner}, Props, {Owner, metrics, get, _Metric}}) ->
     Log = [{?EVENT, metrics},
            {?SOURCE, Owner},
            {?TARGET, self()}],
     ct:pal("~p rules_char_metrics attempt get metric ~p; "
            "Owner = ~p", [self(), _Metric, Owner]),
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Owner}, Props, {Owner, metrics, add, _Metric, _Count}}) ->
+attempt({#{owner := Owner}, Props, {Owner, metrics, add, _Metric, _Count}}) ->
     Log = [{?EVENT, metrics_add},
            {?SOURCE, Owner},
            {?TARGET, self()}],
@@ -37,9 +37,8 @@ succeed({Props, {Owner, metrics, add, Metric, Count}}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, metrics_add},
            {?TARGET, self()}],
-    Metrics = proplists:get_value(metrics, Props),
-    UpdateFun = fun(X) -> X + Count end,
-    UpdatedMetrics = maps:update_with(Metric, UpdateFun, Count, Metrics),
+    Metrics = #{Metric := OldCount} = proplists:get_value(metrics, Props),
+    UpdatedMetrics = Metrics#{Metric := OldCount + Count},
     NewProps = [{metrics, UpdatedMetrics} | lists:delete(metrics, Props)],
 
     {NewProps, Log};

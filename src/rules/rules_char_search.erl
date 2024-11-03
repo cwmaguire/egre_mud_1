@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{}, Props, {Player, search, Self}}) when Self == self() ->
+attempt({#{}, Props, {Player, search, Self}}) when Self == self() ->
     Log = [{?EVENT, search},
            {?SOURCE, Player},
            {?TARGET, Self}],

@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Self, move, Direction}}) when Self == self() ->
+attempt({#{}, Props, {Self, move, Direction}}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {direction, Direction}],
@@ -20,13 +20,13 @@ attempt({#parents{}, Props, {Self, move, Direction}}) when Self == self() ->
             Log2 = [{from, Room} | Log],
             {{resend, Self, {Self, move, Direction, from, Room}}, false, Props, Log2}
     end;
-attempt({#parents{}, Props, {Self, move, Dir, from, From}}) when Self == self() ->
+attempt({#{}, Props, {Self, move, Dir, from, From}}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {direction, Dir},
            {from, From}],
     {succeed, true, Props, Log};
-attempt({#parents{}, Props, {Self, move, from, From, to, To, via, Exit}}) when Self == self() ->
+attempt({#{}, Props, {Self, move, from, From, to, To, via, Exit}}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {from, From},

@@ -16,7 +16,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Self, tick, Ref, with, Count}})
+attempt({#{}, Props, {Self, tick, Ref, with, Count}})
   when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, tick},

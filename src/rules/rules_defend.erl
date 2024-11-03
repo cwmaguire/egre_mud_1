@@ -11,7 +11,7 @@
 
 
 %% Defend
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Attacker, calc, HitRoll, on, Character, with, AttackType}}) ->
     Log = [{?SOURCE, Attacker},
@@ -36,7 +36,7 @@ attempt({#parents{character = Character},
         _ ->
             {succeed, false, Props, Log}
     end;
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Attacker, calc, EffectRoll, on, Character, with, Effect}}) ->
     Log = [{?SOURCE, Attacker},

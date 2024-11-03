@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{owner = Character},
+attempt({#{owner := Character},
          Props,
          {Character, cleanup, body_parts, BodyParts, in, Room}}) ->
     Self = self(),

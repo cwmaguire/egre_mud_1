@@ -15,7 +15,8 @@
 
 %% If something reserves this resource type for this character then we
 %% need to inject ourself
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner,
+           type := ResourceType},
          Props,
          {Owner, reserve, Amt, 'of', ResourceType, for, AttackVector}})
   when is_atom(ResourceType) ->
@@ -24,16 +25,10 @@ attempt({#parents{owner = Owner},
            {amount, Amt},
            {resource_type, ResourceType},
            {vector, AttackVector}],
-    case proplists:get_value(type, Props) of
-        ResourceType ->
-            NewMessage = {Owner, reserve, Amt, 'of', self(), for, AttackVector},
-
-            Result = {resend, Owner, NewMessage},
-            {Result, _Subscribe = false, Props, Log};
-        _ ->
-            {succeed, false, Props, Log}
-    end;
-attempt({#parents{owner = Owner},
+    NewMessage = {Owner, reserve, Amt, 'of', self(), for, AttackVector},
+    Result = {resend, Owner, NewMessage},
+    {Result, _Subscribe = false, Props, Log};
+attempt({#{owner := Owner},
          Props,
          {Owner, unreserve, ResourceType, for, AttackVector}}) when is_atom(ResourceType) ->
     Log = [{?SOURCE, Owner},

@@ -9,14 +9,14 @@
 
 -include("mud.hrl").
 
-attempt({_Owner, Props, {Item, move, from, Source, to, Target}})
+attempt({#{}, Props, {Item, move, from, Source, to, Target}})
   when Source == self(); Target == self() ->
     Log = [{?SOURCE, Item},
            {?EVENT, move},
            {from, Source},
            {to, Target}],
     {succeed, true, Props, Log};
-attempt(_Attempt) ->
+attempt(_) ->
     undefined.
 
 succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->

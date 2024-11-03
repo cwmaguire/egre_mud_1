@@ -18,15 +18,15 @@
 
 -include("mud.hrl").
 
-attempt({#parents{character = Character,
-                  owner = Owner},
+attempt({#{character := Character,
+           owner := Owner},
          Props,
          {Character, attack, Target, with, Owner}}) ->
     Log = [{?EVENT, attack},
            {?TARGET, Target}],
     {succeed, true, Props, Log};
 
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {move, Character, From, To, Exit}}) ->
     Log = [{?EVENT, move},
@@ -35,7 +35,7 @@ attempt({#parents{character = Character},
            {exit, Exit}],
     {succeed, true, Props, Log};
 
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, die}}) ->
     Log = [{?EVENT, die}],

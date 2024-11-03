@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Source, Action, TargetName}})
+attempt({#{}, Props, {Source, Action, TargetName}})
   when is_binary(TargetName) andalso
       (Action == look orelse
        Action == attack orelse
@@ -29,7 +29,7 @@ attempt({#parents{}, Props, {Source, Action, TargetName}})
             Log2 = [{?TARGET, TargetName} | Log],
             {succeed, _Subscribe = false, Props, Log2}
     end;
-attempt({Owner, Props, {Self, look}}) when Self == self() ->
+attempt({#{owner := Owner}, Props, {Self, look}}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, look}],
     NewMessage = {Self, look, Owner},

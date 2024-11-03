@@ -14,7 +14,7 @@
 %% Also, characters can only be owned by rooms. This wouldn't work
 %% for an item owned by a body part because an item might be owned by a
 %% character, room or other item (e.g. container).
-attempt({_Owner, Props, {Self, Action, Item}})
+attempt({#{}, Props, {Self, Action, Item}})
   when Self == self() andalso
        is_pid(Item) andalso
        Action == get; Action == drop ->
@@ -34,7 +34,7 @@ attempt({_Owner, Props, {Self, Action, Item}})
         _ ->
             {succeed, _Interested = false, Props, Log}
     end;
-attempt({_Owner, Props, {Item, move, from, Self, to, Room}})
+attempt({#{}, Props, {Item, move, from, Self, to, Room}})
   when Self == self() andalso
        is_pid(Item),
        is_pid(Room) ->
@@ -43,7 +43,7 @@ attempt({_Owner, Props, {Item, move, from, Self, to, Room}})
            {?SOURCE, Self},
            {?TARGET, Room}],
     {succeed, true, Props, Log};
-attempt({_Owner, Props, {Item, move, from, Self, to, BodyPart, on, body_part, type, BodyPartType}})
+attempt({#{}, Props, {Item, move, from, Self, to, BodyPart, on, body_part, type, BodyPartType}})
   when Self == self() andalso
        is_pid(Item),
        is_pid(BodyPart) ->
@@ -54,7 +54,7 @@ attempt({_Owner, Props, {Item, move, from, Self, to, BodyPart, on, body_part, ty
            {body_part_type, BodyPartType}],
     {succeed, true, Props, Log};
 %% TODO I suspect the name _Room means that it is expected that the source will be a room; is this so?
-attempt({_Owner, Props, {Item, move, from, Room, to, Self}})
+attempt({#{}, Props, {Item, move, from, Room, to, Self}})
   when Self == self() andalso
        is_pid(Item) ->
     Log = [{item, Item},

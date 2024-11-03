@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, _Context}}) ->
     Log = [{?EVENT, Effect},

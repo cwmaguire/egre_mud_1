@@ -9,22 +9,12 @@
 
 -include("mud.hrl").
 
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, memorize, Spell}}) when is_pid(Spell) ->
     Log = [{?SOURCE, Character},
            {?EVENT, memorize},
            {?TARGET, Spell},
-           {spell, Spell}],
-    {succeed, true, Props, Log};
-
-%% is this just for logging?
-attempt({#parents{owner = undefined},
-         Props,
-         {Character, cast, Spell, at, Target}}) ->
-    Log = [{?SOURCE, Character},
-           {?EVENT, cast},
-           {?TARGET, Target},
            {spell, Spell}],
     {succeed, true, Props, Log};
 

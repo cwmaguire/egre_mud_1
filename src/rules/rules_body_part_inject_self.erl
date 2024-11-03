@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Source, look, TargetName}})
+attempt({#{}, Props, {Source, look, TargetName}})
   when is_binary(TargetName) ->
     ct:pal("Running body part inject self handler: ~p ~p ~p", [Source, look, TargetName]),
     Log = [{?SOURCE, Source},
@@ -26,7 +26,7 @@ attempt({#parents{}, Props, {Source, look, TargetName}})
             Log2 = [{?TARGET, TargetName} | Log],
             {succeed, _Subscribe = false, Props, Log2}
     end;
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, Owner, to, BodyPartName}})
   when is_binary(BodyPartName) ->
@@ -41,7 +41,7 @@ attempt({#parents{owner = Owner},
         _ ->
             {succeed, _Subscribe = false, Props, [{?TARGET, BodyPartName} | Log]}
     end;
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, BodyPartName, to, Owner}})
   when is_pid(Item) andalso
@@ -59,7 +59,7 @@ attempt({#parents{owner = Owner},
             Log2 = [{?SOURCE, BodyPartName} | Log],
             {succeed, _Subscribe = false, Props, Log2}
     end;
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Item, move, from, current_body_part, to, Owner}}) ->
     Log = [{item, Item},

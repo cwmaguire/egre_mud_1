@@ -18,8 +18,8 @@
 %%
 
 %% Attack
-attempt({#parents{character = Character,
-                  top_item = TopItem = #top_item{item = Item}},
+attempt({#{character := Character,
+           top_item := TopItem = #top_item{item = Item}},
          Props,
          {Character, calc, Hit, on, Target, with, Item}}) ->
     Log = [{?EVENT, calc_hit},
@@ -42,8 +42,8 @@ attempt({#parents{character = Character,
         _ ->
             {succeed, false, Props}
     end;
-attempt({#parents{character = Character,
-                  top_item = TopItem = #top_item{item = Item}},
+attempt({#{character := Character,
+           top_item := TopItem = #top_item{item = Item}},
          Props,
          {Character, damage, Damage, to, Target, with, Item}}) ->
     Log = [{?EVENT, damage},
@@ -68,8 +68,8 @@ attempt({#parents{character = Character,
     end;
 
 %% Defend with item
-attempt({#parents{character = Character,
-                  top_item = TopItem = #top_item{item = Item}},
+attempt({#{character := Character,
+           top_item := TopItem = #top_item{item = Item}},
          Props,
          {Attacker, calc, Hit, on, Character, with, Item}}) ->
     Log = [{?EVENT, calc_hit},
@@ -92,8 +92,8 @@ attempt({#parents{character = Character,
         _ ->
             {succeed, false, Props, Log}
     end;
-attempt({#parents{character = Character,
-                  top_item = TopItem = #top_item{item = Item}},
+attempt({#{character := Character,
+           top_item := TopItem = #top_item{item = Item}},
          Props,
          {Target, damage, Damage, to, Character, with, Item}}) ->
     Log = [{?EVENT, damage},
@@ -117,7 +117,7 @@ attempt({#parents{character = Character,
     end;
 
 %% Defend without item
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Attacker, calc, Hit, on, Character, with, Item}}) ->
     Log = [{?EVENT, calc_hit},
@@ -139,7 +139,7 @@ attempt({#parents{character = Character},
         _ ->
             {succeed, false, Props, Log}
     end;
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Attacker, damage, Damage, to, Character, with, Item}}) ->
     Log = [{?EVENT, damage},
