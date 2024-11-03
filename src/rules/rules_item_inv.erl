@@ -36,7 +36,10 @@ attempt({#{owner := Owner}, Props,
   when Self == self(),
        Owner /= Target,
        is_pid(Target) ->
-    {succeed, true, Props};
+    Log = [{?SOURCE, Self},
+           {?EVENT, move},
+           {?TARGET, Target}],
+    {succeed, true, Props, Log};
 attempt({#{owner := Owner}, Props,
          {Self, move, from, Owner, to, Target, on, body_part, type, _BodyPartType}})
   when Self == self(),
@@ -84,23 +87,27 @@ succeed({Props, {Self, move, from, _OldOwner, to, NewOwner, on, body_part, type,
 %% would have to be wielded by a body part, then not wielded, then wielded again.
 succeed({Props, {Self, move, from, _OldOwner, to, NewOwner}})
   when Self == self() ->
-    lists:keystore(owner, 1, Props, {owner, NewOwner});
+    Log = [{?EVENT, move},
+           {?SOURCE, Self},
+           {?TARGET, NewOwner},
+           {rules_module, rules_item_inv}],
+    NewProps = lists:keystore(owner, 1, Props, {owner, NewOwner}),
+    {NewProps, Log};
 
 %% gaining an item
-succeed({Props, {Item, move, from, Source, to, Self}}) when Self == self() ->
-    log([{?EVENT, move},
-         {object, Self},
-         {props, Props},
-         {item, Item},
-         {?SOURCE, Source},
-         {?TARGET, Self},
-         {result, succeed}]),
+succeed({Props, {Item, move, from, _Source, to, Self}}) when Self == self() ->
+    Log = [{?EVENT, move},
+           {?SOURCE, Item},
+           {?TARGET, Self}],
     set_child_properties(Item, Props),
-    [{item, Item} | Props];
+    {[{item, Item} | Props], Log};
 
 %% Losing a sub-item
 succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
-    clear_child_top_item(Props, Item, Target);
+    Log = [{?EVENT, move},
+           {?SOURCE, Item},
+           {?TARGET, Target}],
+    {clear_child_top_item(Props, Item, Target), Log};
 
 %% Losing a sub-item to a body part
 succeed({Props, {Item, move, from, Self, to, Target, on, body_part, type, _BodyPartType}}) when Self == self() ->

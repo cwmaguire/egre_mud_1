@@ -10,7 +10,8 @@
 -include("mud.hrl").
 
 attempt({#{}, Props, {Item, move, from, Source, to, Target}})
-  when Source == self(); Target == self() ->
+  when (Source == self() orelse Target == self()),
+       is_pid(Item) ->
     Log = [{?SOURCE, Item},
            {?EVENT, move},
            {from, Source},

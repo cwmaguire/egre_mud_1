@@ -10,6 +10,8 @@
 -export([fail/1]).
 
 attempt({#{character := Character,
+           body_part := {body_part, _Pid, BodyPart, _Ref},
+           wearing_body_parts := WearingBodyParts,
            type := Type,
            is_clothing := true},
          Props,
@@ -20,14 +22,18 @@ attempt({#{character := Character,
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
-    Context2 = [{wearing, Type} | Context],
-    NewMessage = {Character, cause,
-                  EffectAmount, 'of', EffectType,
-                  to, Target,
-                  with, Effect,
-                  with, Context2},
-    {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
-
+    case lists:member(BodyPart, WearingBodyParts) of
+        true ->
+            Context2 = [{wearing, Type} | Context],
+            NewMessage = {Character, cause,
+                          EffectAmount, 'of', EffectType,
+                          to, Target,
+                          with, Effect,
+                          with, Context2},
+            {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+        _ ->
+            {succeed, _ShouldSubscribe = false, Props, Log}
+    end;
 attempt(_) ->
     undefined.
 

@@ -29,6 +29,7 @@ attempt({#{owner := Owner},
          {Owner, set_child_property, Key, Value}}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, set_child_property},
+           {?TARGET, self()},
            {key, Key},
            {value, Value}],
     NewMessage = {self(), set_child_property, Key, Value},
@@ -38,7 +39,8 @@ attempt({#{owner := Owner},
          Props,
          {Owner, set_child_properties, ParentProps}}) ->
     Log = [{?SOURCE, Owner},
-           {?EVENT, set_child_properties}],
+           {?EVENT, set_child_properties},
+           {?TARGET, self()}],
     NewMessage = {self(), set_child_properties, ParentProps},
     Props2 = lists:foldl(fun apply_parent_prop/2, Props, ParentProps),
     {{broadcast, NewMessage}, false, Props2, Log};

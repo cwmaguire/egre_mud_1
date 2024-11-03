@@ -9,23 +9,47 @@
 -export([succeed/1]).
 -export([fail/1]).
 
+attempt({#{}, Props, {Source, attack, TargetName}})
+  when is_binary(TargetName),
+       Source /= self() ->
+    Log = [{?SOURCE, Source},
+           {?EVENT, attack},
+           {?TARGET, TargetName}],
+    case is_name(Props, TargetName)  of
+        true ->
+            NewMessage = {Source, attack, TargetName, is, self(), 'if', alive, 'not', []},
+            Result = {resend, Source, NewMessage},
+            {Result, true, Props, Log};
+        _ ->
+            {succeed, _Subscribe = false, Props, Log}
+    end;
+attempt({#{}, Props, {Source, attack, TargetName, 'not', DeadChars}})
+  when is_binary(TargetName),
+       Source /= self() ->
+    Log = [{?SOURCE, Source},
+           {?EVENT, attack},
+           {?TARGET, TargetName}],
+    case is_name(Props, TargetName) and not lists:member(self(), DeadChars)  of
+        true ->
+            NewMessage = {Source, attack, TargetName, is, self(), 'if', alive, 'not', DeadChars},
+            Result = {resend, Source, NewMessage},
+            {Result, true, Props, Log};
+        _ ->
+            {succeed, _Subscribe = false, Props, Log}
+    end;
 attempt({#{}, Props, {Source, Action, TargetName}})
   when is_binary(TargetName) andalso
       (Action == look orelse
-       Action == attack orelse
        Action == search) ->
-    ct:pal("Running char inject self handler: ~p ~p ~p", [Source, Action, TargetName]),
     Log = [{?SOURCE, Source},
            {?EVENT, Action}],
-    case is_name(Props, TargetName) of
+    case is_name(Props, TargetName) andalso not attacking_self(Action, Source) of
         true ->
             Log2 = [{?TARGET, self()} | Log],
             NewMessage = {Source, Action, self()},
             Result = {resend, Source, NewMessage},
             {Result, true, Props, Log2};
         _ ->
-            Name = proplists:get_value(name, Props, ""),
-            ct:pal("Character (~p) name ~p does not match target name ~p", [self(), Name, TargetName]),
             Log2 = [{?TARGET, TargetName} | Log],
             {succeed, _Subscribe = false, Props, Log2}
     end;
@@ -45,3 +69,8 @@ fail({Props, _, _}) ->
 
 is_name(Props, Name) ->
     match == re:run(proplists:get_value(name, Props, ""), Name, [{capture, none}, caseless]).
+
+attacking_self(attack, Self) when Self == self() ->
+    true;
+attacking_self(_, _) ->
+    false.

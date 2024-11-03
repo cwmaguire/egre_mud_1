@@ -1,6 +1,17 @@
 Add item to body part
 
-April 10, 2016
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-03   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+I've got a hand in WORLD_COMPLETE_QUEST that has max_items = 1, so I can't
+wear a glove and hold a sword.
+
+I think I need max_weapons = 1 and max_clothing = 1.
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2016-04-10   ┃
+┗━━━━━━━━━━━━━━━━┛
 
 Just reviewed this.
 If you say “add character sword hand"

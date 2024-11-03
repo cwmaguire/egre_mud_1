@@ -9,19 +9,19 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{},
+attempt({#{},
          Props,
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Target,
-          with, Self,
+          with, Effect,
           with, Context}}) ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
-           {?TARGET, self()}],
+           {?TARGET, Target}],
     Context2 = [{time, proplists:get_value(time, Props, <<"missing time">>)} | Context],
     NewMessage = {Character, cause, EffectAmount, 'of', EffectType,
                   to, Target,
-                  with, Self,
+                  with, Effect,
                   with, Context2},
     {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
 attempt(_) ->

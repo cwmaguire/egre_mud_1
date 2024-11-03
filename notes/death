@@ -1,6 +1,59 @@
 Death
 
-June 28, 2015
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-02   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+How do we prevent dead objects from injecting their names
+into events: e.g. there are three rats, "rat 1", "rat 2",
+"rat 3"; I kill "rat 1" and then say "kill rat". What stops
+rat 1 from injecting itself?
+
+  If rat 1's life sees the event first, it could set itself
+  to be the target.
+
+  Could we just have the rat's life object add an {is_alive, false}
+  property to the object? Then if the character isn't alive they
+  won't add their name.
+
+  In WORLD_COMPLETE_QUEST the three rats actually already have an
+  {is_alive, true} property.
+
+  Oh, duh, because the character object has the name, but the life
+  object has the is_alive property.
+
+  Maybe I could change the name to "[dead] rat 1"?
+
+    No, because I match anywhere in the name.
+
+  Well, I don't see why I can't add {is_alive, false} to the character.
+  Or, some other property that says "don't inject self".
+
+  If I try and trigger a new event to get more information, then other
+  characters could do the same, and they might all fill in their names.
+
+  i.e. the first character (e.g. "rat 1") might see that it matches
+  the name and send (not re-send) a new event to see if it's alive.
+  If the event continues on, then the next character (e.g. "rat 2") might
+  _also_ send off a new event to see it _it's_ alive. Now two characters
+  have sent out events trigger by one attack.
+
+  Okay, the first character could _re-send_ the event as:
+  {Player, attack, Name, Self, if, alive}; if the character is not
+  alive then the character's life re-sends it as ... hmm,
+  {Player, attack, Name, not, [owner()]}
+
+  Yeah, it's convoluted, but I like it.
+
+  The character should stick to what it knows, otherwise, the character
+  might as well have all the properties for all of it's body parts, items,
+  stats, quests, etc. The entire point of this MUD is to have separate
+  processes for *everything*.
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2015-06-28   ┃
+┗━━━━━━━━━━━━━━━━┛
+
 
 How am I going to handle death?
 I don’t want to carry state on the player.

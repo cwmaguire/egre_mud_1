@@ -45,16 +45,18 @@ all() ->
      achievement,
      historical_achievement_enough,
      historical_achievement_not_enough,
-     ask_for_quest].
+     ask_for_quest,
+     complete_quest].
 
 init_per_testcase(_, Config) ->
     Port = ct:get_config(port),
+    application:load(egre),
+    application:set_env(egre, serialize_fun, {mud_util, serialize, 2}),
     {ok, _Started} = application:ensure_all_started([recon, mud]),
-    application:set_env(mud, corpse_cleanup_milis, 10000),
+    application:set_env(mud, corpse_cleanup_milis, 30000),
     application:set_env(egremud, port, Port),
     application:set_env(egremud, parse_fun, {mud_parse, parse, 2}),
     application:set_env(egre, extract_fun, {mud_util, extract_from_props, 1}),
-    application:set_env(egre, serialize_fun, {mud_util, serialize, 2}),
     {atomic, ok} = mnesia:clear_table(object),
     TestObject = spawn_link(fun mock_object/0),
     % use egre module - fix api
@@ -1058,24 +1060,71 @@ ask_for_quest(_Config) ->
     ExpectedMessages = [<<"Peter says: Quest please!">>, <<"You've received a quest!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
-finish_quest(Config) ->
+complete_quest(Config) ->
     start(?WORLD_COMPLETE_QUEST),
     Player = login(player),
     drain_socket(player),
+    Room = get_pid(room),
+    LeftHand = get_pid(p_hand_left),
+    Glove = get_pid(p_glove),
 
-    attempt(Config, Player, {Player, attack, <<"rat">>}),
-    Conditions = [{"Rat is dead", fun() -> val(is_alive, r_life) == false end}],
+    attempt(Config, Player, {Player, attack, <<"rat 1">>}),
+    Conditions = [{"Rat 1 is dead", fun() -> val(is_alive, r_life) == false end}],
     wait_for(Conditions, 5),
 
-    wait(400),
-    ?assertNot(val(is_complete, p_quest)),
+    attempt(Config, Player, {<<"Left-hand of Vecna">>, move, from, Room, to, Player}),
+    Conditions5 =
+        [{"Glove owner is player",
+          fun() -> val(owner, p_glove) == Player end},
+         {"Player has glove",
+          fun() ->
+                  lists:member(Glove, all_vals(item, Player))
+          end}],
+    wait_for(Conditions5, 5),
 
-    attempt(Config, Player, {Player, attack, <<"rat">>}),
-    Conditions2 = [{"Rat is dead", fun() -> val(is_alive, r_life) == false end}],
-    wait_for(Conditions2, 5),
+    attempt(Config, Player, {<<"Left-hand of Vecna">>, move, from, Player, to, LeftHand}),
+    Conditions4 =
+        [{"Glove body_part is left hand",
+          fun() ->
+                  BodyPart = val(body_part, p_glove),
+                  case val(body_part, p_glove) of
+                      {body_part, LeftHand, hand, _Ref} ->
+                          true;
+                      _ ->
+                          ct:pal("~p p_glove body_part: ~p", [self(), BodyPart]),
+                          false
+                  end
+          end},
+         {"Glove owner is hand",
+          fun() -> val(owner, p_glove) == LeftHand end},
+         {"Left Hand has item glove",
+          fun() ->
+                  ValsAsMixedProplist = all_vals(item, LeftHand),
+                  case proplists:get_value(Glove, ValsAsMixedProplist) of
+                      Ref when is_reference(Ref) ->
+                          true;
+                      _NoGloveRefTuple ->
+                          ct:pal("~p ~p:~p: LeftHand (~p) 'item' vals: ~p",
+                                 [self(), ?MODULE, ?FUNCTION_NAME, LeftHand, ValsAsMixedProplist]),
+                          false
+                  end
+          end}],
+    wait_for(Conditions4, 5),
+
+    attempt(Config, Player, {Player, attack, <<"rat 2">>}),
+    Conditions6 = [{"Rat 2 is dead", fun() -> val(is_alive, r2_life) == false end}],
+    wait_for(Conditions6, 10),
+
+    wait(400),
+    ?assertNot(val(is_complete, p_quest),
+               "We've only killed one rat wearing the glove"),
+
+    attempt(Config, Player, {Player, attack, <<"rat 3">>}),
+    Conditions2 = [{"Rat 3 is dead", fun() -> val(is_alive, r3_life) == false end}],
+    wait_for(Conditions2, 10),
 
     Conditions3 = [{"Quest complete", fun() -> val(is_complete, p_quest) end}],
-    wait_for(Conditions3, 4).
+    wait_for(Conditions3, 10).
 
 
 log(_Config) ->

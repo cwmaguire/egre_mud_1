@@ -61,7 +61,8 @@
 -define(HITPOINTS_RULES, {rules, [rules_hitpoints_attack |
                                   ?UNIVERSAL_RULES]}).
 
--define(LIFE_RULES, {rules, [rules_life_attack |
+-define(LIFE_RULES, {rules, [rules_life_attack,
+                             rules_life_inject_self |
                              ?UNIVERSAL_RULES]}).
 
 -define(STAT_RULES, {rules, [rules_stat_look |
@@ -112,5 +113,38 @@
 
 -define(QUEST_KILL_RAT_AT_NOON_WITH_FIST_WEARING_GLOVE,
         {rules, [rules_quest_kill_rat_at_noon_with_fist_wearing_glove]}).
+
+-define(life(Id, Owner, Props),
+        {Id,
+         [{owner, Owner},
+          {is_alive, true},
+          {icon, stat},
+          ?LIFE_RULES |
+          Props]}).
+
+-define(exp(Id, Owner, Gained, Gives, Props),
+        {Id,
+         [{owner, Owner},
+          {gained, Gained},
+          {gives, Gives},
+          ?EXPERIENCE_RULES |
+          Props]}).
+
+-define(hp(Id, Owner, HP, Props),
+        {Id,
+         [{owner, Owner},
+          {hitpoints, HP},
+          ?HITPOINTS_RULES |
+          Props]}).
+
+-define(hand(Id, Owner, Name, Props),
+        {Id,
+         [{name, Name},
+          {owner, Owner},
+          {body_part, hand},
+          {max_items, 1},
+          {icon, body_part},
+          ?BODY_PART_RULES |
+          Props]}).
 
 -endif.

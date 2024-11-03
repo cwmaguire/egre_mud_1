@@ -32,8 +32,8 @@ attempt({#{character := Character},
             egre_object:attempt(self(), {Character, attack, Target, with, self()});
          _ ->
              ok
-     end,
-     {Props, Log};
+    end,
+    {succeed, false, Props, Log};
 
 %% We've told ourself, specifically, to attack but can't, then fail the attempt
 %% that is specific to us
@@ -120,7 +120,8 @@ succeed({Props, {Character, Attack, Target}})
        Attack == counter_attack ->
     Log = [{?SOURCE, Character},
            {?EVENT, Attack},
-           {?TARGET, Target}],
+           {?TARGET, Target},
+           {rules_module, rules_attack}],
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
@@ -135,7 +136,8 @@ succeed({Props, {Attacker, Attack, Target, with, Self}})
        Attack == attack; Attack == counter_attack ->
     Log = [{?EVENT, attack},
            {?SOURCE, Attacker},
-           {?TARGET, Target}],
+           {?TARGET, Target},
+           {rules_module, rules_attack}],
     Character = proplists:get_value(character, Props),
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
@@ -150,7 +152,8 @@ succeed({Props, {Attacker, Attack, Target, with, Self}})
 
 succeed({Props, {Character, stop_attack}}) ->
     Log = [{?SOURCE, Character},
-           {?EVENT, stop_attack}],
+           {?EVENT, stop_attack},
+           {rules_module, rules_attack}],
     unreserve(Character, Props),
     Props2 = lists:keystore(target, 1, Props, {target, undefined}),
     Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, false}),
@@ -158,7 +161,8 @@ succeed({Props, {Character, stop_attack}}) ->
 
 succeed({Props, {Character, die}}) ->
     Log = [{?SOURCE, Character},
-           {?EVENT, die}],
+           {?EVENT, die},
+           {rules_module, rules_attack}],
     unreserve(Character, Props),
     Props2 = lists:keystore(target, 1, Props, {target, undefined}),
     Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, false}),
@@ -170,7 +174,8 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}})
            {amount, Amt},
            {resource_type, Type},
            {?SOURCE, Resource},
-           {?TARGET, Self}],
+           {?TARGET, Self},
+           {rules_module, rules_attack}],
     Allocated = update_allocated(Amt, Type, Props),
     Required = proplists:get_value(resources, Props, []),
     HasResources = has_resources(Allocated, Required),
