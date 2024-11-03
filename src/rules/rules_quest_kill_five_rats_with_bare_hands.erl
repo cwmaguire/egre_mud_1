@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner}, Props, {Owner, quest, Self, ack}})
+attempt({#{owner := Owner}, Props, {Owner, quest, Self, ack}})
   when Self == self() ->
     Log = [{?EVENT, ack_quest},
            {?SOURCE, Owner},

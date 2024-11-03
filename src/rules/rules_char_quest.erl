@@ -9,13 +9,13 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Self, quest, Quest}})
+attempt({#{}, Props, {Self, quest, Quest}})
   when Self == self() ->
     Log = [{?EVENT, quest_registration},
            {?SOURCE, Quest},
            {?TARGET, self()}],
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Room},
+attempt({#{owner := Room},
          Props,
          {Player, _PlayerName, says, <<"Quest please!">>, in, Room}})
   when Player /= self() ->

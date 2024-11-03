@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{},
+attempt({#{},
          Props,
          {Character, cleanup,  body_parts, _BodyParts, in, Room}}) ->
     Log = [{?TARGET, Character},

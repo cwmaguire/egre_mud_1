@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Source, look, Owner, with, Context}}) ->
     Log = [{?SOURCE, Source},

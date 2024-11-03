@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{character = Character},
+attempt({#{character := Character},
          Props,
          {Character, memorize, SpellName}})
   when is_binary(SpellName) ->

@@ -495,8 +495,6 @@
                     {attribute, weight0},
                     {attribute, gender0},
                     {attribute, race0},
-                    {owner, room},
-                    %% TODO is the room property used anywhere?
                     {icon, person},
                     ?CHARACTER_RULES]},
 
@@ -1309,6 +1307,7 @@
           [{name, <<"right fist">>},
            {owner, p_hand_right},
            {character, player},
+           {type, fist},
            {wielding_body_parts, [hand]},
            {body_part, {?PID(p_hand_right), hand}},
            {is_attack, true},

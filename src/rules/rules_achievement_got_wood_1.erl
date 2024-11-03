@@ -9,24 +9,24 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner}, Props, {Owner, achievement, Self, ack}})
+attempt({#{owner := Owner}, Props, {Owner, achievement, Self, ack}})
   when Self == self() ->
     Log = [{?EVENT, ack_achievement},
            {?SOURCE, Owner},
            {?TARGET, self()}],
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Owner}, Props, {Owner, metrics, trees_chopped, _Count}}) ->
+attempt({#{owner := Owner}, Props, {Owner, metrics, trees_chopped, _Count}}) ->
     Log = [{?EVENT, metrics},
            {?SOURCE, Owner},
            {?TARGET, self()}],
     ct:pal("~p rules_achievements_got_wood_1 attempt get metric trees_chopped", [self()]),
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Owner}, Props, {Owner, chopped, tree, Tree}}) ->
+attempt({#{owner := Owner}, Props, {Owner, chopped, tree, Tree}}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Owner},
            {?TARGET, Tree}],
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Owner}, Props, {Owner, achieved, got_wood_1}}) ->
+attempt({#{owner := Owner}, Props, {Owner, achieved, got_wood_1}}) ->
     Log = [{?EVENT, achieved},
            {?SOURCE, Owner},
            {?TARGET, self()}],
@@ -47,7 +47,7 @@ succeed({Props, {Owner, achievement, _Self, ack}}) ->
            {?TARGET, self()}],
     case proplists:get_value(allow_previous, Props) of
         true ->
-          Owner = proplists:get_value(owner, Props),
+          %Owner = proplists:get_value(owner, Props),
           egre:attempt(Owner, {Owner, metrics, get, trees_chopped}, false);
         _ ->
           ok

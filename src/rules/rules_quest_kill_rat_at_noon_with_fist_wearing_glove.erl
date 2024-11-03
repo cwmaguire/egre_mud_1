@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Owner, killed, Target, with, _, with, _Context}}) ->
     Log = [{?EVENT, killed},

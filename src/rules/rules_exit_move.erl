@@ -11,7 +11,7 @@
 
 %% Exit might not be a cardinal direction like "south", so saying "Direction"
 %% doesn't always make sense. e.g. "portal" is not a direction.
-attempt({_Owner, Props, {Obj, move, Exit, from, Room}}) when is_atom(Exit) ->
+attempt({#{}, Props, {Obj, move, Exit, from, Room}}) when is_atom(Exit) ->
     %% I am an exit process linking two rooms. I have two,
     %% named "exits" pointing to those rooms.
     %% Find an exit that leads _to_ the "FromRoom", that is, it would
@@ -26,7 +26,7 @@ attempt({_Owner, Props, {Obj, move, Exit, from, Room}}) when is_atom(Exit) ->
            {from, Room}],
     Rooms = [R || R = {_, Room_} <- Props, Room_ == Room],
     move(Props, Obj, Rooms, Exit, Log);
-attempt({_Owner, Props, {Mover, move, from, Source, to, Target, via, Self}}) when Self == self() ->
+attempt({#{}, Props, {Mover, move, from, Source, to, Target, via, Self}}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Mover},
            {from, Source},

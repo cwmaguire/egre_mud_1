@@ -49,12 +49,12 @@ all() ->
 
 init_per_testcase(_, Config) ->
     Port = ct:get_config(port),
-    application:load(egremud),
+    {ok, _Started} = application:ensure_all_started([recon, mud]),
+    application:set_env(mud, corpse_cleanup_milis, 10000),
     application:set_env(egremud, port, Port),
     application:set_env(egremud, parse_fun, {mud_parse, parse, 2}),
-    application:set_env(egre, extract_fun, {mud_util, extract_record, 1}),
+    application:set_env(egre, extract_fun, {mud_util, extract_from_props, 1}),
     application:set_env(egre, serialize_fun, {mud_util, serialize, 2}),
-    {ok, _Started} = application:ensure_all_started([recon, mud]),
     {atomic, ok} = mnesia:clear_table(object),
     TestObject = spawn_link(fun mock_object/0),
     % use egre module - fix api
@@ -441,14 +441,16 @@ wait_loop(Fun, Count) when Count > 0 ->
     wait_loop(Fun, Count - 1).
 
 wait_loop(Fun, ExpectedValue, _Count = 0) ->
-    ct:pal("Mismatched function result:~n\tFunction: ~p~n\tResult: ~p",
+    ct:pal("Mismatched function result:~n\tFunction: ~p~n\tExected: ~p",
            [erlang:fun_to_list(Fun), ExpectedValue]),
     false;
 wait_loop(Fun, ExpectedValue, Count) ->
-    case Fun() == ExpectedValue of
+    Result = Fun(),
+    case Result == ExpectedValue of
         true ->
             true;
         false ->
+            ct:pal("wait_loop waiting for ~p, got ~p", [ExpectedValue, Result]),
             wait(100),
             wait_loop(Fun, ExpectedValue, Count - 1)
     end.
@@ -557,7 +559,7 @@ player_remove(Config) ->
     ?assertMatch({Helmet, _Ref}, val(item, head1)),
     ?assertMatch({body_part, Head, head, _Ref0}, val(body_part, Helmet)),
     ?assertMatch({body_part, Head, head, _Ref1}, val(body_part, DexBuff)),
-    egre_dbg:add(rules_item_inject_self, attempt),
+    %egre_dbg:add(rules_item_inject_self, attempt),
     attempt(Config, Player, {<<"helmet">>, move, from, <<"head">>, to, Player}),
     wait(1000),
     ?assertMatch(Helmet, val(item, player)),
@@ -654,16 +656,14 @@ look_giants_legs(Config) ->
 
 look_room(_Config) ->
     start(?WORLD_7),
-
     login(player),
+    drain_socket(player),
     egremud_test_socket:send(player, <<"look">>),
-    wait(1000),
-    Descriptions = lists:sort(egremud_test_socket:messages(player)),
     Expected = lists:sort([<<"room -> character Bob">>,
                            <<"room -> character Pete">>,
                            <<"room -> bread_: a loaf of bread">>,
                            <<"room: an empty space">>]),
-    ?assertMatch(Expected, Descriptions).
+    wait_for_sorted_messages(player, Expected, 5).
 
 look_item(_Config) ->
     start(?WORLD_7),
@@ -795,7 +795,10 @@ decompose(Config) ->
     Zombie = get_pid(zombie),
     Room = get_pid(room),
     Sword = get_pid(sword),
-    attempt(Config, Player, {Player, cause, 1000, 'of', fire, to, Zombie, with, undefined}),
+    attempt(Config, Player, {Player, cause, 1000, 'of', fire,
+                             to, Zombie,
+                             with, undefined,
+                             with, []}),
     wait(1000),
     Conditions =
         [{"Zombie process is dead",
@@ -805,7 +808,7 @@ decompose(Config) ->
          {"Sword owner is Room",
           fun() -> val(owner, sword) == Room end}
         ],
-    wait_for(Conditions, 30).
+    wait_for(Conditions, 10).
 
 search_character(_Config) ->
     start(?WORLD_12),
@@ -890,11 +893,14 @@ get_experience_from_killing(Config) ->
         [{"Rat is dead",
           fun() -> val(is_alive, r_life) == false end},
          {"Player has experience",
-          fun() -> val(gained, p_exp) > 1 end}],
+          %% TODO can it just be 1?
+          %% We only kill 1 rat for 1 exp
+          fun() -> val(gained, p_exp) >= 1 end}],
     wait_for(Conditions1, 5),
 
     attempt(Config, Player, {Player, attack, <<"big rat">>}),
     wait(3000),
+
     Conditions2 =
         [{"Big Rat is dead",
           fun() -> val(is_alive, br_life) == false end},
@@ -965,20 +971,16 @@ achievement(Config) ->
 
 historical_achievement_enough(Config) ->
     start(?WORLD_HISTORICAL_ACHIEVEMENT_ENOUGH),
-    login(player),
-    Fun = fun() ->
-                  egremud_test_socket:messages(player)
-          end,
-    wait_loop(Fun, 5),
-
-    %recon_trace:calls({mud_SUITE, get_pid, return_trace}, 40, [{scope, local}]),
-    Player = get_pid(player),
+    Player = login(player),
+    drain_socket(player),
 
     attempt(Config, Player, {Player, metrics, add, trees_chopped, 10}),
     wait(300),
 
+    %egre_dbg:add(rules_char_metrics, succeed),
+
     Conditions =
-        [{"Metrics set to 10 chopped trees",
+        [{"Metrics set to >= 10 chopped trees",
           fun() ->
               #{trees_chopped := Count} = val(metrics, p_metrics),
               Count >= 10
@@ -990,8 +992,10 @@ historical_achievement_enough(Config) ->
          {count, 0},
          {target, 10},
          {done, false},
+         {allow_previous, true},
          ?ACHIEVEMENT_GOT_WOOD_1_RULES],
 
+    egre_dbg:add(rules_achievement_got_wood_1, succeed),
     {ok, Pid} = supervisor:start_child(egre_object_sup, [p_achievement, AchievementProps]),
     ct:pal("~p:~p: achievement Pid~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Pid]),
     Props = get_props(Pid),
@@ -1051,7 +1055,7 @@ ask_for_quest(_Config) ->
     ?assertEqual(Player, val(owner, p_quest)),
     ?assertEqual(Quest, val(quest, player)),
 
-    ExpectedMessages = [<<"You've received a quest!">>],
+    ExpectedMessages = [<<"Peter says: Quest please!">>, <<"You've received a quest!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
 finish_quest(Config) ->

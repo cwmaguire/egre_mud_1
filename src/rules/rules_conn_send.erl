@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner}, Props, {send, Owner, Message}}) ->
+attempt({#{owner := Owner}, Props, {send, Owner, Message}}) ->
     Log = [{?EVENT, send},
            {?TARGET, Owner},
            {player_message, Message}],

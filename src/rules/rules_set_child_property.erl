@@ -24,7 +24,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Owner, set_child_property, Key, Value}}) ->
     Log = [{?SOURCE, Owner},
@@ -34,7 +34,7 @@ attempt({#parents{owner = Owner},
     NewMessage = {self(), set_child_property, Key, Value},
     Props2 = lists:keystore(Key, 1, Props, {Key, Value}),
     {{broadcast, NewMessage}, false, Props2, Log};
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Owner, set_child_properties, ParentProps}}) ->
     Log = [{?SOURCE, Owner},
@@ -42,7 +42,7 @@ attempt({#parents{owner = Owner},
     NewMessage = {self(), set_child_properties, ParentProps},
     Props2 = lists:foldl(fun apply_parent_prop/2, Props, ParentProps),
     {{broadcast, NewMessage}, false, Props2, Log};
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Owner, clear_child_property, Key = top_item,
           'if', TopItem = #top_item{item = Item, ref = Ref}}}) ->
@@ -63,7 +63,7 @@ attempt({#parents{owner = Owner},
                      Props
              end,
     {{broadcast, NewMessage}, false, Props2, Log};
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Owner, clear_child_property, Key, 'if', Value}}) ->
     Log = [{?SOURCE, Owner},

@@ -23,7 +23,7 @@
 %%   for the body part.
 %% This clause fills in the 'item_body_parts' place-holder with the list of body
 %% parts this item will fit on.
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Self, move, from, Owner, to, Target, limited, to, item_body_parts}})
   when Self == self(),
        Owner /= Target ->
@@ -31,19 +31,19 @@ attempt({#parents{owner = Owner}, Props,
     NewMessage = {Self, move, from, Owner, to, Target, limited, to, BodyParts},
     Result = {resend, Owner, NewMessage},
     {Result, _Subscribe = false, Props};
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Self, move, from, Owner, to, Target}})
   when Self == self(),
        Owner /= Target,
        is_pid(Target) ->
     {succeed, true, Props};
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Self, move, from, Owner, to, Target, on, body_part, type, _BodyPartType}})
   when Self == self(),
        Owner /= Target,
        is_pid(Target) ->
     {succeed, true, Props};
-attempt({#parents{}, Props,
+attempt({#{}, Props,
          {Item, move, from, Self, to, Target}})
   when Self == self(),
        is_pid(Item),

@@ -9,7 +9,8 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{character = Character},
+attempt({#{character := Character,
+           body_part := _},
          Props,
          {Character, cause,
           EffectAmount, 'of', EffectType,

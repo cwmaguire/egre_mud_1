@@ -9,11 +9,11 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{}, Props, {Source, look, Self}}) when Self == self() ->
+attempt({#{}, Props, {Source, look, Self}}) when Self == self() ->
     log([{?EVENT, look},
          {?SOURCE, Source} ]),
     {succeed, true, Props};
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Source, describe, Owner, with, Context}}) ->
     log([{?EVENT, describe},

@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({_Owner, Props, {_Source, look, Self}}) when Self == self() ->
+attempt({#{}, Props, {_Source, look, Self}}) when Self == self() ->
     {succeed, true, Props};
 attempt(_) ->
     undefined.

@@ -9,13 +9,13 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
            {?TARGET, Owner}],
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Owner, gains, _Exp, experience}}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Owner},
@@ -37,7 +37,7 @@ succeed({Props, {Owner, gains, NewExp, experience}}) ->
            {?TARGET, self()}],
     OldExp = proplists:get_value(gained, Props),
     TotalExp = OldExp + NewExp,
-    NewProps = [{gained, TotalExp} | proplists:delete(gained, Props)],
+    NewProps = lists:keystore(gained, 1, Props, {gained, TotalExp}),
     egre:attempt(Owner, {Owner, has, TotalExp, experience}),
     {NewProps, Log};
 succeed({Props, _}) ->

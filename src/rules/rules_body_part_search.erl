@@ -9,7 +9,7 @@
 
 -include("mud.hrl").
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Searcher, search, Owner, named, Name, with, body_parts, BodyParts}}) ->
     Log = [{?EVENT, search},

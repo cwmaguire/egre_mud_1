@@ -9,19 +9,19 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Room}, Props, {Self, shouts, Phrase}})
+attempt({#{owner := Room}, Props, {Self, shouts, Phrase}})
   when Self == self() ->
     Log = [{?EVENT, shouts},
            {?SOURCE, Self}],
     Name = proplists:get_value(name, Props),
     NewMessage = {Name, shouts, Phrase, in, Room},
     {{resend, Self, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
-attempt({#parents{owner = Room}, Props, {Player, shouts, _Phrase, in, Room}}) ->
+attempt({#{owner := Room}, Props, {Player, shouts, _Phrase, in, Room}}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, shouts},
            {?TARGET, Room}],
     {succeed, _Subscribe = true, Props, Log};
-attempt({#parents{owner = Room}, Props,
+attempt({#{owner := Room}, Props,
          {Player, shouts, _Phrase, to, Room, from, _Exit}}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, shouts},

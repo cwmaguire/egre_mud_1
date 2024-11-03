@@ -9,13 +9,13 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Owner, has, _Exp, experience}}) ->
     Log = [{?EVENT, has_experience},
            {?SOURCE, Owner},
            {?TARGET, Owner}],
     {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#parents{owner = Owner}, Props,
+attempt({#{owner := Owner}, Props,
          {Owner, level, _Level}}) ->
     Log = [{?EVENT, has_experience},
            {?SOURCE, Owner},

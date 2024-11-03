@@ -27,7 +27,9 @@
 -include("mud.hrl").
 
 %% Attacking: hit and damage
-attempt({#parents{top_item = TopItem},
+attempt({#{top_item := TopItem = #top_item{is_wielded = true, is_active = true},
+           attack_hit_modifier := AttackHitModifier,
+           is_active := true},
          Props,
          {Character, calc, Hit, on, Target, with, TopItem}}) ->
     Log = [{?SOURCE, Character},
@@ -35,18 +37,10 @@ attempt({#parents{top_item = TopItem},
            {hit, Hit},
            {?TARGET, Target},
            {vector, TopItem}],
-    case is_interested(Props) of
-        true ->
-            case proplists:get_value(attack_hit_modifier, Props) of
-                undefined ->
-                    {succeed, false, Props, Log};
-                Amount ->
-                    {succeed, {Character, calc, Hit + Amount, on, Target, with, TopItem}, Log}
-            end;
-        _ ->
-            {succeed, false, Props, Log}
-    end;
-attempt({#parents{top_item = TopItem},
+    {succeed, {Character, calc, Hit + AttackHitModifier, on, Target, with, TopItem}, Props, Log};
+attempt({#{top_item := TopItem = #top_item{is_wielded = true, is_active = true},
+           attack_damage_modifier := AttackDamageModifier,
+           is_active := true},
          Props,
          {Character, damage, Damage, to, Target, with, TopItem}}) ->
     Log = [{?SOURCE, Character},
@@ -54,22 +48,15 @@ attempt({#parents{top_item = TopItem},
            {damage, Damage},
            {?TARGET, Target},
            {vector, TopItem}],
-    case is_interested(Props) of
-        true ->
-            case proplists:get_value(attack_damage_modifier, Props) of
-                undefined ->
-                    {succeed, false, Props, Log};
-                Amount ->
-                    {succeed, {Character, calc, Damage + Amount, on, Target, with, TopItem}, Log}
-            end;
-        _ ->
-            {succeed, false, Props, Log}
-    end;
+    {succeed, {Character, calc, Damage + AttackDamageModifier, on, Target, with, TopItem}, Props, Log};
 
 %% Defending: hit and damage
 %% I'm going to have to have top items broadcast wielded
 %% and active when their states change.
-attempt({#parents{character = Character},
+attempt({#{character := Character,
+           top_item := #top_item{is_wielded = true, is_active = true},
+           is_active := true,
+           defence_hit_modifier := DefenceHitModifier},
          Props,
          {Attacker, calc, Hit, on, Character, with, AttackVector}}) ->
     Log = [{?SOURCE, Attacker},
@@ -77,18 +64,11 @@ attempt({#parents{character = Character},
            {hit, Hit},
            {?TARGET, Character},
            {vector, AttackVector}],
-    case is_interested(Props) of
-        true ->
-            case proplists:get_value(defence_hit_modifier, Props) of
-                undefined ->
-                    {succeed, false, Props, Log};
-                Amount ->
-                    {succeed, {Character, calc, Hit + Amount, on, Character, with, AttackVector}, Log}
-            end;
-        _ ->
-            {succeed, false, Props, Log}
-    end;
-attempt({#parents{character = Character},
+   {succeed, {Character, calc, Hit + DefenceHitModifier, on, Character, with, AttackVector}, Props, Log};
+attempt({#{character := Character,
+           top_item := #top_item{is_wielded = true, is_active = true},
+           is_active := true,
+           defence_damage_modifier := DefenceDamageModifier},
          Props,
          {Character, damage, Damage, to, Target, with, AttackVector}}) ->
     Log = [{?SOURCE, Character},
@@ -96,18 +76,8 @@ attempt({#parents{character = Character},
            {damage, Damage},
            {?TARGET, Target},
            {vector, AttackVector}],
-    case is_interested(Props) of
-        true ->
-            case proplists:get_value(defence_damage_modifier, Props) of
-                undefined ->
-                    {succeed, false, Props, Log};
-                Amount ->
-                    ModifiedMessage = {Character, calc, Damage + Amount, on, Target, with, AttackVector},
-                    {succeed, ModifiedMessage, Log}
-            end;
-        _ ->
-            {succeed, false, Props, Log}
-    end;
+    ModifiedMessage = {Character, calc, Damage + DefenceDamageModifier, on, Target, with, AttackVector},
+    {succeed, ModifiedMessage, Props, Log};
 attempt({_, _, _Msg}) ->
     undefined.
 
@@ -122,19 +92,3 @@ succeed({Props, _}) ->
 
 fail({Props, _, _}) ->
     Props.
-
-is_interested(Props) ->
-    IsActive = true =:= proplists:get_value(is_active, Props),
-    IsActive andalso is_top_item_interested(Props).
-
-is_top_item_interested(Props) ->
-    case proplists:get_value(top_item, Props) of
-        #top_item{is_wielded = true,
-                  is_active = true} ->
-            true;
-        _ ->
-            false
-    end.
-
-%log(Level, IoData) ->
-    %egre_event_log:log(Level, [list_to_binary(atom_to_list(?MODULE)) | IoData]).

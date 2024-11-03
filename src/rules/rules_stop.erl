@@ -12,7 +12,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{character = Character}, Props, {stop, Character}}) ->
+attempt({#{character := Character}, Props, {stop, Character}}) ->
     Log = [{?SOURCE, Character},
            {?TARGET, self()},
            {room, self()},
