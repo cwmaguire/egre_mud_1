@@ -134,6 +134,7 @@
         {Id,
          [{owner, Owner},
           {hitpoints, HP},
+          {icon, stat},
           ?HITPOINTS_RULES |
           Props]}).
 
@@ -146,5 +147,35 @@
           {icon, body_part},
           ?BODY_PART_RULES |
           Props]}).
+
+-define(attribute(Id, HitMod, DefMod, Owner, Props),
+        {Id,
+         [{attack_hit_modifier, HitMod},
+          {defence_hit_modifier, DefMod},
+          {owner, Owner},
+          {character, Owner},
+          {icon, stat},
+          ?ATTRIBUTE_RULES |
+          Props]}).
+
+-define(stamina(Id, Owner, PerTick, TickMillis, Max, Props),
+        {Id,
+         [{owner, Owner},
+          {type, stamina},
+          {per_tick, PerTick},
+          {tick_time, TickMillis},
+          {max, Max},
+          {icon, resource},
+          ?RESOURCE_RULES |
+          Props]}).
+
+-define(clothing(Id, Name, Owner, Char, BodyParts, Props),
+        {Id,
+         [{name, Name},
+          {owner, Owner},
+          {character, Char},
+          {body_parts, BodyParts},
+          {icon, armor},
+          ?ITEM_RULES]}).
 
 -endif.

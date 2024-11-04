@@ -40,7 +40,7 @@ if [[ -e logs/egre.log ]] ; then
   cp log_wrappers/*.{js,css,html} logs/
 
   # create jq-compatible json
-  log_to_json
+  ./log_to_json
 else
   echo "No logs/egre.log file found"
 fi

@@ -136,7 +136,7 @@ Scenarios:
 4. Character chops down 5 trees, character gets achievement "got wood?" - DONE
 5. Character says keyword to NPC, character is awarded quest - DONE
 6. Character completes a quest requirement, but not all of them, nothing happens - DONE
-7. Character completes all quest requirements but doesn't "check in", nothing happens
+7. Character completes all quest requirements but doesn't "check in", nothing happens - DONE
 8. Character completes all quest requirements, doesn't "check in" but quest is completed, rewards given
 9. Character says keyword to NPC after already meeting requirements,
 
