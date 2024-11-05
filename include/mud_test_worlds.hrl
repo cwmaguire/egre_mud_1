@@ -1482,7 +1482,7 @@
            {owner, p_hand_right},
            {character, player},
            {wielding_body_parts, [hand]},
-           {body_part, {?PID(p_hand_right), hand}},
+           {body_part, {body_part, ?PID(p_hand_right), hand, make_ref()}},
            {is_attack, true},
            {is_defence, false},
            {should_attack_module, mud_attack_melee},
