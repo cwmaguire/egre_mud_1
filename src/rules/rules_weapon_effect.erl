@@ -10,7 +10,8 @@
 -export([fail/1]).
 
 attempt({#{character := Character,
-           body_part := _},
+           body_part := {body_part, _Pid, BodyPart, _Ref},
+           wielding_body_parts := WieldingBodyParts},
          Props,
          {Character, cause,
           EffectAmount, 'of', EffectType,
@@ -20,13 +21,18 @@ attempt({#{character := Character,
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
-    Context2 = [{wielding, proplists:get_value(type, Props, <<"missing weapon type">>)} | Context],
-    NewMessage = {Character, cause,
-                  EffectAmount, 'of', EffectType,
-                  to, Target,
-                  with, Effect,
-                  with, Context2},
-    {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+    case lists:member(BodyPart, WieldingBodyParts) of
+        true ->
+            Context2 = [{wielding, proplists:get_value(type, Props, <<"missing weapon type">>)} | Context],
+            NewMessage = {Character, cause,
+                          EffectAmount, 'of', EffectType,
+                          to, Target,
+                          with, Effect,
+                          with, Context2},
+            {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+        _ ->
+            {succeed, _ShouldSubscribe = false, Props, Log}
+    end;
 attempt(_) ->
     undefined.
 
