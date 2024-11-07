@@ -48,7 +48,7 @@ all() ->
      ask_for_quest,
      complete_quest].
 
-init_per_testcase(_, Config) ->
+init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
     application:load(egre),
     application:set_env(egre, serialize_fun, {mud_util, serialize, 2}),
@@ -57,6 +57,8 @@ init_per_testcase(_, Config) ->
     application:set_env(egremud, port, Port),
     application:set_env(egremud, parse_fun, {mud_parse, parse, 2}),
     application:set_env(egre, extract_fun, {mud_util, extract_from_props, 1}),
+    application:set_env(egre, tag, TestCase),
+    egre:wait_db_ready(),
     {atomic, ok} = mnesia:clear_table(object),
     TestObject = spawn_link(fun mock_object/0),
     % use egre module - fix api
@@ -1068,6 +1070,8 @@ complete_quest(Config) ->
     LeftHand = get_pid(p_hand_left),
     Glove = get_pid(p_glove),
 
+    %egre_dbg:add(egre_event_log_postgres, log_to_db),
+
     attempt(Config, Player, {Player, attack, <<"rat 1">>}),
     Conditions = [{"Rat 1 is dead", fun() -> val(is_alive, r_life) == false end}],
     wait_for(Conditions, 5),
@@ -1124,7 +1128,9 @@ complete_quest(Config) ->
     wait_for(Conditions2, 10),
 
     Conditions3 = [{"Quest complete", fun() -> val(is_complete, p_quest) end}],
-    wait_for(Conditions3, 10).
+    wait_for(Conditions3, 10),
+
+    egre:wait_for_db().
 
 
 log(_Config) ->

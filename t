@@ -26,6 +26,10 @@ cp -u ~/dev/egre_mud/include/* deps/egre_mud/include/
 # Make sure we have the latest test suite compiled
 touch test/mud_SUITE.erl
 
+# drop log table
+# See ~/.pgpass for password
+psql -h localhost -U egre -c 'drop table log; drop table pid_id;'
+
 # Compile all of the dependencies in case we're making changes here
 # instead of in their own projects
 make FULL=1 all deps

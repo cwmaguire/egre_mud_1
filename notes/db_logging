@@ -1,0 +1,34 @@
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-06   ┃
+┗━━━━━━━━━━━━━━━━┛
+select
+ log.pid "pid",
+ p1.pid_id,
+ event_type,
+ stage,
+ rules_module,
+ event_source,
+ p2.pid_id "src_id",
+ event_target,
+ p3.pid_id "tgt_id",
+ message,
+ owner,
+ p4.pid_id "own_id",
+ "character" "char",
+ p5.pid_id "char_id"
+ from log
+ left join pid_id p1 on log.pid = p1.pid
+ left join pid_id p2 on event_source = p2.pid
+ left join pid_id p3 on event_target = p3.pid
+ left join pid_id p4 on owner = p4.pid
+ left join pid_id p5 on "character" = p5.pid;
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-04   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+On postgres gen_server startup:
+- if log table doesn't exist, create it
+
+On test run:
+- delete from log;
