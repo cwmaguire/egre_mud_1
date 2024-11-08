@@ -1,4 +1,15 @@
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-07   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+- can't list quests:
+  - you've already done
+  - you don't qualify for
+  - you are currently doing
+
+- quests with multiple 
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2024-11-02   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
@@ -130,15 +141,22 @@ is to demonstrate all kinds of things that can be done.
 
 Scenarios:
 
-1. Character kills rat, character gets 1 experience - DONE
-2. Character kills big rat, character gets 2 experience - DONE
-3. Character gets 10 experience, character gains a level - DONE
-4. Character chops down 5 trees, character gets achievement "got wood?" - DONE
-5. Character says keyword to NPC, character is awarded quest - DONE
-6. Character completes a quest requirement, but not all of them, nothing happens - DONE
-7. Character completes all quest requirements but doesn't "check in", nothing happens - DONE
-8. Character completes all quest requirements, doesn't "check in" but quest is completed, rewards given
-9. Character says keyword to NPC after already meeting requirements,
+ 1. Character kills rat, character gets 1 experience - DONE
+ 2. Character kills big rat, character gets 2 experience - DONE
+ 3. Character gets 10 experience, character gains a level - DONE
+ 4. Character chops down 5 trees, character gets achievement "got wood?" - DONE
+ 5. Character says keyword to NPC, character is awarded quest - DONE
+ 6. Character completes a quest requirement, but not all of them, nothing happens - DONE
+ 7. Character completes all quest requirements but doesn't "turn in", nothing happens - DONE
+ 8. Character completes all quest requirements, doesn't "turn in" but quest is completed, rewards given
+ 9. Character says keyword to NPC after already meeting requirements, quest is completed, rewards given
+10. Character says keyword to NPC after already meeting requirements, quest not completed, objectives must be re-done.
+11. Mulitple characters have the same quest
+12. Can't take quest that's completed
+13. Can't take quest when prereq's not met
+13. Can take quest when prereq's met
+14. Complete multiple quests with same/shared objectives (e.g. kill two birds with one stone)
+15. Turn in quest to non quest giver (e.g. escort quest)
 
 Possible trigger object properties:
 

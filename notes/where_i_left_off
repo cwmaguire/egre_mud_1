@@ -21,6 +21,9 @@ x cast spell
 - resurrect
 - build the MUD from within the MUD (rooms, items, etc.)
 - roles (e.g. admin rights)
+- inventory
+- lists quests
+  - list quest history
 
 Nice to haves:
 - custom TTL
