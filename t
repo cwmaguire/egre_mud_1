@@ -28,7 +28,7 @@ touch test/mud_SUITE.erl
 
 # drop log table
 # See ~/.pgpass for password
-psql -h localhost -U egre -c 'drop table log; drop table pid_id;'
+psql -h localhost -U egre -c 'drop table log cascade; drop table pid_id cascade;'
 
 # Compile all of the dependencies in case we're making changes here
 # instead of in their own projects
@@ -48,3 +48,30 @@ if [[ -e logs/egre.log ]] ; then
 else
   echo "No logs/egre.log file found"
 fi
+
+# create db view
+psql -h localhost -U egre <<EOF
+create view log_view as
+select
+ log.tag,
+ log.pid "pid",
+ p1.pid_id,
+ event_type,
+ stage,
+ rules_module,
+ event_source,
+ p2.pid_id "src_id",
+ event_target,
+ p3.pid_id "tgt_id",
+ message,
+ owner,
+ p4.pid_id "own_id",
+ "character" "char",
+ p5.pid_id "char_id"
+ from log
+ left join pid_id p1 on log.pid = p1.pid and log.tag = p1.tag
+ left join pid_id p2 on event_source = p2.pid and log.tag = p2.tag
+ left join pid_id p3 on event_target = p3.pid and log.tag = p3.tag
+ left join pid_id p4 on owner = p4.pid and log.tag = p4.tag
+ left join pid_id p5 on "character" = p5.pid and log.tag = p5.tag;
+EOF
