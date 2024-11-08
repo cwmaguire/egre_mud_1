@@ -46,7 +46,8 @@ all() ->
      historical_achievement_enough,
      historical_achievement_not_enough,
      ask_for_quest,
-     complete_quest].
+     complete_quest,
+     turn_in_quest].
 
 init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
@@ -70,6 +71,8 @@ end_per_testcase(_, _Config) ->
     logout(player2),
     logout(player3),
     logout(player4),
+    egre:wait_db_done(500),
+    ct:pal("something"),
     application:stop(recon),
     application:stop(mud),
     application:stop(egremud),
@@ -107,8 +110,14 @@ get_props(Obj) when is_atom(Obj) ->
 get_props(Pid) when is_pid(Pid) ->
     case is_process_alive(Pid) of
         true ->
-            {_RecordName, Props, _ExtractRecordFun} = sys:get_state(Pid),
-            Props;
+            {_RecordName, Props, _ExtractRecordFun, _Tag} = sys:get_state(Pid),
+            Tuple = sys:get_state(Pid),
+            case erlang:element(2, Tuple) of
+                Props when is_list(Props) ->
+                    Props;
+                _ ->
+                    throw(<<"EGRE object state record has changed">>)
+            end;
         false ->
             undefined
     end.
@@ -1062,6 +1071,23 @@ ask_for_quest(_Config) ->
     ExpectedMessages = [<<"Peter says: Quest please!">>, <<"You've received a quest!">>],
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
+turn_in_quest(_Config) ->
+    start(?TURN_IN_QUEST),
+    _Player = login(player),
+    ?assertEqual(0, val(amount, p_charisma)),
+
+    egremud_test_socket:send(player, <<"say quest turn in">>),
+
+    Conditions =
+        [{"Charisma updated from 0 to 1",
+          fun() -> 1 == val(amount, p_charisma) end}],
+    wait_for(Conditions, 5),
+
+    %% TODO add rewards messages: e.g. "Your charisma has increased by 1 to N"
+    ExpectedMessages = [<<"Peter says: quest turn in">>,
+                        <<"You have completed the the quest \"turn in\"!">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
+
 complete_quest(Config) ->
     start(?WORLD_COMPLETE_QUEST),
     Player = login(player),
@@ -1128,10 +1154,7 @@ complete_quest(Config) ->
     wait_for(Conditions2, 10),
 
     Conditions3 = [{"Quest complete", fun() -> val(is_complete, p_quest) end}],
-    wait_for(Conditions3, 10),
-
-    egre:wait_for_db().
-
+    wait_for(Conditions3, 10).
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),
@@ -1188,8 +1211,7 @@ login(Player) ->
     egremud_test_socket:start(Player),
     egremud_test_socket:send(Player, atom_to_binary(Player)),
     egremud_test_socket:send(Player, <<"AnyPasswordWillDo">>),
-    wait(300),
-    _LoginMessages = egremud_test_socket:messages(Player),
+    drain_socket(Player),
     get_pid(Player).
 
 logout(Player) ->

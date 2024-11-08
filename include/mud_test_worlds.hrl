@@ -1417,16 +1417,48 @@
           [{owner, room},
            {name, <<"Brenda">>},
            {icon, person},
-           {player_quest, [{trigger, {say, <<"Quest please!">>}},
-                           {props, [{name, <<"Kill five rats "
-                                             "with your bare hands">>},
-                                     ?QUEST_KILL_FIVE_RATS_WITH_BARE_HANDS_RULES]}]},
+           {player_quest, [{name, <<"five rats">>},
+                           {desc, <<"Kill five rats "
+                                    "with your bare hands">>},
+                           ?QUEST_RULES]},
            ?CHARACTER_RULES]}]).
+
+-define(TURN_IN_QUEST,
+        [{room,
+          [{visitor, player},
+           {visitor, shopkeeper},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {name, <<"Peter">>},
+           {attribute, p_charisma},
+           {quest, p_quest},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         {shopkeeper,
+          [{owner, room},
+           {name, <<"Brenda">>},
+           {icon, person},
+           {player_quest, [{name, <<"turn in">>}]},
+           ?CHARACTER_RULES]},
+
+         {p_quest,
+          [{owner, player},
+           {giver, shopkeeper},
+           {name, <<"turn in">>},
+           {is_complete, true},
+           {rewards, [{event, {add, 1, 'of', attribute, charisma, to, {player}}}]},
+           ?QUEST_RULES]},
+
+         ?attribute(p_charisma, 0, 0, player, [{type, charisma}, {amount, 0}])]).
 
 -define(WORLD_COMPLETE_QUEST,
         [{room,
           [{visitor, player},
-           {visitor, rat1},
+           {visitor, shop},
            {visitor, rat2},
            {visitor, rat3},
            {item, p_glove},
@@ -1468,7 +1500,7 @@
            {count, 0},
            {target, 2},
            {is_complete, false},
-           ?QUEST_KILL_RAT_AT_NOON_WITH_FIST_WEARING_GLOVE]},
+           ?QUEST_RULES]},
 
          ?exp(p_exp, player, 0, 0, []),
          ?hp(p_hp, player, 1000, []),

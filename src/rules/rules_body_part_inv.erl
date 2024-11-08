@@ -186,7 +186,9 @@ has_matching_body_part(Props, ItemBodyParts) ->
 has_space(Props, _) ->
     NumItems = length(proplists:get_all_values(item, Props)),
     MaxItems = proplists:get_value(max_items, Props, infinite),
-    log([{?EVENT, has_space}, {num_items, NumItems}, {max_items, MaxItems}]),
+    log([{?EVENT, has_space},
+         {num_items, NumItems},
+         {max_items, MaxItems}]),
     case proplists:get_value(max_items, Props, infinite) of
         infinite ->
             true;

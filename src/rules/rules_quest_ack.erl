@@ -1,5 +1,5 @@
 %% Copyright 2024, Chris Maguire <cwmaguire@protonmail.com>
--module(rules_quest_kill_five_rats_with_bare_hands).
+-module(rules_quest_ack).
 -behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -23,11 +23,13 @@ succeed({Props, {_, init}}) ->
            {?EVENT, init},
            {?TARGET, self()}],
     Owner = proplists:get_value(owner, Props),
+    % TODO: time out if we don't get the ack back, meaning we never got
+    %       recorded in the character?
     egre:attempt(Owner, {Owner, quest, self()}, false),
     {Props, Log};
-succeed({Props, {Owner, achievement, _Self, ack}}) ->
+succeed({Props, {Owner, quest, _Self, ack}}) ->
     Log = [{?SOURCE, Owner},
-           {?EVENT, achievement_ack},
+           {?EVENT, quest_ack},
            {?TARGET, self()}],
     {Props, Log};
 succeed({Props, _}) ->

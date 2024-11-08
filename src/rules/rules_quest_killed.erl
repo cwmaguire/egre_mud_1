@@ -1,5 +1,5 @@
 %% Copyright 2024, Chris Maguire <cwmaguire@protonmail.com>
--module(rules_quest_kill_rat_at_noon_with_fist_wearing_glove).
+-module(rules_quest_killed).
 -behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
