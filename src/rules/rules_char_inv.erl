@@ -68,7 +68,8 @@ attempt(_) ->
 succeed({Props, {Item, move, from, Source, to, Self}}) when Self == self() ->
     Log = [{?EVENT, get_item},
            {?SOURCE, Source},
-           {?TARGET, Self}],
+           {?TARGET, Self},
+           ?RULES_MOD],
     egre_object:attempt(Item, {self(), set_child_property, character, self()}),
     {[{item, Item} | Props], Log};
 succeed({Props, {Item, move, from, Self, to, BodyPart, on, body_part, type, BodyPartType}}) when Self == self() ->
@@ -76,14 +77,16 @@ succeed({Props, {Item, move, from, Self, to, BodyPart, on, body_part, type, Body
            {?EVENT, move},
            {?SOURCE, Self},
            {?TARGET, BodyPart},
-           {body_part_type, BodyPartType}],
+           {body_part_type, BodyPartType},
+           ?RULES_MOD],
     Props2 = lists:keydelete(Item, 2, Props),
     {Props2, Log};
 succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
     Log = [{item, Item},
            {?EVENT, move},
            {?SOURCE, Self},
-           {?TARGET, Target}],
+           {?TARGET, Target},
+           ?RULES_MOD],
     Props2 = clear_child_character(Props, Item, Target),
     {Props2, Log};
 succeed({Props, _}) ->
