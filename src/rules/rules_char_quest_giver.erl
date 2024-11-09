@@ -9,11 +9,13 @@
 -export([succeed/1]).
 -export([fail/1]).
 
+attempt({#{conn := _PlayerConnection}, _, _}) ->
+    undefined;
 attempt({#{owner := Room},
          Props,
          {Player, _PlayerName, says, <<"quests">>, in, Room}})
   when Player /= self() ->
-    Log = [{?EVENT, says},
+    Log = [{?EVENT, say},
            {?SOURCE, self()},
            {?TARGET, Room}],
     Quests = proplists:get_all_values(player_quest, Props),
@@ -29,7 +31,7 @@ attempt({#{owner := Room},
          Props,
          {Player, _PlayerName, says, <<"quest ", QuestName/binary>>, in, Room}})
   when Player /= self() ->
-    Log = [{?EVENT, says},
+    Log = [{?EVENT, say},
            {?SOURCE, self()},
            {?TARGET, Room}],
     ShouldSub =
@@ -51,56 +53,79 @@ attempt({#{owner := Room},
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, PlayerName, says, <<"quests">>, in, _Room}}) ->
+succeed({Props, {Player, PlayerName, says, <<"quests">>, in, _Room}}) when Player /= self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, say},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           ?RULES_MOD],
     Quests = proplists:get_all_values(player_quest, Props),
     QuestNames = [proplists:get_value(name, Quest) || Quest <- Quests],
     egre:attempt(Player, {self(), quests, for, Player, PlayerName, QuestNames, _AlreadyActive = []}),
     {Props, Log};
 
-succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = [_ | _]}}) ->
+succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = [_ | _]}}) when Self /= Player ->
     Log = [{?SOURCE, Self},
            {?EVENT, no_available_quests},
-           {?TARGET, Player}],
+           {?TARGET, Player},
+           ?RULES_MOD],
     egre:attempt(Player, {send, Player, <<"You already have all the quests ", PlayerName/binary>>}),
     {Props, Log};
-succeed({Props, {Self, quests, for, Player, PlayerName, Available = [_ | _], _Active}}) ->
+succeed({Props, {Self, quests, for, Player, PlayerName, Available = [_ | _], _Active}}) when Player /= Self ->
     Log = [{?SOURCE, Self},
            {?EVENT, available_quests},
-           {?TARGET, Player}],
-    Message = [<<"Available quests for ", PlayerName/binary, ": ">>, lists:join(<<", ">>, Available)],
+           {?TARGET, Player},
+           ?RULES_MOD],
+    Name = proplists:get_value(name, Props),
+    SortedAvailable = lists:sort(Available),
+    Message = [<<Name/binary, " says: ",
+               PlayerName/binary, ", I have these quests: ">>,
+               lists:join(<<", ">>, SortedAvailable)],
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
-succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = []}}) ->
+succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = []}}) when Player /= Self ->
     Log = [{?SOURCE, Self},
            {?EVENT, no_quests},
-           {?TARGET, Player}],
+           {?TARGET, Player},
+           ?RULES_MOD],
     Message = <<"I don't have any quests for you, ", PlayerName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
 
-succeed({Props, {Player, _PlayerName, says, <<"quest turn in">>, in, _Room}}) ->
+succeed({Props, {Player, _PlayerName, says, <<"quest turn in">>, in, _Room}}) when Player /= self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, say},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           ?RULES_MOD],
     egre:attempt(Player, {Player, quests, from, self(), turn, in}, false),
     {Props, Log};
 
-succeed({Props, {Player, PlayerName, says, _Phrase = <<"quest ", QuestName/binary>>, in, _Room}}) ->
+succeed({Props, {Player, PlayerName, says, _Phrase = <<"quest ", QuestName/binary>>, in, _Room}})
+  when Player /= self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, start_quest},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           ?RULES_MOD],
     %% can succeed or fail
-    egre:attempt(Player, {self(), quest, QuestName, for, Player, PlayerName}),
+    %egre:attempt(Player, {self(), quest, QuestName, for, Player, PlayerName}),
+    Quests = proplists:get_all_values(player_quest, Props),
+    QuestNames = [proplists:get_value(name, Quest) || Quest <- Quests],
+    Name = proplists:get_value(name, Props),
+    case lists:member(QuestName, QuestNames) of
+        true ->
+            egre:attempt(Player, {self(), quest, QuestName, for, Player, PlayerName});
+        _ ->
+            Message = <<Name/binary, " says: I don't have a quest called ", QuestName/binary, ", ", PlayerName/binary>>,
+            egre:attempt(Player, {send, Player, Message})
+    end,
     {Props, Log};
 
 succeed({Props, {Self, quest, QuestName, for, Player, PlayerName}}) ->
     Log = [{?SOURCE, Self},
-           {?EVENT, no_quests},
-           {?TARGET, Player}],
-    Message = <<"Here is your quest, ", PlayerName/binary, ": ", QuestName/binary>>,
+           {?EVENT, give_quest},
+           {?TARGET, Player},
+           ?RULES_MOD],
+    Name = proplists:get_value(name, Props),
+    Message = <<Name/binary, " says: Here is your quest, ", PlayerName/binary, ": ", QuestName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     maybe_start_quest(Player, QuestName, Props),
     {Props, Log};
@@ -112,14 +137,16 @@ fail({Props, completed, {Self, quest, QuestName, for, Player, PlayerName}}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, start_quest},
            {?TARGET, Self}],
-    Message = <<"You've already turned in ", QuestName/binary, ", ", PlayerName/binary>>,
+    Name = proplists:get_value(name, Props),
+    Message = <<Name/binary, " says: You've already turned in ", QuestName/binary, ", ", PlayerName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
 fail({Props, in_progress, {Self, quest, QuestName, for, Player, PlayerName}}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, start_quest},
            {?TARGET, Self}],
-    Message = <<"You're already working on ", QuestName/binary, ", ", PlayerName/binary>>,
+    Name = proplists:get_value(name, Props),
+    Message = <<Name/binary, " says: You're already working on ", QuestName/binary, ", ", PlayerName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
 fail({Props, _, _}) ->
@@ -135,7 +162,7 @@ maybe_start_quest(Player, QuestName, Props) ->
 
 start_quest(Player, QuestProps) ->
     NewQuestProps = [{owner, Player}, {giver, self()} | QuestProps],
-    {ok, Pid} = supervisor:start_child(egre_object_sup, [p_quest, NewQuestProps]),
+    {ok, Pid} = supervisor:start_child(egre_object_sup, [undefined, NewQuestProps]),
     egre:attempt(Player, {send, Player, <<"You've received a quest!">>}),
     Pid.
 

@@ -21,7 +21,8 @@ attempt(_) ->
 succeed({Props, {_, init}}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           ?RULES_MOD],
     Owner = proplists:get_value(owner, Props),
     % TODO: time out if we don't get the ack back, meaning we never got
     %       recorded in the character?
@@ -30,7 +31,8 @@ succeed({Props, {_, init}}) ->
 succeed({Props, {Owner, quest, _Self, ack}}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, quest_ack},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           {rules_module, quest_ack}],
     {Props, Log};
 succeed({Props, _}) ->
     Props.

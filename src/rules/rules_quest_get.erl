@@ -12,13 +12,14 @@ attempt({#{owner := Player,
            giver := Char,
            name := Name},
          Props,
-         {Char, quests, for, Player, AvailableQuests, ActiveQuests}}) ->
+         {Char, quests, for, Player, PlayerName, AvailableQuests, ActiveQuests}}) ->
     Log = [{?EVENT, available_quests},
            {?SOURCE, Player},
            {?TARGET, self()}],
 
+    ct:pal("Quest ~p ~p sees available quests ~p and active quests ~p", [self(), Name, AvailableQuests, ActiveQuests]),
     RemainingQuests = lists:delete(Name, AvailableQuests),
-    NewMessage = {quests, for, Player, RemainingQuests, [Name | ActiveQuests]},
+    NewMessage = {Char, quests, for, Player, PlayerName, RemainingQuests, [Name | ActiveQuests]},
     {succeed, NewMessage, false, Props, Log};
 attempt(_) ->
     undefined.

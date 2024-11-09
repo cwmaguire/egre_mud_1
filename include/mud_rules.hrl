@@ -104,9 +104,11 @@
                  ?UNIVERSAL_RULES]}).
 
 -define(QUEST_RULES,
-        {rules, [rules_quest_get,
+        {rules, [rules_quest_init,
+                 rules_quest_get,
                  rules_quest_ack,
                  rules_quest_turn_in,
+                 rules_quest_exists,
                  rules_quest_killed |
                  ?UNIVERSAL_RULES]}).
 

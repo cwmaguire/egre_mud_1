@@ -1410,8 +1410,35 @@
          {player,
           [{owner, room},
            {name, <<"Peter">>},
+           {quest, p_quest_in_progress},
+           {quest, p_quest_ready_to_turn_in},
+           {quest, p_quest_turned_in},
            {icon, person},
            ?CHARACTER_RULES]},
+
+         {p_quest_in_progress,
+          [{owner, player},
+           {giver, shopkeeper},
+           {name, <<"in progress">>},
+           {is_complete, false},
+           {is_turned_in, false},
+           ?QUEST_RULES]},
+
+         {p_quest_ready_to_turn_in,
+          [{owner, player},
+           {giver, shopkeeper},
+           {name, <<"ready to turn in">>},
+           {is_complete, true},
+           {is_turned_in, false},
+           ?QUEST_RULES]},
+
+         {p_quest_turned_in,
+          [{owner, player},
+           {giver, shopkeeper},
+           {name, <<"turned in">>},
+           {is_complete, true},
+           {is_turned_in, true},
+           ?QUEST_RULES]},
 
          {shopkeeper,
           [{owner, room},
@@ -1421,6 +1448,11 @@
                            {desc, <<"Kill five rats "
                                     "with your bare hands">>},
                            ?QUEST_RULES]},
+           {player_quest, [{name, <<"temporary">>},
+                           ?QUEST_RULES]},
+           {player_quest, [{name, <<"in progress">>}]},
+           {player_quest, [{name, <<"ready to turn in">>}]},
+           {player_quest, [{name, <<"turned in">>}]},
            ?CHARACTER_RULES]}]).
 
 -define(TURN_IN_QUEST,

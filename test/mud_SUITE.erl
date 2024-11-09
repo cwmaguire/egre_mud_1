@@ -1060,16 +1060,40 @@ historical_achievement_not_enough(Config) ->
 ask_for_quest(_Config) ->
     start(?WORLD_GET_QUEST),
     Player = login(player),
-    drain_socket(player),
 
-    egremud_test_socket:send(player, <<"say Quest please!">>),
+    egremud_test_socket:send(player, <<"say quests">>),
+    ExpectedQuestListMessages1 = lists:sort([<<"Peter says: quests">>,
+                                            <<"Brenda says: Peter, I have these quests: five rats, temporary">>]),
+    wait_for_sorted_messages(player, ExpectedQuestListMessages1, 5),
+
+    egremud_test_socket:send(player, <<"say quest five rats">>),
     wait(400),
-    Quest = get_pid(p_quest),
-    ?assertEqual(Player, val(owner, p_quest)),
-    ?assertEqual(Quest, val(quest, player)),
+    ?assertMatch(Pid when is_pid(Pid), val(quest, player)),
+    Quest = val(quest, player),
+    ?assertEqual(Player, val(owner, Quest)),
 
-    ExpectedMessages = [<<"Peter says: Quest please!">>, <<"You've received a quest!">>],
-    wait_for_sorted_messages(player, ExpectedMessages, 5).
+    ExpectedQuestGetMessages = lists:sort([<<"Peter says: quest five rats">>,
+                                   <<"Brenda says: Here is your quest, Peter: five rats">>,
+                                   <<"You've received a quest!">>]),
+    wait_for_sorted_messages(player, ExpectedQuestGetMessages, 5),
+
+    egremud_test_socket:send(player, <<"say quests">>),
+    ExpectedQuestListMessages2 = lists:sort([<<"Peter says: quests">>,
+                                            <<"Brenda says: Peter, I have these quests: temporary">>]),
+    wait_for_sorted_messages(player, ExpectedQuestListMessages2, 5),
+
+    egremud_test_socket:send(player, <<"say quest five rats">>),
+    ExpectedQuestListMessages3 = lists:sort([<<"Peter says: quest five rats">>,
+                                             <<"Brenda says: You're already working on five rats, Peter">>]),
+    wait_for_sorted_messages(player, ExpectedQuestListMessages3, 5),
+
+    egremud_test_socket:send(player, <<"say quest ready to turn in">>),
+    ExpectedQuestListMessages4 = lists:sort([<<"Peter says: quest ready to turn in">>,
+                                             <<"Brenda says: You're already working on ready to turn in, Peter">>]),
+    wait_for_sorted_messages(player, ExpectedQuestListMessages4, 5).
+
+    %% TODO ask for quests when there is none
+    %% TODO ask for turned-in quest and don't get it, unless it's set to allow repeats
 
 turn_in_quest(_Config) ->
     start(?TURN_IN_QUEST),
