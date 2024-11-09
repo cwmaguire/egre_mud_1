@@ -14,7 +14,6 @@ attempt({#{owner := Player,
            is_turned_in := IsTurnedIn},
          Props,
          {QuestGiver, quest, Name, for, Player, _PlayerName}}) ->
-    ct:pal("~p:~p: QuestGiver~n\t~p~n", [?MODULE, ?FUNCTION_NAME, QuestGiver]),
     Log = [{?EVENT, quest_exists},
            {?SOURCE, QuestGiver},
            {?TARGET, Player}],
@@ -24,8 +23,7 @@ attempt({#{owner := Player,
         _ ->
             {{fail, in_progress}, _Sub = false, Props, Log}
     end;
-attempt(Other) ->
-    ct:pal("~p:~p: Other~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Other]),
+attempt(_) ->
     undefined.
 
 succeed({Props, _}) ->

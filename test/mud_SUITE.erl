@@ -47,7 +47,9 @@ all() ->
      historical_achievement_not_enough,
      ask_for_quest,
      complete_quest,
-     turn_in_quest].
+     turn_in_quest,
+     no_quests_available,
+     no_quests_left].
 
 init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
@@ -1055,6 +1057,26 @@ historical_achievement_not_enough(Config) ->
     egre:attempt(Achievement, {Player, chopped, tree, <<"Tree">>}),
 
     ExpectedMessages = [<<"You achieved 'Got Wood?'!">>],
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
+
+no_quests_available(_Config) ->
+    start(?WORLD_NO_AVAILABLE_QUESTS),
+    _Player = login(player),
+
+    egremud_test_socket:send(player, <<"say quests">>),
+    ExpectedMessages =
+        lists:sort([<<"Dorkle says: quests">>,
+                    <<"Smorf says: I don't have any quests for you, Dorkle">>]),
+    wait_for_sorted_messages(player, ExpectedMessages, 5).
+
+no_quests_left(_Config) ->
+    start(?WORLD_NO_QUESTS_LEFT),
+    _Player = login(player),
+
+    egremud_test_socket:send(player, <<"say quests">>),
+    ExpectedMessages =
+        lists:sort([<<"Smorkennical says: quests">>,
+                    <<"Gaa'ark says: you already have all the quests, Smorkennical">>]),
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
 ask_for_quest(_Config) ->

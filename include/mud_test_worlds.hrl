@@ -1455,6 +1455,54 @@
            {player_quest, [{name, <<"turned in">>}]},
            ?CHARACTER_RULES]}]).
 
+-define(WORLD_NO_AVAILABLE_QUESTS,
+        [{room,
+          [{visitor, player},
+           {visitor, shopkeeper},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {name, <<"Dorkle">>},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         {shopkeeper,
+          [{owner, room},
+           {name, <<"Smorf">>},
+           {icon, person},
+           ?CHARACTER_RULES]}]).
+
+-define(WORLD_NO_QUESTS_LEFT,
+        [{room,
+          [{visitor, player},
+           {visitor, shopkeeper},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {name, <<"Smorkennical">>},
+           {icon, person},
+           {quest, p_quest},
+           ?CHARACTER_RULES]},
+
+         {p_quest,
+          [{owner, player},
+           {giver, shopkeeper},
+           {name, <<"only available quest">>},
+           {is_complete, false},
+           {is_turned_in, false},
+           ?QUEST_RULES]},
+
+         {shopkeeper,
+          [{owner, room},
+           {name, <<"Gaa'ark">>},
+           {icon, person},
+           {player_quest, [{name, <<"only available quest">>}]},
+           ?CHARACTER_RULES]}]).
+
 -define(TURN_IN_QUEST,
         [{room,
           [{visitor, player},

@@ -8,3 +8,7 @@ logs
 .erlang.mk
 EGRE_MUD_1.d
 protocol.csv
+elvis.config
+egre.log
+log
+out

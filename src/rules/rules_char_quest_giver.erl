@@ -68,7 +68,10 @@ succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active
            {?EVENT, no_available_quests},
            {?TARGET, Player},
            ?RULES_MOD],
-    egre:attempt(Player, {send, Player, <<"You already have all the quests ", PlayerName/binary>>}),
+    Name = proplists:get_value(name, Props),
+    egre:attempt(Player, {send, Player, <<Name/binary,
+                                          " says: you already have all the quests, ",
+                                          PlayerName/binary>>}),
     {Props, Log};
 succeed({Props, {Self, quests, for, Player, PlayerName, Available = [_ | _], _Active}}) when Player /= Self ->
     Log = [{?SOURCE, Self},
@@ -87,7 +90,8 @@ succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active
            {?EVENT, no_quests},
            {?TARGET, Player},
            ?RULES_MOD],
-    Message = <<"I don't have any quests for you, ", PlayerName/binary>>,
+    Name = proplists:get_value(name, Props),
+    Message = <<Name/binary, " says: I don't have any quests for you, ", PlayerName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
 
