@@ -24,7 +24,8 @@ succeed({Props, {Player, enter_world, in, Room, with, Conn}}) ->
     Log = [{?EVENT, enter_world},
            {?SOURCE, self()},
            {conn, Conn},
-           {room, Room}],
+           {room, Room},
+           ?RULES_MOD],
     {[{owner, Player} | lists:keydelete(owner, 1, Props)], Log};
 succeed({Props, _Other}) ->
     Props.

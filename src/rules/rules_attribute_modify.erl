@@ -32,7 +32,8 @@ attempt({_, _, _Msg}) ->
 succeed({Props, {add, X, 'of', attribute, _Type, to, Character}}) ->
     Log = [{?EVENT, modify_attribute},
            {?SOURCE, Character},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           ?RULES_MOD],
     Amount = proplists:get_value(amount, Props, 0),
     Props2 = lists:keystore(amount, 1, Props, {amount, Amount + X}),
     {Props2, Log};

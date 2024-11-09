@@ -18,3 +18,5 @@
         {body_part :: pid(),
          type :: atom(),
          ref :: reference()}).
+
+-define(RULES_MOD, {rules_module, mud_util:rules_mod_suffix(?MODULE)}).

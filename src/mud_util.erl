@@ -8,6 +8,7 @@
 -export([describe/2]).
 -export([extract_from_props/1]).
 -export([serialize/2]).
+-export([rules_mod_suffix/1]).
 
 atob(Atom) ->
     list_to_binary(atom_to_list(Atom)).
@@ -91,3 +92,13 @@ top_item_to_binary(#top_item{item = Item,
      <<", ref = ">>,
      JsonFun(Ref),
      <<"}">>].
+
+rules_mod_suffix(Module) when is_atom(Module) ->
+    case atom_to_list(Module) of
+        "rules_" ++ Suffix ->
+            Suffix;
+        _ ->
+            Module
+    end;
+rules_mod_suffix(Other) ->
+    Other.

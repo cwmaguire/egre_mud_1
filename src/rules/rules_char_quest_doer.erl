@@ -13,7 +13,8 @@ attempt({#{}, Props, {Self, quest, Quest}})
   when Self == self() ->
     Log = [{?EVENT, quest_registration},
            {?SOURCE, Quest},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           {rules_module, char_quest_doer}],
     {succeed, _ShouldSubscribe = true, Props, Log};
 attempt(_) ->
     undefined.
@@ -21,7 +22,8 @@ attempt(_) ->
 succeed({Props, {_Self, quest, Quest}}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, quest_registration},
-           {?TARGET, self()}],
+           {?TARGET, self()},
+           ?RULES_MOD],
     egre:attempt(Quest, {self(), quest, Quest, ack}, false),
     {[{quest, Quest} | Props], Log};
 succeed({Props, _}) ->

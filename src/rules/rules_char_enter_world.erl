@@ -38,8 +38,9 @@ succeed({Props, {Player, enter_world, in, Room, with, Conn}}) ->
     Log = [{?EVENT, char_enter_world},
            {?SOURCE, Player},
            {?TARGET, Room},
+           ?RULES_MOD,
            {conn, Conn}],
-    Props2 = lists:foldl(fun keyreplace/2, Props, [{conn, Conn}]),
+    Props2 = lists:keystore(conn, 1, Props, {conn, Conn}),
     {Props2, Log};
 succeed({Props, _Other}) ->
     Props.
@@ -52,6 +53,3 @@ fail({Props, Reason, {Player, enter_world}}) ->
     {Props, Log};
 fail({Props, _Reason, _Message}) ->
     Props.
-
-keyreplace(NewKV = {Key, _}, Props) ->
-    [NewKV | lists:keydelete(Key, 1, Props)].

@@ -90,7 +90,7 @@ succeed({Props, {Self, move, from, _OldOwner, to, NewOwner}})
     Log = [{?EVENT, move},
            {?SOURCE, Self},
            {?TARGET, NewOwner},
-           {rules_module, rules_item_inv}],
+           ?RULES_MOD],
     NewProps = lists:keystore(owner, 1, Props, {owner, NewOwner}),
     {NewProps, Log};
 
@@ -98,7 +98,8 @@ succeed({Props, {Self, move, from, _OldOwner, to, NewOwner}})
 succeed({Props, {Item, move, from, _Source, to, Self}}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Item},
-           {?TARGET, Self}],
+           {?TARGET, Self},
+           ?RULES_MOD],
     set_child_properties(Item, Props),
     {[{item, Item} | Props], Log};
 
@@ -106,7 +107,8 @@ succeed({Props, {Item, move, from, _Source, to, Self}}) when Self == self() ->
 succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Item},
-           {?TARGET, Target}],
+           {?TARGET, Target},
+           ?RULES_MOD],
     {clear_child_top_item(Props, Item, Target), Log};
 
 %% Losing a sub-item to a body part
@@ -137,17 +139,19 @@ set_child_properties(Child, Props) ->
     egre_object:attempt(Child, {self(), set_child_properties, ChildProps}).
 
 clear_child_top_item(Props, Item, Target) ->
-    log([{?EVENT, give},
-         {object, self()},
-         {props, Props},
-         {item, Item},
-         {?SOURCE, self()},
-         {?TARGET, Target},
-         {result, succeed}]),
+    Log = [{?EVENT, give},
+           {object, self()},
+           {props, Props},
+           {item, Item},
+           {?SOURCE, self()},
+           {?TARGET, Target},
+           ?RULES_MOD,
+           {result, succeed}],
     TopItem = top_item(Props),
     Message = {Target, clear_child_property, top_item, 'if', TopItem},
     egre_object:attempt(Item, Message),
-    lists:keydelete(Item, 2, Props).
+    Props = lists:keydelete(Item, 2, Props),
+    {Props, Log}.
 
 top_item(Props) ->
     TopItemRef = proplists:get_value(top_item_ref, Props),
@@ -174,6 +178,3 @@ is_wielded(_, _) ->
 
 apply_prop({K, V}, Props) ->
     lists:keystore(K, 1, Props, {K, V}).
-
-log(Props) ->
-    egre_event_log:log(debug, [{module, ?MODULE} | Props]).

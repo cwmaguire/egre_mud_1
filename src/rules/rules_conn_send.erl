@@ -21,7 +21,8 @@ attempt(_) ->
 succeed({Props, {send, Player, Message}}) ->
     Log = [{?EVENT, send},
            {?TARGET, Player},
-           {player_message, Message}],
+           {player_message, Message},
+           ?RULES_MOD],
     {Conn} = proplists:get_value(conn, Props),
     egremud_conn:handle(Conn, {send, Message}),
     {Props, Log};
