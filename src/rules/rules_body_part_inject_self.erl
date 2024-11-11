@@ -80,14 +80,11 @@ attempt({#{owner := Owner},
     case [Item_ || {item, {Item_, _Ref}} <- Props, Item_ == Item] of
         [_ | _] ->
             NewEvent = {Item, move, from, self(), to, Owner},
-            Result = {resend, Owner, NewEvent},
-            #result{result = Result,
+            #result{result = {resend, Owner, NewEvent},
                     subscribe = true,
                     props = Props,
                     log = [{?SOURCE, self()} | Log]};
         _ ->
-            Log2 = [{?SOURCE, current_body_part} | Log],
-            {succeed, _Subscribe = false, Props, Log2}
             #result{result = succeed,
                     subscribe = false,
                     props = Props,

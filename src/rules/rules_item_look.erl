@@ -17,10 +17,10 @@ attempt({#{owner := Owner},
          Props,
          {Source, describe, Owner, with, Context},
          _}) ->
-    Log = {?EVENT, describe},
-          {?SOURCE, Source},
-          {?TARGET, Owner},
-          {context, Context},
+    Log = [{?EVENT, describe},
+           {?SOURCE, Source},
+           {?TARGET, Owner},
+           {context, Context}],
     ?SUCCEED_SUB;
 attempt(_) ->
     undefined.

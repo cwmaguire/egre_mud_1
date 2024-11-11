@@ -11,7 +11,8 @@
 
 attempt({#{},
          Props,
-         {Object, Action, ItemName}})
+         {Object, Action, ItemName},
+         _})
   when is_binary(ItemName) andalso
        (Action == get orelse
         Action == drop orelse
@@ -29,7 +30,7 @@ attempt({#{},
         _ ->
             {succeed, _Subscribe = false, Props}
     end;
-attempt({#{}, Props, {ItemName, move, from, Source, to, Target}})
+attempt({#{}, Props, {ItemName, move, from, Source, to, Target}, _})
   when is_binary(ItemName) ->
     case is_name(Props, ItemName) of
         true ->
@@ -47,15 +48,12 @@ attempt({#{}, Props, {ItemName, move, from, Source, to, Target}})
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 is_name(Props, Name) ->
     ItemName = proplists:get_value(name, Props, ""),
     match == re:run(ItemName, Name, [{capture, none}]).
-
-%log(Props) ->
-    %egre_event_log:log(debug, [{module, ?MODULE} | Props]).
