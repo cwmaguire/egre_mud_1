@@ -10,18 +10,18 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{},
-         Props,
-         {delete, Pid}}) ->
+attempt({#{}, Props, {delete, Pid}, _}) ->
     Log = [{?SOURCE, Pid},
            {?EVENT, delete}],
-    Props2 = lists:keydelete(Pid, 2, Props),
-    {succeed, false, Props2, Log};
+    #result{result = succeed,
+            subscribe = false,
+            props = lists:keydelete(Pid, 2, Props),
+            log = Log};
 attempt(_) ->
     undefined.
 
-succeed({Props, _Msg}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

@@ -12,23 +12,23 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Source, describe, Owner, with, Context}}) ->
+         {Source, describe, Owner, with, Context}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, Owner},
            {context, Context}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, describe, Self, with, Context}}) when Self == self() ->
+succeed({Props, {Source, describe, Self, with, Context}, _}) when Self == self() ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, Self},
            {context, Context}],
     Props2 = describe(Source, Props, Context, deep),
     {Props2, Log};
-succeed({Props, {Source, describe, Target, with, Context}}) ->
+succeed({Props, {Source, describe, Target, with, Context}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, Target},
@@ -40,11 +40,11 @@ succeed({Props, {Source, describe, Target, with, Context}}) ->
                 ok
         end,
     {Props, Log};
-succeed({Props, _Msg}) ->
+succeed({Props, _Msg, _}) ->
     {Props, _Log = []}.
 
 -spec fail({proplist(), any(), tuple()}) -> {proplist(), proplist()}.
-fail({Props, _Reason, _Msg}) ->
+fail({Props, _Reason, _Msg, _Context}) ->
     {Props, _Log = []}.
 
 describe(Source, Props, Context, shallow) ->

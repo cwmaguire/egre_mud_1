@@ -9,12 +9,15 @@
 
 -include("mud.hrl").
 
-attempt({#{}, Props, {_Source, look, Self}}) when Self == self() ->
-    {succeed, true, Props};
+attempt({#{}, Props, {Source, look, Self}, _}) when Self == self() ->
+    Log = [{?SOURCE, Source},
+           {?EVENT, look},
+           {?TARGET, Self}],
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, look, Self}}) when Self == self() ->
+succeed({Props, {Player, look, Self}, _}) when Self == self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, look},
            {?TARGET, Self}],
@@ -23,14 +26,14 @@ succeed({Props, {Player, look, Self}}) when Self == self() ->
     RoomContext = <<Name/binary, " -> ">>,
     %% Resend as Player looking at this Room with Context
     %% which is a key to objects in this room to describe themselves
-    NewMessage = {Player, describe, self(), with, RoomContext},
-    egre_object:attempt(Player, NewMessage),
+    NewEvent = {Player, describe, self(), with, RoomContext},
+    egre_object:attempt(Player, NewEvent),
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 describe(Source, Props) ->
     Description = description(Props),

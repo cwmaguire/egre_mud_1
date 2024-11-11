@@ -9,29 +9,30 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Source, look, Self}}) when Self == self() ->
-    log([{?EVENT, look},
-         {?SOURCE, Source} ]),
-    {succeed, true, Props};
+attempt({#{}, Props, {Source, look, Self}, _}) when Self == self() ->
+    Log = [{?EVENT, look},
+           {?SOURCE, Source}],
+    ?SUCCEED_SUB;
 attempt({#{owner := Owner},
          Props,
-         {Source, describe, Owner, with, Context}}) ->
-    log([{?EVENT, describe},
-         {?SOURCE, Source},
-         {?TARGET, Owner},
-         {context, Context}]),
-    {succeed, true, Props};
+         {Source, describe, Owner, with, Context},
+         _}) ->
+    Log = {?EVENT, describe},
+          {?SOURCE, Source},
+          {?TARGET, Owner},
+          {context, Context},
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, look, Self}}) ->
+succeed({Props, {Source, look, Self}, _}) ->
     log([{?EVENT, look},
          {object, Self},
          {?SOURCE, Source},
          {?TARGET, Self}]),
     describe(Source, Props, <<>>, deep),
     Props;
-succeed({Props, {Source, describe, Target, with, Context}}) ->
+succeed({Props, {Source, describe, Target, with, Context}, _}) ->
     _ = case is_owner(Target, Props) of
             true ->
                 log([{?EVENT, describe},
@@ -43,11 +44,11 @@ succeed({Props, {Source, describe, Target, with, Context}}) ->
                 ok
         end,
     Props;
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 is_owner(MaybeOwner, Props) when is_pid(MaybeOwner) ->
     MaybeOwner == proplists:get_value(owner, Props);

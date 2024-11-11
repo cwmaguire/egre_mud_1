@@ -17,27 +17,32 @@ attempt({#{character := Character,
           EffectAmount, 'of', EffectType,
           to, Target,
           with, Effect,
-          with, Context}}) ->
+          with, Context},
+         _}) ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
     case lists:member(BodyPart, WieldingBodyParts) of
         true ->
             Context2 = [{wielding, proplists:get_value(type, Props, <<"missing weapon type">>)} | Context],
-            NewMessage = {Character, cause,
+            NewEvent = {Character, cause,
                           EffectAmount, 'of', EffectType,
                           to, Target,
                           with, Effect,
-                          with, Context2},
-            {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+                          with, Context2}, %% TODO move context to record field
+            #result{result = succeed,
+                    new_event = NewEvent,
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         _ ->
-            {succeed, _ShouldSubscribe = false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

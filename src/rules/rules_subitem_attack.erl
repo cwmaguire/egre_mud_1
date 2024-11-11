@@ -31,24 +31,36 @@ attempt({#{top_item := TopItem = #top_item{is_wielded = true, is_active = true},
            attack_hit_modifier := AttackHitModifier,
            is_active := true},
          Props,
-         {Character, calc, Hit, on, Target, with, TopItem}}) ->
+         {Character, calc, Hit, on, Target, with, TopItem},
+         _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, calc_hit},
            {hit, Hit},
            {?TARGET, Target},
            {vector, TopItem}],
-    {succeed, {Character, calc, Hit + AttackHitModifier, on, Target, with, TopItem}, Props, Log};
+    NewEvent = {Character, calc, Hit + AttackHitModifier, on, Target, with, TopItem},
+    #result{result = succeed,
+            new_event = NewEvent,
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt({#{top_item := TopItem = #top_item{is_wielded = true, is_active = true},
            attack_damage_modifier := AttackDamageModifier,
            is_active := true},
          Props,
-         {Character, damage, Damage, to, Target, with, TopItem}}) ->
+         {Character, damage, Damage, to, Target, with, TopItem},
+         _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, damage},
            {damage, Damage},
            {?TARGET, Target},
            {vector, TopItem}],
-    {succeed, {Character, calc, Damage + AttackDamageModifier, on, Target, with, TopItem}, Props, Log};
+    NewEvent = {Character, calc, Damage + AttackDamageModifier, on, Target, with, TopItem},
+    #result{result = succeed,
+            new_event = NewEvent,
+            subscribe = false,
+            props = Props,
+            log = Log};
 
 %% Defending: hit and damage
 %% I'm going to have to have top items broadcast wielded
@@ -58,37 +70,48 @@ attempt({#{character := Character,
            is_active := true,
            defence_hit_modifier := DefenceHitModifier},
          Props,
-         {Attacker, calc, Hit, on, Character, with, AttackVector}}) ->
+         {Attacker, calc, Hit, on, Character, with, AttackVector},
+         _}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, calc_hit},
            {hit, Hit},
            {?TARGET, Character},
            {vector, AttackVector}],
-   {succeed, {Character, calc, Hit + DefenceHitModifier, on, Character, with, AttackVector}, Props, Log};
+    NewEvent = {Character, calc, Hit + DefenceHitModifier, on, Character, with, AttackVector},
+    #result{result = succeed,
+            new_event = NewEvent,
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt({#{character := Character,
            top_item := #top_item{is_wielded = true, is_active = true},
            is_active := true,
            defence_damage_modifier := DefenceDamageModifier},
          Props,
-         {Character, damage, Damage, to, Target, with, AttackVector}}) ->
+         {Character, damage, Damage, to, Target, with, AttackVector},
+         _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, damage},
            {damage, Damage},
            {?TARGET, Target},
            {vector, AttackVector}],
-    ModifiedMessage = {Character, calc, Damage + DefenceDamageModifier, on, Target, with, AttackVector},
-    {succeed, ModifiedMessage, Props, Log};
-attempt({_, _, _Msg}) ->
+    NewEvent = {Character, calc, Damage + DefenceDamageModifier, on, Target, with, AttackVector},
+    #result{result = succeed,
+            new_event = NewEvent,
+            subscribe = false,
+            props = Props,
+            log = Log};
+attempt(_) ->
     undefined.
 
-succeed({Props, {Character, attack, Target}}) when is_pid(Target) ->
+succeed({Props, {Character, attack, Target}, _}) when is_pid(Target) ->
     Log = [{?SOURCE, Character},
            {?EVENT, attack},
            {?TARGET, Target}],
     egre_object:attempt(self(), {Character, attack, Target, with, self()}),
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

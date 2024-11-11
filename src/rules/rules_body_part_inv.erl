@@ -13,31 +13,40 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Item, move, from, Self, to, Owner}})
+         {Item, move, from, Self, to, Owner},
+         _})
   when Self == self(),
        is_pid(Item) ->
     Log = [{item, Item},
            {?EVENT, move},
            {?SOURCE, Self},
            {?TARGET, Owner}],
-    {succeed, has_item_with_ref(Item, Props), Props, Log};
+    #result{result = succeed,
+            subscribe = has_item_with_ref(Item, Props),
+            props = Props,
+            log = Log};
 attempt({#{owner := Owner},
          Props,
-         {Item, move, from, Owner, to, Self}})
+         {Item, move, from, Owner, to, Self},
+         _})
   when Self == self(),
        is_pid(Item) ->
     Log = [{item, Item},
            {?EVENT, move},
            {?SOURCE, Owner},
            {?TARGET, Self}],
-    NewMessage = {Item, move, from, Owner, to, self(), limited, to, item_body_parts},
-    Result = {resend, Owner, NewMessage},
-    {Result, _Subscribe = true, Props, Log};
+    NewEvent = {Item, move, from, Owner, to, self(), limited, to, item_body_parts},
+    Result = {resend, Owner, NewEvent},
+    #result{result = Result,
+            subscribe = true,
+            props = Props,
+            log = Log};
 % We know both the target body part and the valid body parts for the item so
 % we can see if this body part has space and if this body part matches the item.
 attempt({#{owner := Owner},
          Props,
-         {Item, move, from, Owner, to, Self, limited, to, ItemBodyParts}})
+         {Item, move, from, Owner, to, Self, limited, to, ItemBodyParts},
+         _})
   when Self == self(),
        is_pid(Item),
        is_list(ItemBodyParts) ->
@@ -47,14 +56,17 @@ attempt({#{owner := Owner},
            {?TARGET, Self}],
     case can(add, Props, ItemBodyParts) of
         {false, Reason} ->
-            Log2 = [{limited, ItemBodyParts} | Log],
-            {{fail, Reason}, _Subscribe = false, Props, Log2};
+            #result{result = {fail, Reason},
+                    subscribe = false,
+                    props = Props,
+                    log = [{limited, ItemBodyParts} | Log]};
         _ ->
             BodyPartType = proplists:get_value(body_part, Props, undefined),
-            Log2 = [{body_part_type, BodyPartType} | Log],
-            NewMessage = {Item, move, from, Owner, to, self(), on, body_part, type, BodyPartType},
-            Result = {resend, Owner, NewMessage},
-            {Result, _Subscribe = true, Props, Log2}
+            NewEvent = {Item, move, from, Owner, to, self(), on, body_part, type, BodyPartType},
+            #result{result = {resend, Owner, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = [{body_part_type, BodyPartType} | Log]}
     end;
 %% The reason for "limited, to, item_body_parts" is that there are two conditions that have
 %% to be met for an item to be added to a body part:
@@ -67,14 +79,23 @@ attempt({#{owner := Owner},
 %%   for the body part.
 attempt({#{owner := Owner},
          Props,
-         {Item, move, from, Owner, to, first_available_body_part}})
+         {Item, move, from, Owner, to, first_available_body_part},
+         _})
   when is_pid(Item) ->
-    NewMessage = {Item, move, from, Owner, to, first_available_body_part, limited, to, item_body_parts},
-    Result = {resend, Owner, NewMessage},
-    {Result, _Subscribe = true, Props};
+    Log = [{item, Item},
+           {?EVENT, move},
+           {?SOURCE, Owner},
+           {?TARGET, first_available_body_art}],
+    NewEvent = {Item, move, from, Owner, to, first_available_body_part, limited, to, item_body_parts},
+    #result{result = {resend, Owner, NewEvent},
+            subscribe = true,
+            props = Props,
+            log = Log};
+
 attempt({#{owner := Owner},
          Props,
-         {Item, move, from, Owner, to, first_available_body_part, limited, to, ItemBodyParts}})
+         {Item, move, from, Owner, to, first_available_body_part, limited, to, ItemBodyParts},
+         _})
   when is_pid(Item),
        is_list(ItemBodyParts) ->
     Log = [{item, Item},
@@ -86,29 +107,35 @@ attempt({#{owner := Owner},
             Log2 = [{?TARGET, self()},
                     {body_part_type, BodyPartType}
                     | Log],
-            NewMessage = {Item, move, from, Owner, to, self(), on, body_part, type, BodyPartType},
-            Result = {resend, Owner, NewMessage},
-            {Result, _Subscribe = true, Props, Log2};
+            NewEvent = {Item, move, from, Owner, to, self(), on, body_part, type, BodyPartType},
+            #result{result = {resend, Owner, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = Log2};
         _ ->
             Log2 = [{?TARGET, first_available_body_part},
                     {limited, ItemBodyParts}
                     | Log],
-            {succeed, _Subscribe = false, Props, Log2}
+            #result{result = succeed,
+                    subscribe = false,
+                    props = Props,
+                    log = Log2}
     end;
 attempt({#{owner := Owner},
          Props,
-         {Item, move, from, Owner, to, Self, on, body_part, type, BodyPartType}})
+         {Item, move, from, Owner, to, Self, on, body_part, type, BodyPartType},
+         _})
   when Self == self() ->
     Log = [{item, Item},
            {?EVENT, move},
            {?SOURCE, Owner},
            {?TARGET, Self},
            {body_part_type, BodyPartType}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Item, move, from, OldOwner, to, Self, on, body_part, type, BodyPartType}})
+succeed({Props, {Item, move, from, OldOwner, to, Self, on, body_part, type, BodyPartType}, _})
   when Self == self() ->
     Log = [{?EVENT, get_item},
            {item, Item},
@@ -121,7 +148,7 @@ succeed({Props, {Item, move, from, OldOwner, to, Self, on, body_part, type, Body
                                             type = BodyPartType,
                                             ref = ItemRef}}),
     {[{item, {Item, ItemRef}} | Props], Log};
-succeed({Props, {Item, move, from, Self, to, NewOwner}})
+succeed({Props, {Item, move, from, Self, to, NewOwner}, _})
   when Self == self() ->
     Log = [{item, Item},
            {?EVENT, move},
@@ -134,11 +161,11 @@ succeed({Props, {Item, move, from, Self, to, NewOwner}})
 %succeed({Props, {move, Item, from, Self, to, NewOwner, _ItemBodyParts}})
   %when Self == self() ->
     %clear_child_body_part(Props, Item, NewOwner);
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 has_item_with_ref(Item, Props) ->
     case [Item_ || {item, {Item_, _Ref}} <- Props, Item_ == Item] of

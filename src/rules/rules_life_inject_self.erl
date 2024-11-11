@@ -12,27 +12,33 @@
 attempt({#{owner := Owner,
            is_alive := true},
          Props,
-         {Source, attack, _TargetName, is, Owner, 'if', alive, 'not', _DeadChars}}) ->
+         {Source, attack, _TargetName, is, Owner, 'if', alive, 'not', _DeadChars},
+         _}) ->
     Log = [{?SOURCE, Source},
            {?TARGET, Owner},
            {?EVENT, attack}],
-    NewMessage = {Source, attack, Owner},
-    Result = {resend, Source, NewMessage},
-    {Result, false, Props, Log};
+    NewEvent = {Source, attack, Owner},
+    #result{result = {resend, Source, NewEvent},
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt({#{owner := Owner},
          Props,
-         {Source, attack, TargetName, 'not', DeadChars}}) ->
+         {Source, attack, TargetName, 'not', DeadChars},
+         _}) ->
     Log = [{?SOURCE, Source},
            {?TARGET, Owner},
            {?EVENT, attack}],
-    NewMessage = {Source, attack, TargetName, 'not', [Owner | DeadChars]},
-    Result = {resend, Source, NewMessage},
-    {Result, false, Props, Log};
+    NewEvent = {Source, attack, TargetName, 'not', [Owner | DeadChars]},
+    #result{result = {resend, Source, NewEvent},
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

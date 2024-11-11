@@ -24,39 +24,55 @@
 %% This clause fills in the 'item_body_parts' place-holder with the list of body
 %% parts this item will fit on.
 attempt({#{owner := Owner}, Props,
-         {Self, move, from, Owner, to, Target, limited, to, item_body_parts}})
+         {Self, move, from, Owner, to, Target, limited, to, item_body_parts},
+         _})
   when Self == self(),
        Owner /= Target ->
+    Log = [{?SOURCE, Owner},
+           {?TARGET, Target},
+           {?EVENT, move}],
     BodyParts = proplists:get_value(body_parts, Props, []),
-    NewMessage = {Self, move, from, Owner, to, Target, limited, to, BodyParts},
-    Result = {resend, Owner, NewMessage},
-    {Result, _Subscribe = false, Props};
+    NewEvent = {Self, move, from, Owner, to, Target, limited, to, BodyParts},
+    #result{result = {resend, Owner, NewEvent},
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt({#{owner := Owner}, Props,
-         {Self, move, from, Owner, to, Target}})
+         {Self, move, from, Owner, to, Target},
+         _})
   when Self == self(),
        Owner /= Target,
        is_pid(Target) ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {?TARGET, Target}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#{owner := Owner}, Props,
-         {Self, move, from, Owner, to, Target, on, body_part, type, _BodyPartType}})
+         {Self, move, from, Owner, to, Target, on, body_part, type, _BodyPartType},
+         _})
   when Self == self(),
        Owner /= Target,
        is_pid(Target) ->
-    {succeed, true, Props};
+    Log = [{?SOURCE, Owner},
+           {?TARGET, Target},
+           {?EVENT, move}],
+    ?SUCCEED_SUB;
+
 attempt({#{}, Props,
-         {Item, move, from, Self, to, Target}})
+         {Item, move, from, Self, to, Target},
+         _})
   when Self == self(),
        is_pid(Item),
        is_pid(Target) ->
-    {succeed, true, Props};
+    Log = [{?SOURCE, Self},
+           {?TARGET, Target},
+           {?EVENT, move}],
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
 %% Move to body part
-succeed({Props, {Self, move, from, _OldOwner, to, NewOwner, on, body_part, type, BodyPartType}})
+succeed({Props, {Self, move, from, _OldOwner, to, NewOwner, on, body_part, type, BodyPartType}, _})
   when Self == self() ->
     %% If we wield something, it becomes active automatically
     IsWielded = is_wielded({NewOwner, BodyPartType}, Props),
@@ -85,7 +101,7 @@ succeed({Props, {Self, move, from, _OldOwner, to, NewOwner, on, body_part, type,
 %% might happen after the item has come back to the first body part. I might
 %% need to add a ref as well. Except body parts are handled differently, so it
 %% would have to be wielded by a body part, then not wielded, then wielded again.
-succeed({Props, {Self, move, from, _OldOwner, to, NewOwner}})
+succeed({Props, {Self, move, from, _OldOwner, to, NewOwner}, _})
   when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Self},
@@ -95,7 +111,7 @@ succeed({Props, {Self, move, from, _OldOwner, to, NewOwner}})
     {NewProps, Log};
 
 %% gaining an item
-succeed({Props, {Item, move, from, _Source, to, Self}}) when Self == self() ->
+succeed({Props, {Item, move, from, _Source, to, Self}, _}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Item},
            {?TARGET, Self},
@@ -104,7 +120,7 @@ succeed({Props, {Item, move, from, _Source, to, Self}}) when Self == self() ->
     {[{item, Item} | Props], Log};
 
 %% Losing a sub-item
-succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
+succeed({Props, {Item, move, from, Self, to, Target}, _}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Item},
            {?TARGET, Target},
@@ -112,14 +128,14 @@ succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
     {clear_child_top_item(Props, Item, Target), Log};
 
 %% Losing a sub-item to a body part
-succeed({Props, {Item, move, from, Self, to, Target, on, body_part, type, _BodyPartType}}) when Self == self() ->
+succeed({Props, {Item, move, from, Self, to, Target, on, body_part, type, _BodyPartType}, _}) when Self == self() ->
     clear_child_top_item(Props, Item, Target);
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 set_child_properties(Props) ->
     set_child_properties(self(), Props).

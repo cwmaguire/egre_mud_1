@@ -9,28 +9,33 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Room}, Props, {Self, shouts, Phrase}})
+attempt({#{owner := Room}, Props, {Self, shouts, Phrase}, _})
   when Self == self() ->
     Log = [{?EVENT, shouts},
-           {?SOURCE, Self}],
+           {?SOURCE, Self},
+           {?TARGET, Room}],
     Name = proplists:get_value(name, Props),
-    NewMessage = {Name, shouts, Phrase, in, Room},
-    {{resend, Self, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
-attempt({#{owner := Room}, Props, {Player, shouts, _Phrase, in, Room}}) ->
+    NewEvent = {Name, shouts, Phrase, in, Room},
+    #result{result = {resend, Self, NewEvent},
+            subscribe = ignored,
+            props = Props,
+            log = Log};
+attempt({#{owner := Room}, Props, {Player, shouts, _Phrase, in, Room}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, shouts},
            {?TARGET, Room}],
-    {succeed, _Subscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#{owner := Room}, Props,
-         {Player, shouts, _Phrase, to, Room, from, _Exit}}) ->
+         {Player, shouts, _Phrase, to, Room, from, _Exit},
+         _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, shouts},
            {?TARGET, Room}],
-    {succeed, _Subscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, shouts, Phrase, in, Room}}) ->
+succeed({Props, {Player, shouts, Phrase, in, Room}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, shouts},
            {?TARGET, Room}],
@@ -38,7 +43,7 @@ succeed({Props, {Player, shouts, Phrase, in, Room}}) ->
     egre:attempt(Conn,
                  {send, self(), <<Player/binary, " shouts: ", Phrase/binary>>}),
     {Props, Log};
-succeed({Props, {Player, shouts, Phrase, to, Room, from, Exit}}) ->
+succeed({Props, {Player, shouts, Phrase, to, Room, from, Exit}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, shouts},
            {?TARGET, Room}],
@@ -49,8 +54,8 @@ succeed({Props, {Player, shouts, Phrase, to, Room, from, Exit}}) ->
                     Phrase/binary, " from ",
                     (atom_to_binary(Exit))/binary>>}),
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

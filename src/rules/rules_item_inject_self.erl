@@ -18,12 +18,14 @@ attempt({#{},
         Action == look) ->
     case is_name(Props, ItemName) of
         true ->
-            NewMessage = {Object, Action, self()},
             Log = [{?EVENT, inject_self},
                    {action, Action},
                    {name, ItemName}],
-            Result = {resend, Object, NewMessage},
-            {Result, _Subscribe = false, Props, Log};
+            NewEvent = {Object, Action, self()},
+            #result{result = {resend, Object, NewEvent},
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         _ ->
             {succeed, _Subscribe = false, Props}
     end;
@@ -31,12 +33,14 @@ attempt({#{}, Props, {ItemName, move, from, Source, to, Target}})
   when is_binary(ItemName) ->
     case is_name(Props, ItemName) of
         true ->
-            NewMessage = {self(), move, from, Source, to, Target},
             Log = [{?EVENT, inject_self},
                    {sub_type, move},
                    {name, ItemName}],
-            Result = {resend, self(), NewMessage},
-            {Result, false, Props, Log};
+            NewEvent = {self(), move, from, Source, to, Target},
+            #result{result = {resend, self(), NewEvent},
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         _ ->
             {succeed, _Subscribe = false, Props}
     end;

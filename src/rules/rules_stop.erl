@@ -12,17 +12,17 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{character := Character}, Props, {stop, Character}}) ->
+attempt({#{character := Character}, Props, {stop, Character}, _}) ->
     Log = [{?SOURCE, Character},
            {?TARGET, self()},
            {room, self()},
            {?EVENT, stop}],
     ct:pal("stop (~p) got attempt {stop, ~p}~n", [self(), Character]),
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, Msg = {stop, Character}}) ->
+succeed({Props, Msg = {stop, Character}, _}) ->
     Log = [{?SOURCE, Character},
            {?TARGET, self()},
            {room, self()},
@@ -35,8 +35,8 @@ succeed({Props, Msg = {stop, Character}}) ->
         _ ->
             {stop, finished, Props, Log}
     end;
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

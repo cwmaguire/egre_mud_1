@@ -9,23 +9,23 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Self, achievement, Achievement}})
+attempt({#{}, Props, {Self, achievement, Achievement}, _})
   when Self == self() ->
     Log = [{?EVENT, achievement_registration},
            {?SOURCE, Achievement},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {_Self, achievement, Achievement}}) ->
+succeed({Props, {_Self, achievement, Achievement}, _}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, achievement_registration},
            {?TARGET, self()}],
     egre:attempt(Achievement, {self(), achievement, Achievement, ack}, false),
     {[{achievement, Achievement} | Props], Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

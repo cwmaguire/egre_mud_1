@@ -12,16 +12,17 @@
 attempt({#{owner := Attack,
            character := Character},
          Props,
-         {Character, affect, Target, because, Attack}}) ->
+         {Character, affect, Target, because, Attack},
+         _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, attack},
            {?TARGET, Target},
            {attack, Attack}],
-    {succeed, true, Props, Log};
-attempt(_Other = {_, _, _Msg}) ->
+    ?SUCCEED_SUB;
+attempt(_Other = {_, _, _Msg, _}) ->
     undefined.
 
-succeed({Props, {Character, affect, Target, because, Attack}}) ->
+succeed({Props, {Character, affect, Target, because, Attack}, _}) ->
     Log = [{?EVENT, attack},
            {?SOURCE, Character},
            {?TARGET, Target},
@@ -33,11 +34,11 @@ succeed({Props, {Character, affect, Target, because, Attack}}) ->
     egre_object:attempt(Pid, {Pid, affect, Target}),
     {Props, Log};
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 replace_rules_with_child_rules(Props) ->
     lists:keystore(rules, 1, Props, proplists:get_value(child_rules, Props)).

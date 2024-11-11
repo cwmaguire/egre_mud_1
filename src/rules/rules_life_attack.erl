@@ -12,89 +12,94 @@
 %% We have been killed
 attempt({#{owner := Owner},
          Props,
-         {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
-    log([{?EVENT, killed},
-         {?SOURCE, Source},
-         {?TARGET, Owner}]),
-    {succeed, _Subscribe = true, Props};
+         {Source, killed, Owner, with, _AttackVector, with, _Context},
+         _}) ->
+    Log = [{?EVENT, killed},
+           {?SOURCE, Source},
+           {?TARGET, Owner}],
+    ?SUCCEED_SUB;
 
 %% We have died
-attempt({#{owner := Owner}, Props, Msg = {Owner, die}}) ->
-    log([{stage, attempt},
-         {?EVENT, die},
-         {object, self()},
-         {props, Props},
-         {?TARGET, Owner},
-         {message, Msg},
-         {sub, true}]),
-    {succeed, _Subscribe = true, Props};
+attempt({#{owner := Owner}, Props, Msg = {Owner, die}, _}) ->
+    Log = [{stage, attempt},
+           {?EVENT, die},
+           {object, self()},
+           {props, Props},
+           {?TARGET, Owner},
+           {message, Msg},
+           {sub, true}],
+    ?SUCCEED_SUB;
 
 %% Something is attack us and we are dead
 attempt({#{owner := Owner},
          Props,
-         Msg = {Attacker, calc, Hit, on, Owner, with, AttackVector}}) ->
-    log([{stage, attempt},
-         {?EVENT, calc_hit},
-         {object, self()},
-         {props, Props},
-         {?SOURCE, Attacker},
-         {?TARGET, Owner},
-         {hit, Hit},
-         {attack_vector, AttackVector},
-         {message, Msg},
-         {sub, false}]),
+         Msg = {Attacker, calc, Hit, on, Owner, with, AttackVector},
+         _}) ->
+    Log = [{stage, attempt},
+           {?EVENT, calc_hit},
+           {object, self()},
+           {props, Props},
+           {?SOURCE, Attacker},
+           {?TARGET, Owner},
+           {hit, Hit},
+           {attack_vector, AttackVector},
+           {message, Msg},
+           {sub, false}],
     case proplists:get_value(is_alive, Props, false) of
         false ->
-            {{fail, target_is_dead}, _Subscribe = false, Props};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props}
+            ?SUCCEED_NOSUB
     end;
 attempt({#{owner := Owner},
          Props,
-         Msg = {Attacker, calc, Types, damage, Damage, to, Owner, with, AttackVector}}) ->
-    log([{stage, attempt},
-         {?EVENT, calc_damage},
-         {object, self()},
-         {props, Props},
-         {?SOURCE, Attacker},
-         {?TARGET, Owner},
-         {damage, Damage},
-         {attack_vector, AttackVector},
-         {types, Types},
-         {message, Msg},
-         {sub, false}]),
+         Msg = {Attacker, calc, Types, damage, Damage, to, Owner, with, AttackVector},
+         _}) ->
+    Log = [{stage, attempt},
+           {?EVENT, calc_damage},
+           {object, self()},
+           {props, Props},
+           {?SOURCE, Attacker},
+           {?TARGET, Owner},
+           {damage, Damage},
+           {attack_vector, AttackVector},
+           {types, Types},
+           {message, Msg},
+           {sub, false}],
     case proplists:get_value(is_alive, Props, false) of
         false ->
-            {{fail, target_is_dead}, _Subscribe = false, Props};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props}
+            ?SUCCEED_NOSUB
     end;
 attempt({#{owner := Owner},
          Props,
-         _Msg = {Self, attack, Attacker}})
+         _Msg = {Self, attack, Attacker},
+         _})
   when Self == self() ->
-    log([{stage, attempt},
-         {?EVENT, attack},
-         {?SOURCE, Attacker},
-         {?TARGET, Owner}]),
+    Log = [{stage, attempt},
+           {?EVENT, attack},
+           {?SOURCE, Attacker},
+           {?TARGET, Owner}],
     case proplists:get_value(is_alive, Props, false) of
         false ->
-            {{fail, target_is_dead}, _Subscribe = false, Props};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props}
+            ?SUCCEED_NOSUB
     end;
 attempt({#{},
          Props,
-         _Msg = {Searcher, search, Self}})
+         _Msg = {Searcher, search, Self},
+         _})
   when Self == self() ->
-    log([{?EVENT, search},
-         {?SOURCE, Searcher},
-         {?TARGET, Self}]),
+    Log = [{?EVENT, search},
+           {?SOURCE, Searcher},
+           {?TARGET, Self}],
     case proplists:get_value(is_alive, Props, false) of
         true ->
-            {{fail, target_is_alive}, _Subscribe = false, Props};
+            ?FAIL_NOSUB(target_is_alive);
         _ ->
-            {succeed, true, Props}
+            ?SUCCEED_SUB
     end;
 
 %% TODO fail everything when dead, e.g. move, wield, attack, etc.
@@ -103,20 +108,20 @@ attempt({#{},
 attempt(_) ->
     undefined.
 
-succeed({Props, {Self, init}}) ->
+succeed({Props, {Self, init}, _}) ->
     log([{?EVENT, init},
          {?SOURCE, Self},
          {?TARGET, Self}]),
     Props;
 
-succeed({Props, {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
+succeed({Props, {Source, killed, Owner, with, _AttackVector, with, _Context}, _}) ->
     log([{?EVENT, killed},
          {?SOURCE, Source},
          {?TARGET, Owner}]),
     egre_object:attempt(self(), {Owner, die}),
     Props;
 
-succeed({Props, {Owner, die}}) ->
+succeed({Props, {Owner, die}, _}) ->
     log([{stage, succeed},
          {?EVENT, die},
          {object, self()},
@@ -126,13 +131,13 @@ succeed({Props, {Owner, die}}) ->
     egre_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
     lists:keystore(is_alive, 1, Props, {is_alive, false});
 
-succeed({Props, Msg}) ->
+succeed({Props, Msg, _Context}) ->
     ct:pal("~p rules_life_attack received unexpected succeed: ~p",
            [self(), Msg]),
     throw(should_never_happen),
     Props.
 
-fail({Props, _Reason, _Message}) ->
+fail({Props, _Reason, _Message, _Context}) ->
     throw(should_never_happen),
     Props.
 

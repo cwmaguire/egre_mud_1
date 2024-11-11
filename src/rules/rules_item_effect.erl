@@ -18,27 +18,32 @@ attempt({#{character := Character,
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Target,
           with, Effect,
-          with, Context}}) ->
+          with, Context},
+         _}) ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
     case lists:member(BodyPart, WearingBodyParts) of
         true ->
             Context2 = [{wearing, Type} | Context],
-            NewMessage = {Character, cause,
+            NewEvent = {Character, cause,
                           EffectAmount, 'of', EffectType,
                           to, Target,
                           with, Effect,
-                          with, Context2},
-            {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+                          with, Context2},  %% TODO put this in the context
+            #result{result = succeed,
+                    new_event = NewEvent,
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         _ ->
             {succeed, _ShouldSubscribe = false, Props, Log}
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

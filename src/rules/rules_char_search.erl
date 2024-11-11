@@ -9,38 +9,41 @@
 
 -include("mud.hrl").
 
-attempt({#{}, Props, {Player, search, Self}}) when Self == self() ->
+attempt({#{}, Props, {Player, search, Self}, _}) when Self == self() ->
     Log = [{?EVENT, search},
            {?SOURCE, Player},
            {?TARGET, Self}],
     Name = proplists:get_value(name, Props, "MissingName"),
-    NewMessage = {Player, search, Self, named, Name, with, body_parts, []},
-    Result = {resend, Self, NewMessage},
-    {Result, true, Props, Log};
+    NewEvent = {Player, search, Self, named, Name, with, body_parts, []},
+    #result{result = {resend, Self, NewEvent},
+            subscribe = true,
+            props = Props,
+            log = Log};
 attempt(_) ->
     undefined.
 
-succeed({Props, _Msg}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
 %% TODO
 %% Implement search detection: i.e. a character detects a player searching them
 %% (and eventually other NPC characters searching them)
 fail({Props,
       character_detected_search,
-      {Player, search, Self, named, _Name, with, body_parts, _BodyParts}}) ->
+      {Player, search, Self, named, _Name, with, body_parts, _BodyParts},
+      _}) ->
     Log = [{?EVENT, search},
            {?SOURCE, Player},
            {?TARGET, Self},
            {reason, character_detected_search}],
     counter_attack(Player, Self, Props),
     {Props, Log};
-fail({Props, _Result, {Player, search, Self}}) ->
+fail({Props, _Result, {Player, search, Self}, _}) ->
     Log = [{?EVENT, search},
            {?SOURCE, Player},
            {?TARGET, Self}],
     {Props, Log};
-fail({Props, _Result, _Msg}) ->
+fail({Props, _Result, _Msg, _}) ->
     Log = [{?EVENT, search},
            {?TARGET, self()}],
     {Props, Log}.

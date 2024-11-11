@@ -11,7 +11,7 @@
 
 attempt({#{owner := Character},
          Props,
-         {Character, cleanup, body_parts, BodyParts, in, Room}}) ->
+         {Character, cleanup, body_parts, BodyParts, in, Room}, _}) ->
     Self = self(),
     Log = [{?SOURCE, Character},
            {?TARGET, Self},
@@ -19,17 +19,17 @@ attempt({#{owner := Character},
            {?EVENT, cleanup_bodyparts}],
     case lists:member(Self, BodyParts) of
         false ->
-            NewMessage = {Character, cleanup, body_parts, [Self | BodyParts], in, Room},
-            {succeed, NewMessage, false, Props, Log};
+            NewEvent = {Character, cleanup, body_parts, [Self | BodyParts], in, Room},
+            {succeed, NewEvent, false, Props, Log};
         true ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
-attempt({_, _, _Msg}) ->
+attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
+succeed({Props, _, _}) ->
     Props.
 
-fail({Props, _, _}) ->
+fail({Props, _, _, _}) ->
     Props.
 

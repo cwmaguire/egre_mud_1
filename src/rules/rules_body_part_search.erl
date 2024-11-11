@@ -11,25 +11,28 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Searcher, search, Owner, named, Name, with, body_parts, BodyParts}}) ->
+         {Searcher, search, Owner, named, Name, with, body_parts, BodyParts},
+         _}) ->
     Log = [{?EVENT, search},
            {?SOURCE, Searcher},
            {?TARGET, Owner}],
     Self = self(),
     case lists:member(Self, BodyParts) of
         false ->
-            NewMessage = {Searcher, search, Owner, named, Name, with, body_parts, [Self| BodyParts]},
-            {succeed, NewMessage, false, Props, Log};
+            NewEvent = {Searcher, search, Owner, named, Name, with, body_parts, [Self| BodyParts]},
+            #result{result = succeed,
+                    new_event = NewEvent,
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         true ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _Msg}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _Result, _Msg}) ->
-    Log = [{?EVENT, search},
-           {?TARGET, self()}],
-    {Props, Log}.
+fail(_) ->
+    undefined.

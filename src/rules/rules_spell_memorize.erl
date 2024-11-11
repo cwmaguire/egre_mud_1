@@ -11,17 +11,18 @@
 
 attempt({#{character := Character},
          Props,
-         {Character, memorize, Spell}}) when is_pid(Spell) ->
+         {Character, memorize, Spell},
+         _}) when is_pid(Spell) ->
     Log = [{?SOURCE, Character},
            {?EVENT, memorize},
            {?TARGET, Spell},
            {spell, Spell}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 
-attempt({_, _, _Msg}) ->
+attempt(_) ->
     undefined.
 
-succeed({Props, {Character, memorize, Self}}) when Self == self() ->
+succeed({Props, {Character, memorize, Self}, _}) when Self == self() ->
     Log = [{?EVENT, memorize},
            {?SOURCE, Character},
            {?TARGET, Self},
@@ -29,8 +30,8 @@ succeed({Props, {Character, memorize, Self}}) when Self == self() ->
     Props2 = [{is_memorized, true} | proplists:delete(is_memorized, Props)],
     {Props2, Log};
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

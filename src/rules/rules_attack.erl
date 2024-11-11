@@ -11,16 +11,18 @@
 
 attempt({#{character := Character},
          Props,
-         {Character, attack, Target}}) ->
+         {Character, attack, Target},
+         _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, attack},
            {?TARGET, Target}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 
 %% If our character is attacking and we're not, tell ourself, specifically, to attempt an attack
 attempt({#{character := Character},
          Props,
-         {Character, Attack, Target}})
+         {Character, Attack, Target},
+         _})
   when is_pid(Target),
        Attack == attack; Attack == counter_attack ->
     Log = [{?SOURCE, Character},
@@ -33,13 +35,14 @@ attempt({#{character := Character},
          _ ->
              ok
     end,
-    {succeed, false, Props, Log};
+    ?SUCCEED_NOSUB;
 
 %% We've told ourself, specifically, to attack but can't, then fail the attempt
 %% that is specific to us
 attempt({#{character := Character},
          Props,
-         {Character, Attack, Target, with, Self}})
+         {Character, Attack, Target, with, Self},
+         _})
   when Self == self(),
        Attack == attack;
        Attack == counter_attack ->
@@ -52,30 +55,32 @@ attempt({#{character := Character},
 
     case (not IsAttacking) andalso should_attack(Props) of
         true ->
-            {succeed, true, Props, Log};
+            ?SUCCEED_SUB;
         _ ->
             %% If _other_ vectors aren't yet attacking the Target then they'll join in.
             %% I'm not sure how that would happen unless the player can set what they're
             %% attacking with for each individual attack. In that case they'll need to
             %% set what their default counterattack is.
             ct:pal("~p not attacking", [self()]),
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 
 attempt({#{},
          Props,
-         {Resource, allocate, Required, 'of', Type, to, Self}})
+         {Resource, allocate, Required, 'of', Type, to, Self},
+         _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
            {amount, Required},
            {resource_type, Type},
            {?SOURCE, Resource},
            {?TARGET, Self}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 
 attempt({#{},
          Props,
-         {Attacker, killed, Target, with, AttackVector, with, _Context}}) ->
+         {Attacker, killed, Target, with, AttackVector, with, _Context},
+         _}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, killed},
            {?SOURCE, Target},
@@ -83,27 +88,28 @@ attempt({#{},
     case proplists:get_value(target, Props) of
         Target_ when Target_ == Target ->
             Log2 = [{?TARGET, Target} | Log],
-            {succeed, true, Props, Log2};
+            #result{props = Props, log = Log2};
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 
-attempt({#{character := Character}, Props, {Character, stop_attack}}) ->
+attempt({#{character := Character}, Props, {Character, stop_attack}, _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, stop_attack}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 
 attempt({#{character := Character},
          Props,
-         {Character, die}}) ->
+         {Character, die},
+         _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, die}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 
-attempt({_, _, _Msg}) ->
+attempt(_) ->
     undefined.
 
-succeed({Props, {Attacker, killed, Target, with, AttackVector, with, _Context}}) ->
+succeed({Props, {Attacker, killed, Target, with, AttackVector, with, _Context}, _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Attacker},
            {?TARGET, Target},
@@ -114,7 +120,7 @@ succeed({Props, {Attacker, killed, Target, with, AttackVector, with, _Context}})
     Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, false}),
     {Props3, Log};
 
-succeed({Props, {Character, Attack, Target}})
+succeed({Props, {Character, Attack, Target}, _})
   when is_pid(Target),
        Attack == attack;
        Attack == counter_attack ->
@@ -131,7 +137,7 @@ succeed({Props, {Character, Attack, Target}})
      end,
      {Props, Log};
 
-succeed({Props, {Attacker, Attack, Target, with, Self}})
+succeed({Props, {Attacker, Attack, Target, with, Self}, _})
   when Self == self(),
        Attack == attack; Attack == counter_attack ->
     Log = [{?EVENT, attack},
@@ -150,7 +156,7 @@ succeed({Props, {Attacker, Attack, Target, with, Self}})
             {Props, Log}
     end;
 
-succeed({Props, {Character, stop_attack}}) ->
+succeed({Props, {Character, stop_attack}, _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, stop_attack},
            {rules_module, attack}],
@@ -159,7 +165,7 @@ succeed({Props, {Character, stop_attack}}) ->
     Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, false}),
     {Props3, Log};
 
-succeed({Props, {Character, die}}) ->
+succeed({Props, {Character, die}, _}) ->
     Log = [{?SOURCE, Character},
            {?EVENT, die},
            {rules_module, attack}],
@@ -168,7 +174,7 @@ succeed({Props, {Character, die}}) ->
     Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, false}),
     {Props3, Log};
 
-succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}})
+succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}, _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
            {amount, Amt},
@@ -193,10 +199,10 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}})
     Props2 = lists:keystore(allocated_resources, 1, Props, {allocated_resources, RemainingAllocated}),
     {Props2, Log};
 
-succeed({Props, _}) ->
+succeed({Props, _, _}) ->
     Props.
 
-fail({Props, _, _}) ->
+fail({Props, _, _, _}) ->
     Props.
 
 should_attack(Props) ->

@@ -10,30 +10,30 @@
 -export([fail/1]).
 
 % If something reserves us and we have the same owner (character).
-attempt({#{owner := Owner}, Props, {Owner, reserve, Amount, 'of', Self, for, Proc}})
+attempt({#{owner := Owner}, Props, {Owner, reserve, Amount, 'of', Self, for, Proc}, _})
   when Self == self() ->
     Log = [{?SOURCE, Owner},
            {?EVENT, reserve},
            {amount, Amount},
            {?TARGET, Self},
            {for, Proc}],
-    {succeed, true, Props, Log};
-attempt({#{owner := Owner}, Props, {Owner, unreserve, Self, for, Proc}})
+    ?SUCCEED_SUB;
+attempt({#{owner := Owner}, Props, {Owner, unreserve, Self, for, Proc}, _})
   when Self == self() ->
     Log = [{?SOURCE, Owner},
            {?EVENT, unreserve},
            {?TARGET, Self},
            {for, Proc}],
-    {succeed, true, Props, Log};
-attempt({#{}, Props, {Self, update_tick}}) when Self == self() ->
+    ?SUCCEED_SUB;
+attempt({#{}, Props, {Self, update_tick}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, update_tick}],
-    {succeed, false, Props, Log};
+    ?SUCCEED_NOSUB;
 
 attempt(_) ->
     undefined.
 
-succeed({Props, {Character, reserve, Amount, 'of', Self, for, Proc}})
+succeed({Props, {Character, reserve, Amount, 'of', Self, for, Proc}, _})
   when Self == self() ->
     Log = [{?SOURCE, Character},
            {?EVENT, reserve},
@@ -50,7 +50,7 @@ succeed({Props, {Character, reserve, Amount, 'of', Self, for, Proc}})
              end,
     Props3 = update_tick(Props2),
     {Props3, Log};
-succeed({Props, {Character, unreserve, Self, for, Proc}})
+succeed({Props, {Character, unreserve, Self, for, Proc}, _})
   when Self == self() ->
     Log = [{?SOURCE, Character},
            {?EVENT, unreserve},
@@ -61,11 +61,11 @@ succeed({Props, {Character, unreserve, Self, for, Proc}})
     Props2 = lists:keystore(reservations, 1, Props, {reservations, lists:keydelete(Proc, 1, Reservations)}),
     Props3 = update_tick(Props2),
     {Props3, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 update_tick(Props) ->
     Self = self(),

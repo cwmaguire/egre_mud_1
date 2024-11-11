@@ -9,29 +9,32 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Room, name := Name}, Props, {Self, says, Phrase}})
+attempt({#{owner := Room, name := Name}, Props, {Self, says, Phrase}, _})
   when Self == self() ->
     Log = [{?EVENT, says},
            {?SOURCE, Self}],
-    NewMessage = {Self, Name, says, Phrase, in, Room},
-    {{resend, Self, NewMessage}, _ShouldSubscribe = true, Props, Log};
-attempt({#{owner := Room}, Props, {Player, _PlayerName, says, _Phrase, in, Room}}) ->
+    NewEvent = {Self, Name, says, Phrase, in, Room},
+    #result{result = {resend, Self, NewEvent},
+            subscribe = true,
+            props = Props,
+            log = Log};
+attempt({#{owner := Room}, Props, {Player, _PlayerName, says, _Phrase, in, Room}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, says},
            {?TARGET, Room}],
-    {succeed, _Subscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {_Self, Player, says, Phrase, in, Room}}) ->
+succeed({Props, {_Self, Player, says, Phrase, in, Room}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, says},
            {?TARGET, Room}],
     Conn = proplists:get_value(conn, Props),
     egre:attempt(Conn, {send, self(), <<Player/binary, " says: ", Phrase/binary>>}),
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

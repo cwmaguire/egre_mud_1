@@ -26,32 +26,39 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Owner, set_child_property, Key, Value}}) ->
+         {Owner, set_child_property, Key, Value},
+         _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, set_child_property},
            {?TARGET, self()},
            {key, Key},
            {value, Value}],
-    NewMessage = {self(), set_child_property, Key, Value},
-    Props2 = lists:keystore(Key, 1, Props, {Key, Value}),
-    {{broadcast, NewMessage}, false, Props2, Log};
+    NewEvent = {self(), set_child_property, Key, Value},
+    #result{result = {broadcast, NewEvent},
+            subscribe = false,
+            props = lists:keystore(Key, 1, Props, {Key, Value}),
+            log = Log};
 attempt({#{owner := Owner},
          Props,
-         {Owner, set_child_properties, ParentProps}}) ->
+         {Owner, set_child_properties, ParentProps},
+         _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, set_child_properties},
            {?TARGET, self()}],
-    NewMessage = {self(), set_child_properties, ParentProps},
-    Props2 = lists:foldl(fun apply_parent_prop/2, Props, ParentProps),
-    {{broadcast, NewMessage}, false, Props2, Log};
+    NewEvent = {self(), set_child_properties, ParentProps},
+    #result{result = {broadcast, NewEvent},
+            subscribe = false,
+            props = lists:foldl(fun apply_parent_prop/2, Props, ParentProps),
+            log = Log};
 attempt({#{owner := Owner},
          Props,
          {Owner, clear_child_property, Key = top_item,
-          'if', TopItem = #top_item{item = Item, ref = Ref}}}) ->
+          'if', TopItem = #top_item{item = Item, ref = Ref}},
+         _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, clear_child_property},
            {key, Key}],
-    NewMessage = {self(), clear_child_property, top_item, 'if', TopItem},
+    NewEvent = {self(), clear_child_property, top_item, 'if', TopItem},
     %% Only clear the top item if our #top_item{} has the same ref.
     %% Otherwise another item (or this same item) may have already
     %% set our top_item to itself
@@ -64,34 +71,40 @@ attempt({#{owner := Owner},
                  _ ->
                      Props
              end,
-    {{broadcast, NewMessage}, false, Props2, Log};
+    #result{result = {broadcast, NewEvent},
+            subscribe = false,
+            props = Props2,
+            log = Log};
 attempt({#{owner := Owner},
          Props,
-         {Owner, clear_child_property, Key, 'if', Value}}) ->
+         {Owner, clear_child_property, Key, 'if', Value},
+         _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, clear_child_property},
            {key, Key},
            {value, Value}],
-    NewMessage = {self(), clear_child_property, Key, 'if', Value},
+    NewEvent = {self(), clear_child_property, Key, 'if', Value},
     Props2 = case proplists:get_value(Key, Props) of
                  Value ->
                      lists:keydelete(Key, 1, Props);
                  _ ->
                      Props
              end,
-    {{broadcast, NewMessage}, false, Props2, Log};
-attempt({_, Props, {_, set_child_property, _, _}}) ->
+    #result{result = {broadcast, NewEvent},
+            subscribe = false,
+            props = Props2,
+            log = Log};
+attempt({_, Props, {_, set_child_property, _, _}, _}) ->
     Log = [{?EVENT, set_child_property}],
     {{fail, not_a_child}, _Subscribe = false, Props, Log};
 attempt(_) ->
     undefined.
 
+succeed(_) ->
+    undefined.
 
-succeed({Props, _Msg}) ->
-    Props.
-
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 apply_parent_prop({K, V}, Props) ->
     lists:keystore(K, 1, Props, {K, V}).

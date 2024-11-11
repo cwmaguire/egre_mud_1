@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Source, attack, TargetName}})
+attempt({#{}, Props, {Source, attack, TargetName}, _})
   when is_binary(TargetName),
        Source /= self() ->
     Log = [{?SOURCE, Source},
@@ -17,13 +17,13 @@ attempt({#{}, Props, {Source, attack, TargetName}})
            {?TARGET, TargetName}],
     case is_name(Props, TargetName)  of
         true ->
-            NewMessage = {Source, attack, TargetName, is, self(), 'if', alive, 'not', []},
-            Result = {resend, Source, NewMessage},
+            NewEvent = {Source, attack, TargetName, is, self(), 'if', alive, 'not', []},
+            Result = {resend, Source, NewEvent},
             {Result, true, Props, Log};
         _ ->
-            {succeed, _Subscribe = false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
-attempt({#{}, Props, {Source, attack, TargetName, 'not', DeadChars}})
+attempt({#{}, Props, {Source, attack, TargetName, 'not', DeadChars}, _})
   when is_binary(TargetName),
        Source /= self() ->
     Log = [{?SOURCE, Source},
@@ -31,13 +31,15 @@ attempt({#{}, Props, {Source, attack, TargetName, 'not', DeadChars}})
            {?TARGET, TargetName}],
     case is_name(Props, TargetName) and not lists:member(self(), DeadChars)  of
         true ->
-            NewMessage = {Source, attack, TargetName, is, self(), 'if', alive, 'not', DeadChars},
-            Result = {resend, Source, NewMessage},
-            {Result, true, Props, Log};
+            NewEvent = {Source, attack, TargetName, is, self(), 'if', alive, 'not', DeadChars},
+            #result{result = {resend, Source, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = Log};
         _ ->
-            {succeed, _Subscribe = false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
-attempt({#{}, Props, {Source, Action, TargetName}})
+attempt({#{}, Props, {Source, Action, TargetName}, _})
   when is_binary(TargetName) andalso
       (Action == look orelse
        Action == search) ->
@@ -45,27 +47,30 @@ attempt({#{}, Props, {Source, Action, TargetName}})
            {?EVENT, Action}],
     case is_name(Props, TargetName) andalso not attacking_self(Action, Source) of
         true ->
-            Log2 = [{?TARGET, self()} | Log],
-            NewMessage = {Source, Action, self()},
-            Result = {resend, Source, NewMessage},
-            {Result, true, Props, Log2};
+            NewEvent = {Source, Action, self()},
+            #result{result = {resend, Source, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = [{?TARGET, self()} | Log]};
         _ ->
-            Log2 = [{?TARGET, TargetName} | Log],
-            {succeed, _Subscribe = false, Props, Log2}
+            #result{result = succeed,
+                    subscribe = false,
+                    props = Props,
+                    log = [{?TARGET, TargetName} | Log]}
     end;
-attempt({#{owner := Owner}, Props, {Self, look}}) when Self == self() ->
+attempt({#{owner := Owner}, Props, {Self, look, _}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, look}],
-    NewMessage = {Self, look, Owner},
-    {{resend, Self, NewMessage}, _ShouldSubscribe = false, Props, Log};
+    NewEvent = {Self, look, Owner},
+    {{resend, Self, NewEvent}, _ShouldSubscribe = false, Props, Log};
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 is_name(Props, Name) ->
     match == re:run(proplists:get_value(name, Props, ""), Name, [{capture, none}, caseless]).

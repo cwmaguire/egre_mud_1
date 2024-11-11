@@ -9,25 +9,32 @@
 
 -include("mud.hrl").
 
-attempt({#{owner := Room}, Props, {Self, cleanup}}) when Self == self() ->
+attempt({#{owner := Room}, Props, {Self, cleanup}, _}) when Self == self() ->
     Log = [{?TARGET, Self},
            {?EVENT, cleanup}],
-    {{resend, Self, {Self, cleanup, body_parts, [], in, Room}}, true, Props, Log};
-attempt({#{}, Props, {Self, cleanup, body_parts, _BodyParts, in, _Room}})
+    Result = {resend, Self, {Self, cleanup, body_parts, [], in, Room}},
+    #result{result = Result,
+            subscribe = true,
+            props = Props,
+            log = Log};
+attempt({#{}, Props, {Self, cleanup, body_parts, _BodyParts, in, _Room}, _})
   when Self == self() ->
-    {succeed, true, Props};
-attempt({_, _, _Msg}) ->
+    Log = [{?SOURCE, Self},
+           {?TARGET, Self},
+           {?EVENT, cleanup}],
+    ?SUCCEED_SUB;
+attempt(_) ->
     undefined.
 
-succeed({Props, {Self, cleanup, body_parts, _BodyParts, in, Room}}) when Self == self() ->
+succeed({Props, {Self, cleanup, body_parts, _BodyParts, in, Room}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?TARGET, Room},
            {?EVENT, cleanup}],
     egre_object:attempt(self(), {stop, self()}),
     {Props, Log};
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

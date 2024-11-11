@@ -9,39 +9,39 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Owner}, Props, {Owner, achievement, Self, ack}})
+attempt({#{owner := Owner}, Props, {Owner, achievement, Self, ack}, _})
   when Self == self() ->
     Log = [{?EVENT, ack_achievement},
            {?SOURCE, Owner},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#{owner := Owner}, Props, {Owner, metrics, trees_chopped, _Count}}) ->
+    ?SUCCEED_SUB;
+attempt({#{owner := Owner}, Props, {Owner, metrics, trees_chopped, _Count}, _}) ->
     Log = [{?EVENT, metrics},
            {?SOURCE, Owner},
            {?TARGET, self()}],
     ct:pal("~p rules_achievements_got_wood_1 attempt get metric trees_chopped", [self()]),
-    {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#{owner := Owner}, Props, {Owner, chopped, tree, Tree}}) ->
+    ?SUCCEED_SUB;
+attempt({#{owner := Owner}, Props, {Owner, chopped, tree, Tree}, _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Owner},
            {?TARGET, Tree}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#{owner := Owner}, Props, {Owner, achieved, got_wood_1}}) ->
+    ?SUCCEED_SUB;
+attempt({#{owner := Owner}, Props, {Owner, achieved, got_wood_1}, _}) ->
     Log = [{?EVENT, achieved},
            {?SOURCE, Owner},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {_, init}}) ->
+succeed({Props, {_, init}, _Context}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
            {?TARGET, self()}],
     Owner = proplists:get_value(owner, Props),
     egre:attempt(Owner, {Owner, achievement, self()}, false),
     {Props, Log};
-succeed({Props, {Owner, achievement, _Self, ack}}) ->
+succeed({Props, {Owner, achievement, _Self, ack}, _Context}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, achievement_ack},
            {?TARGET, self()}],
@@ -53,7 +53,7 @@ succeed({Props, {Owner, achievement, _Self, ack}}) ->
           ok
     end,
     {Props, Log};
-succeed({Props, {Owner, metrics, trees_chopped, NumTreesChopped}}) ->
+succeed({Props, {Owner, metrics, trees_chopped, NumTreesChopped}, _Context}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
            {?TARGET, self()}],
@@ -66,23 +66,23 @@ succeed({Props, {Owner, metrics, trees_chopped, NumTreesChopped}}) ->
             Props
     end,
     {NewProps, Log};
-succeed({Props, {Owner, chopped, tree, Tree}}) ->
+succeed({Props, {Owner, chopped, tree, Tree}, _Context}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, chopped},
            {?TARGET, Tree}],
     UpdatedCount = proplists:get_value(count, Props) + 1,
     NewProps = maybe_trigger_achievement(Owner, Props, UpdatedCount),
     {NewProps, Log};
-succeed({Props, {Owner, achieved, got_wood_1}}) ->
+succeed({Props, {Owner, achieved, got_wood_1}, _Context}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, achieved},
            {?TARGET, self()}],
     egre:attempt(Owner, {send, Owner, <<"You achieved 'Got Wood?'!">>}),
     {Props, Log};
-succeed({Props, _}) ->
+succeed({Props, _, _}) ->
     Props.
 
-fail({Props, _, _}) ->
+fail({Props, _, _, _}) ->
     Props.
 
 maybe_trigger_achievement(Owner, Props, Count) ->

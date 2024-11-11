@@ -12,18 +12,19 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Source, describe, Room, with, Context}}) ->
+         {Source, describe, Room, with, Context},
+         _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, Owner},
            {room, Room},
            {context, Context}],
     ShouldSub = has_room(Props, Room),
-    {succeed, ShouldSub, Props, Log};
+    ?SUCCEED_MAYBE_SUB(ShouldSub);
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, describe, Room, with, Context}}) ->
+succeed({Props, {Source, describe, Room, with, Context}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, Room},
@@ -31,12 +32,12 @@ succeed({Props, {Source, describe, Room, with, Context}}) ->
            {context, Context}],
     describe(Source, Props, Room, Context),
     {Props, Log};
-succeed({Props, _Msg}) ->
-    {Props, _Log = []}.
+succeed(_) ->
+    undefined.
 
 -spec fail({proplist(), any(), tuple()}) -> {proplist(), proplist()}.
-fail({Props, _Reason, _Msg}) ->
-    {Props, _Log = []}.
+fail(_) ->
+    undefined.
 
 has_room(Props, Room) ->
     lists:any(is_exit_room_fun(Room), Props).

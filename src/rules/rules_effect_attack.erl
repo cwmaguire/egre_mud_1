@@ -17,7 +17,7 @@ attempt({#{owner := Attack},
            {?EVENT, affect},
            {?TARGET, Target}],
     ShouldSubscribe = proplists:get_value(target, Props, undefined) == Target,
-    {succeed, ShouldSubscribe, Props, Log};
+    ?SUCCEED_MAYBE_SUB(ShouldSubscribe);
 
 attempt({#{},
          Props,
@@ -30,11 +30,10 @@ attempt({#{},
            {effect_type, EffectType}],
     case proplists:get_value(type, Props) of
         EffectType ->
-            {succeed, true, Props, Log};
+            ?SUCCEED_SUB;
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
-
 attempt({_, _, _Msg}) ->
     undefined.
 
@@ -177,8 +176,8 @@ fail({Props, _, _}) ->
 %     Character = proplists:get_value(character, Props),
 %     EffectType = proplists:get_value(effect_type, Props),
 %     Target = proplists:get_value(target, Props),
-%     NewMessage = {Character, Roll, for, EffectType, on, Target, with, self()},
-%     egre_object:attempt(self(), NewMessage),
+%     NewEvent = {Character, Roll, for, EffectType, on, Target, with, self()},
+%     egre_object:attempt(self(), NewEvent),
 %
 %    Target = proplists:get_value(target, Props),
 %    AttackType = proplists:get_value(attack_type, Props, []),

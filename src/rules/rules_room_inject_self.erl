@@ -14,19 +14,19 @@
 %   when is_binary(Room) ->
 %     case proplists:get_value(name, Props) of
 %         Room ->
-%             NewMessage = {Char, enter_world, in, self(), with, Conn},
-%             {{resend, NewMessage, Char}, false, Props};
+%             NewEvent = {Char, enter_world, in, self(), with, Conn},
+%             {{resend, NewEvent, Char}, false, Props};
 %         _ ->
 %             {succeed, false, Props}
 %     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 %log(Terms) ->
     %egre_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).

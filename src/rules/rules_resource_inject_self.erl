@@ -18,36 +18,36 @@
 attempt({#{owner := Owner,
            type := ResourceType},
          Props,
-         {Owner, reserve, Amt, 'of', ResourceType, for, AttackVector}})
+         {Owner, reserve, Amt, 'of', ResourceType, for, AttackVector},
+         _})
   when is_atom(ResourceType) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, reserve},
            {amount, Amt},
            {resource_type, ResourceType},
            {vector, AttackVector}],
-    NewMessage = {Owner, reserve, Amt, 'of', self(), for, AttackVector},
-    Result = {resend, Owner, NewMessage},
-    {Result, _Subscribe = false, Props, Log};
+    NewEvent = {Owner, reserve, Amt, 'of', self(), for, AttackVector},
+    ?RESEND_NOSUB(Owner, NewEvent);
 attempt({#{owner := Owner},
          Props,
-         {Owner, unreserve, ResourceType, for, AttackVector}}) when is_atom(ResourceType) ->
+         {Owner, unreserve, ResourceType, for, AttackVector},
+         _}) when is_atom(ResourceType) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, unreserver},
            {resource_type, ResourceType},
            {vector, AttackVector}],
     case proplists:get_value(type, Props) of
         ResourceType ->
-            NewMessage = {Owner, unreserve, self(), for, AttackVector},
-            Result = {resend, Owner, NewMessage},
-            {Result, _Subscribe = true, Props, Log};
+            NewEvent = {Owner, unreserve, self(), for, AttackVector},
+            ?RESEND_SUB(Owner, NewEvent);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
