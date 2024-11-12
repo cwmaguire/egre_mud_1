@@ -57,7 +57,7 @@ attempt({#{}, Props, {Source, Action, TargetName}, _})
                     props = Props,
                     log = [{?TARGET, TargetName} | Log]}
     end;
-attempt({#{owner := Owner}, Props, {Self, look, _}, _}) when Self == self() ->
+attempt({#{owner := Owner}, Props, {Self, look}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, look}],
     NewEvent = {Self, look, Owner},
