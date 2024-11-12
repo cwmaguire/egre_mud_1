@@ -17,33 +17,33 @@ attempt({#{},
        (Action == get orelse
         Action == drop orelse
         Action == look) ->
+    Log = [{?EVENT, inject_self},
+           {action, Action},
+           {name, ItemName}],
     case is_name(Props, ItemName) of
         true ->
-            Log = [{?EVENT, inject_self},
-                   {action, Action},
-                   {name, ItemName}],
             NewEvent = {Object, Action, self()},
             #result{result = {resend, Object, NewEvent},
                     subscribe = false,
                     props = Props,
                     log = Log};
         _ ->
-            {succeed, _Subscribe = false, Props}
+            ?SUCCEED_NOSUB
     end;
 attempt({#{}, Props, {ItemName, move, from, Source, to, Target}, _})
   when is_binary(ItemName) ->
+    Log = [{?EVENT, inject_self},
+           {sub_type, move},
+           {name, ItemName}],
     case is_name(Props, ItemName) of
         true ->
-            Log = [{?EVENT, inject_self},
-                   {sub_type, move},
-                   {name, ItemName}],
             NewEvent = {self(), move, from, Source, to, Target},
             #result{result = {resend, self(), NewEvent},
                     subscribe = false,
                     props = Props,
                     log = Log};
         _ ->
-            {succeed, _Subscribe = false, Props}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.

@@ -61,10 +61,11 @@ attempt({#{owner := Owner},
            {?TARGET, Owner}],
     case is_match(Props, BodyPartName) of
         true ->
-            Log2 = [{?SOURCE, self()} | Log],
             NewEvent = {Item, move, from, self(), to, Owner},
-            Result = {resend, Owner, NewEvent},
-            {Result, _Subscribe = true, Props, Log2};
+            #result{result = {resend, Owner, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = [{?SOURCE, self()} | Log]};
         _ ->
             #result{result = succeed,
                     subscribe = false,

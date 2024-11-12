@@ -20,16 +20,20 @@ attempt({#{owner := Character},
     case lists:member(Self, BodyParts) of
         false ->
             NewEvent = {Character, cleanup, body_parts, [Self | BodyParts], in, Room},
-            {succeed, NewEvent, false, Props, Log};
+            #result{result = succeed,
+                    event = NewEvent,
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         true ->
             ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 

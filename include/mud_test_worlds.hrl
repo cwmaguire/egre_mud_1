@@ -1539,6 +1539,7 @@
         [{room,
           [{visitor, player},
            {visitor, shop},
+           {visitor, rat1},
            {visitor, rat2},
            {visitor, rat3},
            {item, p_glove},
