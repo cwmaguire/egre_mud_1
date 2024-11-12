@@ -32,7 +32,7 @@ attempt({#{character := Character,
                           with, Effect,
                           with, Context2},  %% TODO put this in the context
             #result{result = succeed,
-                    new_event = NewEvent,
+                    event = NewEvent,
                     subscribe = false,
                     props = Props,
                     log = Log};

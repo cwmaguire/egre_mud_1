@@ -25,7 +25,7 @@ attempt({#{},
                 with, Effect,
                 with, Context2}, %% TODO move context to new context record field
     #result{result = succeed,
-            new_event = NewEvent,
+            event = NewEvent,
             subscribe = false,
             props = Props,
             log = Log};

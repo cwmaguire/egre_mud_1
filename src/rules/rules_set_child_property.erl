@@ -96,7 +96,7 @@ attempt({#{owner := Owner},
             log = Log};
 attempt({_, Props, {_, set_child_property, _, _}, _}) ->
     Log = [{?EVENT, set_child_property}],
-    {{fail, not_a_child}, _Subscribe = false, Props, Log};
+    ?FAIL_NOSUB(not_a_child);
 attempt(_) ->
     undefined.
 

@@ -31,7 +31,7 @@ attempt({#{character := Character,
                           with, Effect,
                           with, Context2}, %% TODO move context to record field
             #result{result = succeed,
-                    new_event = NewEvent,
+                    event = NewEvent,
                     subscribe = false,
                     props = Props,
                     log = Log};

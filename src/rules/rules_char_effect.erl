@@ -27,7 +27,7 @@ attempt({#{type := Type},
                   with, Effect,
                   with, Context2},
     #result{result = succeed,
-            new_event = NewEvent,
+            event = NewEvent,
             subscribe = false,
             props = Props,
             log = Log};

@@ -18,8 +18,7 @@ attempt({#{}, Props, {Source, attack, TargetName}, _})
     case is_name(Props, TargetName)  of
         true ->
             NewEvent = {Source, attack, TargetName, is, self(), 'if', alive, 'not', []},
-            Result = {resend, Source, NewEvent},
-            {Result, true, Props, Log};
+            ?RESEND_SUB(Source, NewEvent);
         _ ->
             ?SUCCEED_NOSUB
     end;
@@ -62,7 +61,7 @@ attempt({#{owner := Owner}, Props, {Self, look, _}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, look}],
     NewEvent = {Self, look, Owner},
-    {{resend, Self, NewEvent}, _ShouldSubscribe = false, Props, Log};
+    ?RESEND_NOSUB(Self, NewEvent);
 attempt(_) ->
     undefined.
 

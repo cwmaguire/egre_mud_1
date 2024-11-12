@@ -21,16 +21,9 @@
 
 -define(RULES_MOD, {rules_module, mud_util:rules_mod_suffix(?MODULE)}).
 
--record(result, {result = succeed :: atom(),
-                 subscribe = true :: boolean(),
-                 new_event :: tuple(),
-                 props = [] :: list(),
-                 log = [] :: list(),
-                 context = #{} :: map()}).
-
 -define(SUCCEED_SUB, #result{props = Props, log = Log}).
 -define(SUCCEED_MAYBE_SUB(ShouldSubscribe), #result{subscribe = ShouldSubscribe, props = Props, log = Log}).
--define(SUCCEED_SUB_NEW_EVENT(NewEvent), #result{new_event = NewEvent, props = Props, log = Log}).
+-define(SUCCEED_SUB_NEW_EVENT(NewEvent), #result{event = NewEvent, props = Props, log = Log}).
 -define(SUCCEED_NOSUB, #result{subscribe = false, props = Props, log = Log}).
 -define(FAIL_NOSUB(Reason), #result{result = {fail, Reason}, subscribe = false, props = Props, log = Log}).
 -define(RESEND_SUB(Pid, NewEvent), #result{result = {resend, Pid, NewEvent}, props = Props, log = Log}).

@@ -33,7 +33,7 @@ attempt({#{character := Character,
                 undefined ->
                     ?SUCCEED_NOSUB;
                 Amount ->
-                    #result{new_event = {Character, calc, Hit + Amount, on, Target, with, Item},
+                    #result{event = {Character, calc, Hit + Amount, on, Target, with, Item},
                             subscribe = false,
                             props = Props,
                             log = [{new_hit, Hit + Amount} | Log]}
@@ -56,7 +56,7 @@ attempt({#{character := Character,
                 undefined ->
                     ?SUCCEED_NOSUB;
                 Amount ->
-                    #result{new_event = {Character, calc, Damage + Amount, on, Target, with, Item},
+                    #result{event = {Character, calc, Damage + Amount, on, Target, with, Item},
                             subscribe = false,
                             props = Props,
                             log = [{new_damage, Damage + Amount} | Log]}
@@ -81,7 +81,7 @@ attempt({#{character := Character,
                 undefined ->
                     ?SUCCEED_NOSUB;
                 Amount ->
-                    #result{new_event = {Attacker, calc, Hit - Amount, on, Character, with, Item},
+                    #result{event = {Attacker, calc, Hit - Amount, on, Character, with, Item},
                             subscribe = false,
                             props = Props,
                             log = [{new_hit, Hit - Amount} | Log]}

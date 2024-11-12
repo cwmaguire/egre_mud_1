@@ -21,7 +21,7 @@ attempt({#{owner := Owner},
         false ->
             NewEvent = {Searcher, search, Owner, named, Name, with, body_parts, [Self| BodyParts]},
             #result{result = succeed,
-                    new_event = NewEvent,
+                    event = NewEvent,
                     subscribe = false,
                     props = Props,
                     log = Log};
