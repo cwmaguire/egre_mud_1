@@ -25,7 +25,6 @@
                                   rules_char_say,
                                   rules_char_shout,
                                   rules_char_achievement,
-                                  rules_char_quest,
                                   rules_char_effect,
                                   rules_char_quest_giver,
                                   rules_char_quest_doer |

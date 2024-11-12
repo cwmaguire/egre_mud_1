@@ -9,16 +9,16 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Owner}, Props, {Owner, quest, Self, ack}})
+attempt({#{owner := Owner}, Props, {Owner, quest, Self, ack}, _})
   when Self == self() ->
     Log = [{?EVENT, ack_quest},
            {?SOURCE, Owner},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {_, init}}) ->
+succeed({Props, {_, init}, _}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
            {?TARGET, self()},
@@ -28,14 +28,14 @@ succeed({Props, {_, init}}) ->
     %       recorded in the character?
     egre:attempt(Owner, {Owner, quest, self()}, false),
     {Props, Log};
-succeed({Props, {Owner, quest, _Self, ack}}) ->
+succeed({Props, {Owner, quest, _Self, ack}, _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, quest_ack},
            {?TARGET, self()},
            {rules_module, quest_ack}],
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

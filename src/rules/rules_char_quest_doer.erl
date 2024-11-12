@@ -9,25 +9,25 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Self, quest, Quest}})
+attempt({#{}, Props, {Self, quest, Quest}, _})
   when Self == self() ->
     Log = [{?EVENT, quest_registration},
            {?SOURCE, Quest},
            {?TARGET, self()},
            {rules_module, char_quest_doer}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {_Self, quest, Quest}}) ->
+succeed({Props, {_Self, quest, Quest}, _}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, quest_registration},
            {?TARGET, self()},
            ?RULES_MOD],
     egre:attempt(Quest, {self(), quest, Quest, ack}, false),
     {[{quest, Quest} | Props], Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

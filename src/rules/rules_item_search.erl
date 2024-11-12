@@ -11,31 +11,34 @@
 
 attempt({#{owner := Char},
          Props,
-         {Player, search, Char, named, _Name, with, body_parts, _BodyParts}}) ->
+         {Player, search, Char, named, _Name, with, body_parts, _BodyParts},
+         _}) ->
     Log = [{?EVENT, search},
            {?SOURCE, Player},
            {?TARGET, Char}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#{owner := Owner},
          Props,
-         {Player, search, Char, named, _Name, with, body_parts, BodyParts}}) ->
+         {Player, search, Char, named, _Name, with, body_parts, BodyParts},
+         _}) ->
     Log = [{?EVENT, search},
            {?SOURCE, Player},
            {?TARGET, Char}],
     ShouldSubscribe = lists:member(Owner, BodyParts),
-    {succeed, ShouldSubscribe, Props, Log};
+    ?SUCCEED_MAYBE_SUB(ShouldSubscribe);
 attempt(_) ->
     undefined.
 
 succeed({Props,
-         {Player, search, _Char, named, Name, with, body_parts, _BodyParts}}) ->
+         {Player, search, _Char, named, Name, with, body_parts, _BodyParts},
+         _}) ->
     Context = <<Name/binary, " has ">>,
     send_description(Player, Props, Context),
     Props;
-succeed({Props, _Msg}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _Result, _Msg}) ->
+fail({Props, _Result, _Msg, _}) ->
     Log = [{?EVENT, search},
            {?TARGET, self()}],
     {Props, Log}.

@@ -9,11 +9,11 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{conn := _PlayerConnection}, _, _}) ->
+attempt({#{conn := _PlayerConnection}, _, _, _}) ->
     undefined;
 attempt({#{owner := Room},
          Props,
-         {Player, _PlayerName, says, <<"quests">>, in, Room}})
+         {Player, _PlayerName, says, <<"quests">>, in, Room}, _})
   when Player /= self() ->
     Log = [{?EVENT, say},
            {?SOURCE, self()},
@@ -26,10 +26,13 @@ attempt({#{owner := Room},
            _ ->
                 true
         end,
-    {succeed, ShouldSub, Props, Log};
+    #result{result = succeed,
+            subscribe = ShouldSub,
+            props = Props,
+            log = Log};
 attempt({#{owner := Room},
          Props,
-         {Player, _PlayerName, says, <<"quest ", QuestName/binary>>, in, Room}})
+         {Player, _PlayerName, says, <<"quest ", QuestName/binary>>, in, Room}, _})
   when Player /= self() ->
     Log = [{?EVENT, say},
            {?SOURCE, self()},
@@ -41,19 +44,22 @@ attempt({#{owner := Room},
            _ ->
                 true
         end,
-    {succeed, ShouldSub, Props, Log};
+    #result{result = succeed,
+            subscribe = ShouldSub,
+            props = Props,
+            log = Log};
 attempt({#{owner := Room},
          Props,
-         {Player, _PlayerName, says, <<"quest turn in">>, in, Room}})
+         {Player, _PlayerName, says, <<"quest turn in">>, in, Room}, _})
   when Player /= self() ->
     Log = [{?EVENT, say},
            {?SOURCE, self()},
            {?TARGET, Room}],
-    {succeed, _ShouldSub = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, PlayerName, says, <<"quests">>, in, _Room}}) when Player /= self() ->
+succeed({Props, {Player, PlayerName, says, <<"quests">>, in, _Room}, _}) when Player /= self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, say},
            {?TARGET, self()},
@@ -63,7 +69,7 @@ succeed({Props, {Player, PlayerName, says, <<"quests">>, in, _Room}}) when Playe
     egre:attempt(Player, {self(), quests, for, Player, PlayerName, QuestNames, _AlreadyActive = []}),
     {Props, Log};
 
-succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = [_ | _]}}) when Self /= Player ->
+succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = [_ | _]}, _}) when Self /= Player ->
     Log = [{?SOURCE, Self},
            {?EVENT, no_available_quests},
            {?TARGET, Player},
@@ -73,7 +79,7 @@ succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active
                                           " says: you already have all the quests, ",
                                           PlayerName/binary>>}),
     {Props, Log};
-succeed({Props, {Self, quests, for, Player, PlayerName, Available = [_ | _], _Active}}) when Player /= Self ->
+succeed({Props, {Self, quests, for, Player, PlayerName, Available = [_ | _], _Active}, _}) when Player /= Self ->
     Log = [{?SOURCE, Self},
            {?EVENT, available_quests},
            {?TARGET, Player},
@@ -85,7 +91,7 @@ succeed({Props, {Self, quests, for, Player, PlayerName, Available = [_ | _], _Ac
                lists:join(<<", ">>, SortedAvailable)],
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
-succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = []}}) when Player /= Self ->
+succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active = []}, _}) when Player /= Self ->
     Log = [{?SOURCE, Self},
            {?EVENT, no_quests},
            {?TARGET, Player},
@@ -95,7 +101,7 @@ succeed({Props, {Self, quests, for, Player, PlayerName, _Available = [], _Active
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
 
-succeed({Props, {Player, _PlayerName, says, <<"quest turn in">>, in, _Room}}) when Player /= self() ->
+succeed({Props, {Player, _PlayerName, says, <<"quest turn in">>, in, _Room}, _}) when Player /= self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, say},
            {?TARGET, self()},
@@ -103,7 +109,7 @@ succeed({Props, {Player, _PlayerName, says, <<"quest turn in">>, in, _Room}}) wh
     egre:attempt(Player, {Player, quests, from, self(), turn, in}, false),
     {Props, Log};
 
-succeed({Props, {Player, PlayerName, says, _Phrase = <<"quest ", QuestName/binary>>, in, _Room}})
+succeed({Props, {Player, PlayerName, says, _Phrase = <<"quest ", QuestName/binary>>, in, _Room}, _})
   when Player /= self() ->
     Log = [{?SOURCE, Player},
            {?EVENT, start_quest},
@@ -123,7 +129,7 @@ succeed({Props, {Player, PlayerName, says, _Phrase = <<"quest ", QuestName/binar
     end,
     {Props, Log};
 
-succeed({Props, {Self, quest, QuestName, for, Player, PlayerName}}) ->
+succeed({Props, {Self, quest, QuestName, for, Player, PlayerName}, _}) ->
     Log = [{?SOURCE, Self},
            {?EVENT, give_quest},
            {?TARGET, Player},
@@ -134,10 +140,10 @@ succeed({Props, {Self, quest, QuestName, for, Player, PlayerName}}) ->
     maybe_start_quest(Player, QuestName, Props),
     {Props, Log};
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, completed, {Self, quest, QuestName, for, Player, PlayerName}}) ->
+fail({Props, completed, {Self, quest, QuestName, for, Player, PlayerName}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, start_quest},
            {?TARGET, Self}],
@@ -145,7 +151,7 @@ fail({Props, completed, {Self, quest, QuestName, for, Player, PlayerName}}) ->
     Message = <<Name/binary, " says: You've already turned in ", QuestName/binary, ", ", PlayerName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
-fail({Props, in_progress, {Self, quest, QuestName, for, Player, PlayerName}}) ->
+fail({Props, in_progress, {Self, quest, QuestName, for, Player, PlayerName}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, start_quest},
            {?TARGET, Self}],
@@ -153,8 +159,8 @@ fail({Props, in_progress, {Self, quest, QuestName, for, Player, PlayerName}}) ->
     Message = <<Name/binary, " says: You're already working on ", QuestName/binary, ", ", PlayerName/binary>>,
     egre:attempt(Player, {send, Player, Message}),
     {Props, Log};
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 maybe_start_quest(Player, QuestName, Props) ->
     case get_quest(QuestName, Props) of

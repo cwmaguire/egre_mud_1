@@ -1,8 +1,7 @@
 %% Copyright 2024, Chris Maguire <cwmaguire@protonmail.com>
 -module(rules_char_metrics).
 -behaviour(egre_rules).
--compile({parse_transform,
-          egre_protocol_parse_transform}).
+-compile({parse_transform, egre_protocol_parse_transform}).
 
 -include("mud.hrl").
 
@@ -10,22 +9,22 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Owner}, Props, {Owner, metrics, get, _Metric}}) ->
+attempt({#{owner := Owner}, Props, {Owner, metrics, get, _Metric}, _}) ->
     Log = [{?EVENT, metrics},
            {?SOURCE, Owner},
            {?TARGET, self()}],
     ct:pal("~p rules_char_metrics attempt get metric ~p; "
            "Owner = ~p", [self(), _Metric, Owner]),
-    {succeed, _ShouldSubscribe = true, Props, Log};
-attempt({#{owner := Owner}, Props, {Owner, metrics, add, _Metric, _Count}}) ->
+    ?SUCCEED_SUB;
+attempt({#{owner := Owner}, Props, {Owner, metrics, add, _Metric, _Count}, _}) ->
     Log = [{?EVENT, metrics_add},
            {?SOURCE, Owner},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Owner, metrics, get, Metric}}) ->
+succeed({Props, {Owner, metrics, get, Metric}, _}) ->
     Log = [{?SOURCE, self()},
            {?EVENT, init},
            {?TARGET, self()}],
@@ -33,7 +32,7 @@ succeed({Props, {Owner, metrics, get, Metric}}) ->
     ct:pal("~p rules_char_metrics succeed get metric ~p", [self(), Metric]),
     egre:attempt(Owner, {Owner, metrics, Metric, Count}, false),
     {Props, Log};
-succeed({Props, {Owner, metrics, add, Metric, Count}}) ->
+succeed({Props, {Owner, metrics, add, Metric, Count}, _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, metrics_add},
            {?TARGET, self()}],
@@ -42,8 +41,8 @@ succeed({Props, {Owner, metrics, add, Metric, Count}}) ->
     NewProps = [{metrics, UpdatedMetrics} | lists:delete(metrics, Props)],
 
     {NewProps, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

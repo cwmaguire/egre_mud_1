@@ -13,7 +13,8 @@
 %% Defend
 attempt({#{character := Character},
          Props,
-         {Attacker, calc, HitRoll, on, Character, with, AttackType}}) ->
+         {Attacker, calc, HitRoll, on, Character, with, AttackType},
+         _}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, calc_hit},
            {hit, HitRoll},
@@ -21,24 +22,21 @@ attempt({#{character := Character},
            {attack_type, AttackType}],
     case should_defend(Props) of
         true ->
-            %case egre_modifiers:modifier(Props, defence, hit, AttackType) of
             case proplists:get_value(defence_hit_roll, Props, {0, 0}) of
                 {0, 0} ->
-                    {succeed, false, Props, Log};
+                    ?SUCCEED_NOSUB;
                 {MaybeRoll, Base} ->
                     DefenceRoll = roll(MaybeRoll, Base),
-                    {succeed,
-                     {Attacker, calc, HitRoll - DefenceRoll, on, Character, with, AttackType},
-                     true,
-                     Props,
-                     Log}
+                    NewEvent = {Attacker, calc, HitRoll - DefenceRoll, on, Character, with, AttackType},
+                    ?SUCCEED_SUB_NEW_EVENT(NewEvent)
             end;
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#{character := Character},
          Props,
-         {Attacker, calc, EffectRoll, on, Character, with, Effect}}) ->
+         {Attacker, calc, EffectRoll, on, Character, with, Effect},
+         _}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, calc_damage},
            {effect_roll, EffectRoll},
@@ -48,27 +46,24 @@ attempt({#{character := Character},
         true ->
             case proplists:get_value(defence_effect_roll, Props, {0, 0}) of
                 {_Roll = 0, _Base = 0} ->
-                    {succeed, false, Props, Log};
+                    ?SUCCEED_NOSUB;
                 {MaybeRoll, Base} ->
                     DefenceRoll = roll(MaybeRoll, Base),
-                    {succeed,
-                     {Attacker, calc, EffectRoll - DefenceRoll, damage, Character},
-                     true,
-                     Props,
-                     Log}
+                    NewEvent = {Attacker, calc, EffectRoll - DefenceRoll, damage, Character},
+                    ?SUCCEED_SUB_NEW_EVENT(NewEvent)
             end;
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 
-attempt({_, _, _Msg}) ->
+attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 should_defend(Props) ->
     ShouldDefendModule = proplists:get_value(should_defend_module, Props),

@@ -11,15 +11,16 @@
 
 attempt({#{},
          Props,
-         {Character, cleanup,  body_parts, _BodyParts, in, Room}}) ->
+         {Character, cleanup,  body_parts, _BodyParts, in, Room},
+         _}) ->
     Log = [{?TARGET, Character},
            {?EVENT, cleanup},
            {room, Room}],
-    {succeed, true, Props, Log};
-attempt({_, _, _Msg}) ->
+    ?SUCCEED_SUB;
+attempt(_) ->
     undefined.
 
-succeed({Props, {Character, cleanup, body_parts, BodyParts, in, Room}}) ->
+succeed({Props, {Character, cleanup, body_parts, BodyParts, in, Room}, _}) ->
     Log = [{?SOURCE, Character},
            {?TARGET, Room},
            {?EVENT, cleanup}],
@@ -33,8 +34,8 @@ succeed({Props, {Character, cleanup, body_parts, BodyParts, in, Room}}) ->
     end,
     {Props, Log};
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

@@ -12,15 +12,16 @@ attempt({#{owner := Player,
            giver := Giver,
            is_complete := true},
          Props,
-         {Player, quests, from, Giver, turn, in}}) ->
+         {Player, quests, from, Giver, turn, in},
+         _}) ->
     Log = [{?EVENT, turn_in_quest},
            {?SOURCE, Giver},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, quests, from, _Giver, turn, in}}) ->
+succeed({Props, {Player, quests, from, _Giver, turn, in}, _}) ->
     Log = [{?EVENT, give_rewards},
            {?SOURCE, self()},
            {?TARGET, Player}],
@@ -31,11 +32,11 @@ succeed({Props, {Player, quests, from, _Giver, turn, in}}) ->
     %% Give rewards
     [give_reward(Player, Reward) || Reward <- proplists:get_value(rewards, Props)],
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 give_reward(Player, {event, Event}) ->
     RenderedEvent = render_event(Event, Player),

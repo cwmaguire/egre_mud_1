@@ -13,22 +13,23 @@ attempt({#{owner := Player,
            name := Name,
            is_turned_in := IsTurnedIn},
          Props,
-         {QuestGiver, quest, Name, for, Player, _PlayerName}}) ->
+         {QuestGiver, quest, Name, for, Player, _PlayerName},
+         _}) ->
     Log = [{?EVENT, quest_exists},
            {?SOURCE, QuestGiver},
            {?TARGET, Player}],
     case IsTurnedIn of
         true ->
-            {{fail, turned_in}, _Sub = false, Props, Log};
+            ?FAIL_NOSUB(turned_in);
         _ ->
-            {{fail, in_progress}, _Sub = false, Props, Log}
+            ?FAIL_NOSUB(in_progress)
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 

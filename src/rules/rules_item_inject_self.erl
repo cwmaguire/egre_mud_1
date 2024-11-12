@@ -11,47 +11,49 @@
 
 attempt({#{},
          Props,
-         {Object, Action, ItemName}})
+         {Object, Action, ItemName},
+         _})
   when is_binary(ItemName) andalso
        (Action == get orelse
         Action == drop orelse
         Action == look) ->
+    Log = [{?EVENT, inject_self},
+           {action, Action},
+           {name, ItemName}],
     case is_name(Props, ItemName) of
         true ->
-            NewMessage = {Object, Action, self()},
-            Log = [{?EVENT, inject_self},
-                   {action, Action},
-                   {name, ItemName}],
-            Result = {resend, Object, NewMessage},
-            {Result, _Subscribe = false, Props, Log};
+            NewEvent = {Object, Action, self()},
+            #result{result = {resend, Object, NewEvent},
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         _ ->
-            {succeed, _Subscribe = false, Props}
+            ?SUCCEED_NOSUB
     end;
-attempt({#{}, Props, {ItemName, move, from, Source, to, Target}})
+attempt({#{}, Props, {ItemName, move, from, Source, to, Target}, _})
   when is_binary(ItemName) ->
+    Log = [{?EVENT, inject_self},
+           {sub_type, move},
+           {name, ItemName}],
     case is_name(Props, ItemName) of
         true ->
-            NewMessage = {self(), move, from, Source, to, Target},
-            Log = [{?EVENT, inject_self},
-                   {sub_type, move},
-                   {name, ItemName}],
-            Result = {resend, self(), NewMessage},
-            {Result, false, Props, Log};
+            NewEvent = {self(), move, from, Source, to, Target},
+            #result{result = {resend, self(), NewEvent},
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         _ ->
-            {succeed, _Subscribe = false, Props}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 is_name(Props, Name) ->
     ItemName = proplists:get_value(name, Props, ""),
     match == re:run(ItemName, Name, [{capture, none}]).
-
-%log(Props) ->
-    %egre_event_log:log(debug, [{module, ?MODULE} | Props]).

@@ -21,15 +21,15 @@
 attempt({#{character := Character,
            type := Type},
          Props,
-         {add, _Amount, 'of', attribute, Type, to, Character}}) ->
+         {add, _Amount, 'of', attribute, Type, to, Character}, _}) ->
     Log = [{?EVENT, modify_attribute},
            {?SOURCE, Character},
            {?TARGET, self()}],
-    {succeed, true, Props, Log};
-attempt({_, _, _Msg}) ->
+    ?SUCCEED_SUB;
+attempt(_) ->
     undefined.
 
-succeed({Props, {add, X, 'of', attribute, _Type, to, Character}}) ->
+succeed({Props, {add, X, 'of', attribute, _Type, to, Character}, _}) ->
     Log = [{?EVENT, modify_attribute},
            {?SOURCE, Character},
            {?TARGET, self()},
@@ -37,8 +37,8 @@ succeed({Props, {add, X, 'of', attribute, _Type, to, Character}}) ->
     Amount = proplists:get_value(amount, Props, 0),
     Props2 = lists:keystore(amount, 1, Props, {amount, Amount + X}),
     {Props2, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

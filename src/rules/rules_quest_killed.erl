@@ -11,15 +11,16 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Owner, killed, Target, with, _, with, _Context}}) ->
+         {Owner, killed, Target, with, _, with, _Context},
+         _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Owner},
            {?TARGET, Target}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Owner, killed, Target, with, _, with, Context}}) ->
+succeed({Props, {Owner, killed, Target, with, _, with, Context}, _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, killed},
            {?TARGET, Target}],
@@ -30,11 +31,11 @@ succeed({Props, {Owner, killed, Target, with, _, with, Context}}) ->
        _ ->
            {Props, Log}
     end;
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 does_action_meet_criteria(Props, Context) ->
     Objectives = sets:from_list(proplists:get_value(objectives, Props)),

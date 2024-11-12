@@ -9,24 +9,24 @@
 
 -include("mud.hrl").
 
-attempt({#{}, Props, {Char, move, from, Source, to, Target, via, Exit}})
+attempt({#{}, Props, {Char, move, from, Source, to, Target, via, Exit}, _})
   when Source == self(); Target == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, move},
            {from, Source},
            {to, Target},
            {exit, Exit}],
-    {succeed, true, Props, Log};
-attempt({#{}, Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() ->
+    ?SUCCEED_SUB;
+attempt({#{}, Props, {Char, enter_world, in, Self, with, Conn}, _}) when Self == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, enter_world},
            {room, Self},
            {conn, Conn}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Char, move, from, Self, to, Target, via, Exit}}) when Self == self() ->
+succeed({Props, {Char, move, from, Self, to, Target, via, Exit}, _}) when Self == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, move},
            {from, Self},
@@ -34,7 +34,7 @@ succeed({Props, {Char, move, from, Self, to, Target, via, Exit}}) when Self == s
            {exit, Exit}],
     Props2 = lists:keydelete(Char, 2, Props),
     {Props2, Log};
-succeed({Props, {Char, move, from, Source, to, Self, via, Exit}}) when Self == self() ->
+succeed({Props, {Char, move, from, Source, to, Self, via, Exit}, _}) when Self == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, move},
            {from, Source},
@@ -43,7 +43,7 @@ succeed({Props, {Char, move, from, Source, to, Self, via, Exit}}) when Self == s
     egre_object:attempt(Self, {Char, look, Self}),
     Props2 = [{character, Char} | Props],
     {Props2, Log};
-succeed({Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() ->
+succeed({Props, {Char, enter_world, in, Self, with, Conn}, _}) when Self == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, enter_world},
            {room, Self},
@@ -51,8 +51,8 @@ succeed({Props, {Char, enter_world, in, Self, with, Conn}}) when Self == self() 
     egre_object:attempt(Self, {Char, look, Self}),
     Props2 = [{character, Char} | Props],
     {Props2, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
 fail({Props, _Reason, {Char, move, from, Self, to, Target}}) when Self == self() ->
     Log = [{?SOURCE, Char},
@@ -67,5 +67,5 @@ fail({Props, _Reason, {Char, move, from, Source, to, Target, via, Exit}}) when S
            {to, Target},
            {exit, Exit}],
     {Props, Log};
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

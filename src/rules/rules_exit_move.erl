@@ -11,7 +11,7 @@
 
 %% Exit might not be a cardinal direction like "south", so saying "Direction"
 %% doesn't always make sense. e.g. "portal" is not a direction.
-attempt({#{}, Props, {Obj, move, Exit, from, Room}}) when is_atom(Exit) ->
+attempt({#{}, Props, {Obj, move, Exit, from, Room}, _}) when is_atom(Exit) ->
     %% I am an exit process linking two rooms. I have two,
     %% named "exits" pointing to those rooms.
     %% Find an exit that leads _to_ the "FromRoom", that is, it would
@@ -26,7 +26,7 @@ attempt({#{}, Props, {Obj, move, Exit, from, Room}}) when is_atom(Exit) ->
            {from, Room}],
     Rooms = [R || R = {_, Room_} <- Props, Room_ == Room],
     move(Props, Obj, Rooms, Exit, Log);
-attempt({#{}, Props, {Mover, move, from, Source, to, Target, via, Self}}) when Self == self() ->
+attempt({#{}, Props, {Mover, move, from, Source, to, Target, via, Self}, _}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Mover},
            {from, Source},
@@ -34,18 +34,21 @@ attempt({#{}, Props, {Mover, move, from, Source, to, Target, via, Self}}) when S
            {exit, Self}],
     case blocked_reason(Props) of
         {blocked_because, Reason} ->
-            {{fail, Reason}, false, Props, Log};
+            ?FAIL_NOSUB(Reason);
         not_blocked ->
-            {succeed, true, Props, Log}
+            ?SUCCEED_SUB
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, Msg}) ->
-    Log = [{?SOURCE, self()}, {message, Msg}, {result, succeed}],
+succeed({Props, Msg, _Context}) ->
+    Log = [{?SOURCE, self()},
+           {message, Msg},
+           {result, succeed},
+           ?RULES_MOD],
     {Props, Log}.
 
-fail({Props, _Result, _Msg}) ->
+fail({Props, _Result, _Msg, _Context}) ->
     Props.
 
 %% Make sure the specified exit name doesn't go back to the room that
@@ -91,13 +94,16 @@ move(Props, Obj, [{{room, FromExit}, FromRoom}], ToExit, Log) when FromExit /= T
         [{_, ToRoom}] ->
             Log2 = [{to, ToRoom},
                     {from_exit, FromExit} | Log],
-            NewMsg = {Obj, move, from, FromRoom, to, ToRoom, via, self()},
-            {{resend, Obj, NewMsg}, false, Props, Log2};
+            NewEvent = {Obj, move, from, FromRoom, to, ToRoom, via, self()},
+            #result{result = {resend, Obj, NewEvent},
+                    subscribe = false,
+                    props = Props,
+                    log = Log2};
         [] ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 move(Props, _, _, _, Log) ->
-    {succeed, false, Props, Log}.
+    ?SUCCEED_NOSUB.
 
 %% TODO: add things like is_one_way, is_open, is_right_size, etc.
 blocked_reason(Props) ->

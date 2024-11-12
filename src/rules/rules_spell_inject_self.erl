@@ -11,27 +11,27 @@
 
 attempt({#{character := Character},
          Props,
-         {Character, memorize, SpellName}})
+         {Character, memorize, SpellName},
+         _})
   when is_binary(SpellName) ->
     case is_name(Props, SpellName) of
         true ->
-            NewMessage = {Character, memorize, self()},
             Log = [{?EVENT, inject_self},
                    {action, memorize},
                    {name, SpellName}],
-            Result = {resend, Character, NewMessage},
-            {Result, _Subscribe = false, Props, Log};
+            NewEvent = {Character, memorize, self()},
+            ?RESEND_NOSUB(Character, NewEvent);
         _ ->
             {succeed, _Subscribe = false, Props}
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 is_name(Props, Name) ->
     SpellName = proplists:get_value(name, Props, ""),

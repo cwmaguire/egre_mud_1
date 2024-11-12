@@ -16,7 +16,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Self, tick, Ref, with, Count}})
+attempt({#{}, Props, {Self, tick, Ref, with, Count}, _})
   when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, tick},
@@ -24,15 +24,15 @@ attempt({#{}, Props, {Self, tick, Ref, with, Count}})
            {count, Count}],
     case proplists:get_value(tick, Props, undefined) of
         Ref ->
-            {succeed, true, Props, Log};
+            ?SUCCEED_SUB;
         _ ->
-            {{fail, <<"unmatched (stale?) resource tick">>}, false, Props, Log}
+            ?FAIL_NOSUB(<<"unmatched (stale?) resource tick">>)
     end;
 
 attempt(_) ->
     undefined.
 
-succeed({Props, {Self, tick, Ref, with, Count}})
+succeed({Props, {Self, tick, Ref, with, Count}, _})
   when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, tick},
@@ -61,11 +61,11 @@ succeed({Props, {Self, tick, Ref, with, Count}})
     Props2 = [{current, Remaining}, {reservations, RotatedReservations} | OtherProps],
     {Props2, Log};
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 allocate(Type, [{Proc, Required} | Reservations], Available)
   when Available >= Required ->

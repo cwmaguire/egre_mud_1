@@ -19,22 +19,25 @@ is_dead_action(_) ->
 
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {killed, Attack, Source, Owner}}) ->
+         _Msg = {killed, Attack, Source, Owner},
+         _}) ->
     % This is just a guess, per the message above I don't know if this is used
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
            {?TARGET, Owner},
            {vector, Attack}],
-    {succeed, _Subscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {Owner, die}}) ->
+         _Msg = {Owner, die},
+         _}) ->
     Log = [{?EVENT, die},
            {?SOURCE, Owner}],
-    {succeed, _Subscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {Action, Attack, Owner, Target, _}})
+         _Msg = {Action, Attack, Owner, Target, _},
+         _})
     when Action == calc_hit; Action == calc_damage ->
     Log = [{?EVENT, Action},
            {?SOURCE, Owner},
@@ -43,13 +46,14 @@ attempt({#parents{owner = Owner},
     case proplists:get_value(is_alive, Props, false) of
         false ->
             %log("~p cannot ~p ~p when ~p is dead~n", [Owner, Action, Target, Owner]),
-            {{fail, target_is_dead}, _Subscribe = false, Props, Log};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {Action, Attack, Attacker, Owner, _}})
+         _Msg = {Action, Attack, Attacker, Owner, _},
+         _})
     when Action == calc_hit; Action == calc_damage ->
     Log = [{?EVENT, Action},
            {vector, Attack},
@@ -58,13 +62,14 @@ attempt({#parents{owner = Owner},
     case proplists:get_value(is_alive, Props, false) of
         false ->
             %log("~p cannot ~p ~p when ~p is dead~n", [Attacker, Action, Owner, Owner]),
-            {{fail, target_is_dead}, _Subscribe = false, Props, Log};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {calc_next_attack_wait, Attack, Attacker, Owner, _, _}}) ->
+         _Msg = {calc_next_attack_wait, Attack, Attacker, Owner, _, _},
+         _}) ->
     Log = [{?EVENT, calc_next_attack_wait},
            {vector, Attack},
            {?SOURCE, Attacker},
@@ -72,13 +77,14 @@ attempt({#parents{owner = Owner},
     case proplists:get_value(is_alive, Props, false) of
         false ->
             %log("~p cannot ~p to attack ~p when ~p is dead~n", [Attacker, calc_next_attack_wait, Owner, Owner]),
-            {{fail, target_is_dead}, _Subscribe = false, Props, Log};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {calc_next_attack_wait, Attack, Owner, Target, _, _}}) ->
+         _Msg = {calc_next_attack_wait, Attack, Owner, Target, _, _},
+         _}) ->
     Log = [{?EVENT, calc_next_attack_wait},
            {vector, Attack},
            {?SOURCE, Owner},
@@ -86,13 +92,14 @@ attempt({#parents{owner = Owner},
     case proplists:get_value(is_alive, Props, false) of
         false ->
             %log("~p cannot ~p to attack ~p when ~p is dead~n", [Owner, calc_next_attack_wait, Target, Target]),
-            {{fail, target_is_dead}, _Subscribe = false, Props, Log};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {attack, Attack, Attacker, Owner}}) ->
+         _Msg = {attack, Attack, Attacker, Owner},
+         _}) ->
     Log = [{?EVENT, attack},
            {vector, Attack},
            {?SOURCE, Attacker},
@@ -100,58 +107,62 @@ attempt({#parents{owner = Owner},
     case proplists:get_value(is_alive, Props, false) of
         false ->
             %log("~p cannot attack ~p when ~p is dead~n", [Attacker, Owner, Owner]),
-            {{fail, target_is_dead}, _Subscribe = false, Props, Log};
+            ?FAIL_NOSUB(target_is_dead);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#parents{owner = Owner},
          Props,
-         _Msg = {attack, Attack, Owner, Target}}) ->
+         _Msg = {attack, Attack, Owner, Target},
+         _}) ->
     Log = [{?EVENT, attack},
            {vector, Attack},
            {?SOURCE, Owner},
            {?TARGET, Target}],
     case proplists:get_value(is_alive, Props, false) of
         false ->
-            {{fail, attacker_is_dead}, _Subscribe = false, Props, Log};
+            ?FAIL_NOSUB(attacker_is_dead);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt({#parents{owner = Owner},
          Props,
-         Msg}) when Owner == element(2, Msg) ->
+         Msg,
+         _}) when Owner == element(2, Msg) ->
     Action = element(1, Msg),
     Log = [{?EVENT, Action}],
     IsAlive = proplists:get_value(is_alive, Props, false),
     IsDeadAction = is_dead_action(Action),
     case IsAlive orelse IsDeadAction of
         true ->
-            {succeed, _Subscribe = false, Props, Log};
+            ?SUCCEED_NOSUB;
         false ->
             AliveOrDead = case IsAlive of true -> "alive"; false -> "dead" end,
             FailMsg = iolist_to_binary(io_lib:format("~p cannot ~p when ~p~n",
                                                   [Owner, Action, AliveOrDead])),
-            {{fail, FailMsg}, _Subscribe = false, Props, Log}
+            ?FAIL_NOSUB(FailMsg)
     end;
 attempt({#parents{owner = Owner},
          Props,
-         {calc_hit, Attack, Attacker, Owner, _}}) ->
+         {calc_hit, Attack, Attacker, Owner, _},
+         _}) ->
     Log = [{?EVENT, calc_hit},
            {vector, Attack},
            {?SOURCE, Attacker},
            {?TARGET, Owner}],
     case proplists:get_value(is_alive, Props) of
         false ->
-            {{resend, Attacker, {killed, Attack, Attacker, Owner}}, false, Props, Log};
+            NewEvent = {killed, Attack, Attacker, Owner},
+            ?RESEND_NOSUB(Attacker, NewEvent);
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
 %% This no longer seems to match any generated messages
 %% See protocol.csv
-succeed({Props, {killed, Attack, Source, Owner}}) ->
+succeed({Props, {killed, Attack, Source, Owner}, _}) ->
     Log = [{?EVENT, killed},
            {vector, Attack},
            {?SOURCE, Source},
@@ -160,7 +171,7 @@ succeed({Props, {killed, Attack, Source, Owner}}) ->
     {Props, Log};
 %% Why is test_connection_attack kicking off the cleanup?
 %% _life_attack kicks it off too
-succeed({Props, {Target, die}}) ->
+succeed({Props, {Target, die}, _}) ->
     Log = [{?EVENT, die},
            {?SOURCE, Target}],
     Owner = proplists:get_value(owner, Props),
@@ -174,10 +185,10 @@ succeed({Props, {Target, die}}) ->
             Props
     end,
     {Props2, Log};
-succeed({Props, _Msg}) ->
+succeed({Props, _Msg, _Context}) ->
     throw(should_never_happen),
     Props.
 
-fail({Props, _Reason, _Message}) ->
+fail({Props, _Reason, _Message, _Context}) ->
     throw(should_never_happen),
     Props.

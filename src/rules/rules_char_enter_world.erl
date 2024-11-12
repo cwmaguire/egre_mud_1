@@ -11,30 +11,34 @@
 
 attempt({#{},
          Props,
-         {Self, enter_world, in, room, with, Conn}}) when Self == self() ->
+         {Self, enter_world, in, room, with, Conn}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, enter_world},
            {conn, Conn}],
     case proplists:get_value(owner, Props) of
         undefined ->
-            Log2 = [{?TARGET, undefined} | Log],
-            {succeed, false, Props, Log2};
+            #result{result = succeed,
+                    subscribe = false,
+                    props = Props,
+                    log = [{?TARGET, undefined} | Log]};
         Room ->
-            Log2 = [{?TARGET, Room} | Log],
-            NewMessage = {Self, enter_world, in, Room, with, Conn},
-            {{resend, Self, NewMessage}, true, Props, Log2}
+            NewEvent = {Self, enter_world, in, Room, with, Conn},
+            #result{result = {resend, Self, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = [{?TARGET, Room} | Log]}
     end;
 attempt({#{},
          Props,
-         {Self, enter_world, in, Room, with, _Conn}}) when Self == self(), is_pid(Room) ->
+         {Self, enter_world, in, Room, with, _Conn}, _}) when Self == self(), is_pid(Room) ->
     Log = [{?SOURCE, Self},
            {?EVENT, enter_world},
            {?TARGET, Room}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Player, enter_world, in, Room, with, Conn}}) ->
+succeed({Props, {Player, enter_world, in, Room, with, Conn}, _}) ->
     Log = [{?EVENT, char_enter_world},
            {?SOURCE, Player},
            {?TARGET, Room},
@@ -42,14 +46,14 @@ succeed({Props, {Player, enter_world, in, Room, with, Conn}}) ->
            {conn, Conn}],
     Props2 = lists:keystore(conn, 1, Props, {conn, Conn}),
     {Props2, Log};
-succeed({Props, _Other}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, Reason, {Player, enter_world}}) ->
+fail({Props, Reason, {Player, enter_world}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, enter_world}],
     Conn = proplists:get_value(conn, Props),
     Conn ! {disconnect, Reason},
     {Props, Log};
-fail({Props, _Reason, _Message}) ->
-    Props.
+fail(_) ->
+    undefined.

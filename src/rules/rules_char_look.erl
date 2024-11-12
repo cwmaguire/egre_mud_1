@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Source, look, TargetName}})
+attempt({#{}, Props, {Source, look, TargetName}, _})
   when Source =/= self(),
        is_binary(TargetName) ->
     Log = [{?EVENT, look},
@@ -17,48 +17,57 @@ attempt({#{}, Props, {Source, look, TargetName}})
     SelfName = proplists:get_value(name, Props, <<>>),
     case re:run(SelfName, TargetName, [{capture, none}, caseless]) of
         match ->
-            Log2 = [{?TARGET, self()} | Log],
-            NewMessage = {Source, look, self()},
-            {{resend, Source, NewMessage}, _ShouldSubscribe = ignored, Props, Log2};
+            NewEvent = {Source, look, self()},
+            #result{result = {resend, Source, NewEvent},
+                    subscribe = ignored,
+                    props = Props,
+                    log = [{?TARGET, self()} | Log]};
         _ ->
-            Log2 = [{?TARGET, TargetName} | Log],
-            {succeed, false, Props, Log2}
+            #result{result = succeed,
+                    subscribe = false,
+                    props = Props,
+                    log = [{?TARGET, TargetName} | Log]}
     end;
 attempt({#{owner := Room},
          Props,
-         {Self, look}})
+         {Self, look},
+         _})
   when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, look},
            {?TARGET, Room}],
-    NewMessage = {Self, look, Room},
-    {{resend, Self, NewMessage}, _ShouldSubscribe = ignored, Props, Log};
+    NewEvent = {Self, look, Room},
+    #result{result = {resend, Self, NewEvent},
+            subscribe = ignored,
+            props = Props,
+            log = Log};
 attempt({#{},
          Props,
-         {Source, look, Self}}) when Self == self() ->
+         {Source, look, Self},
+         _}) when Self == self() ->
     Log = [{?SOURCE, Source},
            {?EVENT, look},
            {?TARGET, Self}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#{owner := OwnerRoom},
          Props,
-         _DescFromParent = {Source, describe, OwnerRoom, with, RoomContext}}) ->
+         _DescFromParent = {Source, describe, OwnerRoom, with, RoomContext}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, OwnerRoom},
            {context, RoomContext}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, look, Self}}) when Self == self() ->
+succeed({Props, {Source, look, Self}, _}) when Self == self() ->
     Log = [{?SOURCE, Source},
            {?EVENT, look},
            {?TARGET, Self}],
     NoContext = <<>>,
     describe(Source, Props, NoContext, deep),
     {Props, Log};
-succeed({Props, {Source, describe, Target, with, Context}}) ->
+succeed({Props, {Source, describe, Target, with, Context}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, describe},
            {?TARGET, Target},
@@ -70,11 +79,11 @@ succeed({Props, {Source, describe, Target, with, Context}}) ->
                 ok
         end,
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 describe(Source, Props, Context, shallow) ->
     send_description(Source, Props, Context);

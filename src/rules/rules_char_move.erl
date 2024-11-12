@@ -9,34 +9,39 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Self, move, Direction}}) when Self == self() ->
+attempt({#{}, Props, {Self, move, Direction}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {direction, Direction}],
     case proplists:get_value(owner, Props) of
         undefined ->
-            {{fail, <<"Character doesn't have room">>}, false, Props, Log};
+            #result{result = {fail, <<"Character doesn't have room">>},
+                    subscribe = false,
+                    props = Props,
+                    log = Log};
         Room ->
-            Log2 = [{from, Room} | Log],
-            {{resend, Self, {Self, move, Direction, from, Room}}, false, Props, Log2}
+            #result{result = {resend, Self, {Self, move, Direction, from, Room}},
+                    subscribe = false,
+                    props = Props,
+                    log = [{from, Room} | Log]}
     end;
-attempt({#{}, Props, {Self, move, Dir, from, From}}) when Self == self() ->
+attempt({#{}, Props, {Self, move, Dir, from, From}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {direction, Dir},
            {from, From}],
-    {succeed, true, Props, Log};
-attempt({#{}, Props, {Self, move, from, From, to, To, via, Exit}}) when Self == self() ->
+    ?SUCCEED_SUB;
+attempt({#{}, Props, {Self, move, from, From, to, To, via, Exit}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {from, From},
            {to, To},
            {exit, Exit}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Self, move, from, Source, to, Target, via, Exit}}) when Self == self() ->
+succeed({Props, {Self, move, from, Source, to, Target, via, Exit}, _}) when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Self},
            {from, Source},
@@ -50,7 +55,7 @@ succeed({Props, {Self, move, from, Source, to, Target, via, Exit}}) when Self ==
             ok
     end,
     {NewProps, Log};
-succeed({Props, {Self, move, Direction, from, Source}}) when Self == self(), is_atom(Direction) ->
+succeed({Props, {Self, move, Direction, from, Source}, _}) when Self == self(), is_atom(Direction) ->
     % rules_exit_move should have turned this into:
     % {Self, move, from, Source, to, Target, via, Exit}
     Log = [{?EVENT, move},
@@ -59,11 +64,11 @@ succeed({Props, {Self, move, Direction, from, Source}}) when Self == self(), is_
            {from, Source}],
     % TODO Let the player know they didn't get anywhere: "There is no exit <Direction> here."
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 set(Type, Obj, Props) ->
     lists:keystore(Type, 1, Props, {Type, Obj}).

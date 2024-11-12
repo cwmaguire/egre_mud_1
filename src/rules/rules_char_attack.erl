@@ -8,28 +8,28 @@
 
 -include("mud.hrl").
 
-attempt({#{}, Props, {Attacker, attack, Self}}) when Self == self() ->
+attempt({#{}, Props, {Attacker, attack, Self}, _}) when Self == self() ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, attack},
            {?TARGET, Self}],
-    {succeed, true, Props, Log};
-attempt({#{}, Props, {Self, attack, Target, with, AttackType}}) when Self == self() ->
+    ?SUCCEED_SUB;
+attempt({#{}, Props, {Self, attack, Target, with, AttackType}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, attack},
            {?TARGET, Target},
            {attack_type, AttackType}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Self, attack, Target, with, AttackType}}) ->
+succeed({Props, {Self, attack, Target, with, AttackType}, _}) ->
     Log = [{?SOURCE, Self},
            {?EVENT, attack},
            {?TARGET, Target},
            {vector, AttackType}],
     Props2 = lists:keystore(is_attacking, 1, Props, {is_attacking, true}),
     {Props2, Log};
-succeed({Props, {Attacker, attack, Self}}) ->
+succeed({Props, {Attacker, attack, Self}, _}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, attack},
            {?TARGET, Self}],
@@ -40,8 +40,8 @@ succeed({Props, {Attacker, attack, Self}}) ->
             egre_object:attempt(self(), {self(), counter_attack, Attacker})
     end,
     {Props, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

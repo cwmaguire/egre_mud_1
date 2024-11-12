@@ -14,23 +14,28 @@ attempt({#{type := Type},
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Self,
           with, Effect,
-          with, Context}})
+          with, Context},
+         _})
   when Self == self() ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
     Context2 = [{kill, Type} | Context],
-    NewMessage = {Character, cause,
+    NewEvent = {Character, cause,
                   EffectAmount, 'of', EffectType,
                   to, Self,
                   with, Effect,
                   with, Context2},
-    {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+    #result{result = succeed,
+            event = NewEvent,
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

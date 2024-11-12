@@ -9,16 +9,16 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Owner}, Props, {send, Owner, Message}}) ->
+attempt({#{owner := Owner}, Props, {send, Owner, Message}, _}) ->
     Log = [{?EVENT, send},
            {?TARGET, Owner},
            {player_message, Message}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
 
-succeed({Props, {send, Player, Message}}) ->
+succeed({Props, {send, Player, Message}, _}) ->
     Log = [{?EVENT, send},
            {?TARGET, Player},
            {player_message, Message},
@@ -26,8 +26,8 @@ succeed({Props, {send, Player, Message}}) ->
     {Conn} = proplists:get_value(conn, Props),
     egremud_conn:handle(Conn, {send, Message}),
     {Props, Log};
-succeed({Props, _Other}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _Reason, _Message}) ->
-    Props.
+fail(_) ->
+    undefined.

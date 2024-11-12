@@ -9,18 +9,18 @@
 
 -include("mud.hrl").
 
-attempt({#{}, Props, {Item, move, from, Source, to, Target}})
+attempt({#{}, Props, {Item, move, from, Source, to, Target}, _})
   when (Source == self() orelse Target == self()),
        is_pid(Item) ->
     Log = [{?SOURCE, Item},
            {?EVENT, move},
            {from, Source},
            {to, Target}],
-    {succeed, true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
+succeed({Props, {Item, move, from, Self, to, Target}, _}) when Self == self() ->
     log([<<"Process ">>, Target, <<" got ">>, Item, <<" from me">>]),
     Log = [{?SOURCE, Item},
            {?EVENT, move},
@@ -28,7 +28,7 @@ succeed({Props, {Item, move, from, Self, to, Target}}) when Self == self() ->
            {to, Target}],
     Props2 = lists:keydelete(Item, 2, Props),
     {Props2, Log};
-succeed({Props, {Item, move, from, Target, to, Self}}) when Self == self() ->
+succeed({Props, {Item, move, from, Target, to, Self}, _}) when Self == self() ->
     log([Item, <<" added to me from ">>, Target]),
     Log = [{?SOURCE, Item},
            {?EVENT, move},
@@ -36,11 +36,11 @@ succeed({Props, {Item, move, from, Target, to, Self}}) when Self == self() ->
            {to, Self}],
     Props2 = [{item, Item} | Props],
     {Props2, Log};
-succeed({Props, _}) ->
-    {Props, _LogProps = []}.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 log(Terms) ->
     egre_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).

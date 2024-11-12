@@ -14,21 +14,26 @@ attempt({#{},
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Target,
           with, Effect,
-          with, Context}}) ->
+          with, Context},
+         _}) ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, Target}],
     Context2 = [{time, proplists:get_value(time, Props, <<"missing time">>)} | Context],
-    NewMessage = {Character, cause, EffectAmount, 'of', EffectType,
-                  to, Target,
-                  with, Effect,
-                  with, Context2},
-    {succeed, NewMessage, _ShouldSubscribe = false, Props, Log};
+    NewEvent = {Character, cause, EffectAmount, 'of', EffectType,
+                to, Target,
+                with, Effect,
+                with, Context2}, %% TODO move context to new context record field
+    #result{result = succeed,
+            event = NewEvent,
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt(_) ->
     undefined.
 
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

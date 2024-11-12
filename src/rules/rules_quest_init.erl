@@ -11,7 +11,7 @@
 attempt(_) ->
     undefined.
 
-succeed({Props, {_Self, init}}) ->
+succeed({Props, {_Self, init}, _}) ->
     Log = [{?EVENT, init_quest},
            {?SOURCE, self()},
            {?TARGET, self()}],
@@ -20,9 +20,9 @@ succeed({Props, {_Self, init}}) ->
     Props2 = lists:keystore(is_complete, 1, Props, {is_complete, IsComplete}),
     Props3 = lists:keystore(is_turned_in, 1, Props2, {is_turned_in, IsTurnedIn}),
     {Props3, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 

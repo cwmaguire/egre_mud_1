@@ -9,29 +9,32 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{owner := Owner}, Props,
-         {Source, killed, Owner, with, _AttackVector, with, _Context}}) ->
+attempt({#{owner := Owner},
+         Props,
+         {Source, killed, Owner, with, _AttackVector, with, _Context},
+         _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
            {?TARGET, Owner}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt({#{owner := Owner}, Props,
-         {Owner, gains, _Exp, experience}}) ->
+         {Owner, gains, _Exp, experience},
+         _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Owner},
            {?TARGET, self()}],
-    {succeed, _ShouldSubscribe = true, Props, Log};
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, killed, Owner, with, _AttackEffect, with, _Context}}) ->
+succeed({Props, {Source, killed, Owner, with, _AttackEffect, with, _Context}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, killed},
            {?TARGET, Owner}],
     Exp = proplists:get_value(gives, Props),
     egre:attempt(Source, {Source, gains, Exp, experience}),
     {Props, Log};
-succeed({Props, {Owner, gains, NewExp, experience}}) ->
+succeed({Props, {Owner, gains, NewExp, experience}, _}) ->
     Log = [{?SOURCE, Owner},
            {?EVENT, experience_gain},
            {?TARGET, self()}],
@@ -40,8 +43,8 @@ succeed({Props, {Owner, gains, NewExp, experience}}) ->
     NewProps = lists:keystore(gained, 1, Props, {gained, TotalExp}),
     egre:attempt(Owner, {Owner, has, TotalExp, experience}),
     {NewProps, Log};
-succeed({Props, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.

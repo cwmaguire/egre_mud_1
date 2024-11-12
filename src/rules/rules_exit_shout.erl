@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#{}, Props, {Char, shouts, _Phrase, in, Room}}) ->
+attempt({#{}, Props, {Char, shouts, _Phrase, in, Room}, _}) ->
     Log = [{?EVENT, shouts},
            {?SOURCE, Char},
            {?TARGET, Room}],
@@ -21,14 +21,14 @@ attempt({#{}, Props, {Char, shouts, _Phrase, in, Room}}) ->
                    end,
                    Props) of
         true ->
-            {succeed, _ShouldSubscribe = true, Props, Log};
+            ?SUCCEED_SUB;
         _ ->
             undefined
     end;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Char, shouts, Phrase, in, Room}}) ->
+succeed({Props, {Char, shouts, Phrase, in, Room}, _}) ->
     Log = [{?SOURCE, Char},
            {?EVENT, shouts},
            {?TARGET, Room}],
@@ -36,10 +36,10 @@ succeed({Props, {Char, shouts, Phrase, in, Room}}) ->
     OtherRoom = other_room(Room, Props),
     egre:attempt(self(), {Char, shouts, Phrase, to, OtherRoom, from, ExitName}),
     {Props, Log};
-succeed({Props, _}) ->
+succeed({Props, _, _}) ->
     Props.
 
-fail({Props, _, _}) ->
+fail({Props, _, _, _}) ->
     Props.
 
 other_room(Room, Props) ->

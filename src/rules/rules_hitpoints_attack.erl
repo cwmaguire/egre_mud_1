@@ -11,22 +11,24 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, _Context}}) ->
+         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, _Context},
+         _}) ->
     Log = [{?EVENT, Effect},
            {?SOURCE, Attacker},
            {?TARGET, Owner},
            {Effect, Amount}],
     case is_hp_effect(Effect) of
         true ->
-            {succeed, true, Props, Log};
+            ?SUCCEED_SUB;
         _ ->
-            {succeed, false, Props, Log}
+            ?SUCCEED_NOSUB
     end;
 attempt(_) ->
     undefined.
 
 succeed({Props,
-         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, Context}}) ->
+         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, Context},
+         _}) ->
     Log = [{?EVENT, Effect},
            {?TARGET, Owner},
            {from, Attacker},
@@ -34,11 +36,11 @@ succeed({Props,
     {Props2, Log2} = take_damage(Attacker, Owner, Amount, Effect, Props, Context),
     {Props2, Log2 ++ Log};
 
-succeed({Props, _Msg}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _Reason, _Message}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
     Owner = proplists:get_value(owner, Props),
