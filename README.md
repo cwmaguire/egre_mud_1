@@ -20,7 +20,7 @@ Only one object (an object being anything with game logic) ever sees an event at
 can be ignored, modified, resent, or even just killed.
 
 ### Installation
-Uh, we haven't really gotten that far yet. You can run the tests with ./t, or ./t <name of test>.
+Uh, we haven't really gotten that far yet. You can run the tests with ./t, or ./t name_of_test.
 To date, we're just getting tests to work as we get EGRE, EGRE_MUD and EGRE_MUD_1 working in their separate projects.
 
 ### Running
@@ -29,6 +29,15 @@ Since most of the tests are passing, the MUD should run.
 
 ### Tests
 As of 2024-10-20, all but one tests are passing.
+
+### Logging
+There is a web page that shows up at logs/egre_mud_1_log.html and lists out all the events in a somewhat graphical form.
+There is also DB logging to Postgres.
+
+### Twitch
+
+As of 2024-11-12 we're coding live on EGRE_MUD_1 and EGRE from 5-7 pm Pacific, Monday to Saturday.
+https://www.twitch.tv/lulu58e2
 
 ### YouTube updates:
 
