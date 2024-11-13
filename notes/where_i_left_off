@@ -16,8 +16,9 @@ x loot / search
 x wield
 x cast spell
 - buy / sell
-- activate quest
-- complete quest
+x activate quest
+x complete quest
+x turn in quest
 - resurrect
 - build the MUD from within the MUD (rooms, items, etc.)
 - roles (e.g. admin rights)
