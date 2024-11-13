@@ -12,7 +12,7 @@
 %% We have been killed
 attempt({#{owner := Owner},
          Props,
-         {Source, killed, Owner, with, _AttackVector, with, _Context},
+         {Source, killed, Owner, with, _AttackVector},
          _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
@@ -114,7 +114,7 @@ succeed({Props, {Self, init}, _}) ->
          {?TARGET, Self}]),
     Props;
 
-succeed({Props, {Source, killed, Owner, with, _AttackVector, with, _Context}, _}) ->
+succeed({Props, {Source, killed, Owner, with, _AttackVector}, _}) ->
     log([{?EVENT, killed},
          {?SOURCE, Source},
          {?TARGET, Owner}]),

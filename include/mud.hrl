@@ -22,6 +22,7 @@
 -define(RULES_MOD, {rules_module, mud_util:rules_mod_suffix(?MODULE)}).
 
 -define(SUCCEED_SUB, #result{props = Props, log = Log}).
+-define(SUCCEED_SUB(Context), #result{props = Props, log = Log, context = Context}).
 -define(SUCCEED_MAYBE_SUB(ShouldSubscribe), #result{subscribe = ShouldSubscribe, props = Props, log = Log}).
 -define(SUCCEED_SUB_NEW_EVENT(NewEvent), #result{event = NewEvent, props = Props, log = Log}).
 -define(SUCCEED_NOSUB, #result{subscribe = false, props = Props, log = Log}).

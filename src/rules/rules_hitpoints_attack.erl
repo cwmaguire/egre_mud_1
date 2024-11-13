@@ -11,7 +11,7 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, _Context},
+         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack},
          _}) ->
     Log = [{?EVENT, Effect},
            {?SOURCE, Attacker},
@@ -27,8 +27,8 @@ attempt(_) ->
     undefined.
 
 succeed({Props,
-         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack, with, Context},
-         _}) ->
+         {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack},
+         Context}) ->
     Log = [{?EVENT, Effect},
            {?TARGET, Owner},
            {from, Attacker},
@@ -51,7 +51,12 @@ take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
     case Hp of
         X when X < 1 ->
             Owner = proplists:get_value(owner, Props),
-            egre:attempt(Owner, {Attacker, killed, Owner, with, EffectType, with, Context});
+            ct:pal("~p trying to call egre:attempt(~p, {~p, killed, ~p, with, ~p}, ~p, _ShouldSubscribe = true)",
+                   [self(), Owner, Attacker, Owner, EffectType, Context]),
+            egre:attempt(Owner,
+                         {Attacker, killed, Owner, with, EffectType},
+                         Context,
+                         _ShouldSubscribe = true);
         _ ->
             ok
     end,

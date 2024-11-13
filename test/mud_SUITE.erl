@@ -1142,7 +1142,7 @@ complete_quest(Config) ->
     LeftHand = get_pid(p_hand_left),
     Glove = get_pid(p_glove),
 
-    %egre_dbg:add(egre_event_log_postgres, log_to_db),
+    egre_dbg:add(rules_hitpoints_attack),
 
     attempt(Config, Player, {Player, attack, <<"rat 1">>}),
     Conditions = [{"Rat 1 is dead", fun() -> val(is_alive, r_life) == false end}],
@@ -1201,6 +1201,34 @@ complete_quest(Config) ->
 
     Conditions3 = [{"Quest complete", fun() -> val(is_complete, p_quest) end}],
     wait_for(Conditions3, 10).
+
+complete_get_quest(Config) ->
+    start(?WORLD_COMPLETE_GET_QUEST),
+    Player = login(player),
+    Room = get_pid(room),
+    Glove = get_pid(r_glove),
+
+    attempt(Config, Player, {<<"Left-hand of Vecna">>, move, from, Room, to, Player}),
+    Conditions5 =
+        [{"Glove owner is player",
+          fun() -> val(owner, r_glove) == Player end},
+         {"Player has glove",
+          fun() ->
+                  lists:member(Glove, all_vals(item, Player))
+          end}],
+    wait_for(Conditions5, 5),
+
+    Conditions3 = [{"Quest item type room name complete",
+                    fun() -> val(is_complete, p_quest_1) end},
+                   {"Quest item name room name complete",
+                    fun() -> val(is_complete, p_quest_2) end}],
+    wait_for(Conditions3, 10),
+
+    wait(400),
+    ?assertNot(val(is_complete, p_quest_3),
+               "Glove was in wrong room"),
+    ?assertNot(val(is_complete, p_quest_4),
+               "Glove was in wrong room").
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

@@ -1,5 +1,5 @@
 %% Copyright 2024, Chris Maguire <cwmaguire@protonmail.com>
--module(rules_quest_killed).
+-module(rules_quest_item_get).
 -behaviour(egre_rules).
 -compile({parse_transform, egre_protocol_parse_transform}).
 
@@ -11,19 +11,19 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Owner, killed, Target, with, _},
-         _Context}) ->
-    Log = [{?EVENT, killed},
-           {?SOURCE, Owner},
-           {?TARGET, Target}],
+         {Item, move, from, _Source, to, Owner},
+         _}) ->
+    Log = [{?EVENT, move},
+           {?SOURCE, Item},
+           {?TARGET, Owner}],
     ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
-succeed({Props, {Owner, killed, Target, with, _}, Context}) ->
-    Log = [{?SOURCE, Owner},
-           {?EVENT, killed},
-           {?TARGET, Target}],
+succeed({Props, {Item, move, from, _Source, to, Owner}, Context}) ->
+    Log = [{?SOURCE, Item},
+           {?EVENT, move},
+           {?TARGET, Owner}],
     case does_action_meet_criteria(Props, Context) of
        true ->
            Props2 = update_count(Props),

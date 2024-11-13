@@ -17,25 +17,23 @@ attempt({#{character := Character,
          Props,
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Target,
-          with, Effect,
-          with, Context},
-         _}) ->
+          with, Effect},
+         Context}) ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
     case lists:member(BodyPart, WearingBodyParts) of
         true ->
-            Context2 = [{wearing, Type} | Context],
             NewEvent = {Character, cause,
                           EffectAmount, 'of', EffectType,
                           to, Target,
-                          with, Effect,
-                          with, Context2},  %% TODO put this in the context
+                          with, Effect},
             #result{result = succeed,
                     event = NewEvent,
                     subscribe = false,
                     props = Props,
-                    log = Log};
+                    log = Log,
+                    context = [{wearing, Type} | Context]};
         _ ->
             {succeed, _ShouldSubscribe = false, Props, Log}
     end;

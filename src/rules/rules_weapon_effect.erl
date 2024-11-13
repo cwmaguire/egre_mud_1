@@ -16,9 +16,8 @@ attempt({#{character := Character,
          {Character, cause,
           EffectAmount, 'of', EffectType,
           to, Target,
-          with, Effect,
-          with, Context},
-         _}) ->
+          with, Effect},
+         Context}) ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
            {?TARGET, self()}],
@@ -28,13 +27,13 @@ attempt({#{character := Character,
             NewEvent = {Character, cause,
                           EffectAmount, 'of', EffectType,
                           to, Target,
-                          with, Effect,
-                          with, Context2}, %% TODO move context to record field
+                          with, Effect},
             #result{result = succeed,
                     event = NewEvent,
                     subscribe = false,
                     props = Props,
-                    log = Log};
+                    log = Log,
+                    context = Context2};
         _ ->
             ?SUCCEED_NOSUB
     end;

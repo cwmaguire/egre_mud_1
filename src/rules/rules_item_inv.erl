@@ -39,14 +39,16 @@ attempt({#{owner := Owner}, Props,
             log = Log};
 attempt({#{owner := Owner}, Props,
          {Self, move, from, Owner, to, Target},
-         _})
+         Context})
   when Self == self(),
        Owner /= Target,
        is_pid(Target) ->
     Log = [{?SOURCE, Self},
            {?EVENT, move},
            {?TARGET, Target}],
-    ?SUCCEED_SUB;
+    Name = proplists:get_value(name, Props),
+    Type = proplists:get_value(type, Props),
+    ?SUCCEED_SUB([{action, get_item}, {item_type, Type}, {item_name, Name} | Context]);
 attempt({#{owner := Owner}, Props,
          {Self, move, from, Owner, to, Target, on, body_part, type, _BodyPartType},
          _})

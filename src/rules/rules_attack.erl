@@ -79,7 +79,7 @@ attempt({#{},
 
 attempt({#{},
          Props,
-         {Attacker, killed, Target, with, AttackVector, with, _Context},
+         {Attacker, killed, Target, with, AttackVector},
          _}) ->
     Log = [{?SOURCE, Attacker},
            {?EVENT, killed},
@@ -109,7 +109,7 @@ attempt({#{character := Character},
 attempt(_) ->
     undefined.
 
-succeed({Props, {Attacker, killed, Target, with, AttackVector, with, _Context}, _}) ->
+succeed({Props, {Attacker, killed, Target, with, AttackVector}, _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Attacker},
            {?TARGET, Target},

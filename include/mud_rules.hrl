@@ -108,7 +108,8 @@
                  rules_quest_ack,
                  rules_quest_turn_in,
                  rules_quest_exists,
-                 rules_quest_killed |
+                 rules_quest_killed,
+                 rules_quest_item_get |
                  ?UNIVERSAL_RULES]}).
 
 -define(CHARACTER_METRICS_RULES,

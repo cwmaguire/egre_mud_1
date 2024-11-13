@@ -11,7 +11,7 @@
 
 attempt({#{owner := Owner},
          Props,
-         {Source, killed, Owner, with, _AttackVector, with, _Context},
+         {Source, killed, Owner, with, _AttackVector},
          _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
@@ -27,7 +27,7 @@ attempt({#{owner := Owner}, Props,
 attempt(_) ->
     undefined.
 
-succeed({Props, {Source, killed, Owner, with, _AttackEffect, with, _Context}, _}) ->
+succeed({Props, {Source, killed, Owner, with, _AttackEffect}, _}) ->
     Log = [{?SOURCE, Source},
            {?EVENT, killed},
            {?TARGET, Owner}],

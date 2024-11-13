@@ -13,9 +13,8 @@ attempt({#{type := Type},
          Props,
          {Character, cause, EffectAmount, 'of', EffectType,
           to, Self,
-          with, Effect,
-          with, Context},
-         _})
+          with, Effect},
+         Context})
   when Self == self() ->
     Log = [{?EVENT, add_effect_context},
            {?SOURCE, Character},
@@ -24,13 +23,13 @@ attempt({#{type := Type},
     NewEvent = {Character, cause,
                   EffectAmount, 'of', EffectType,
                   to, Self,
-                  with, Effect,
-                  with, Context2},
+                  with, Effect},
     #result{result = succeed,
             event = NewEvent,
             subscribe = false,
             props = Props,
-            log = Log};
+            log = Log,
+            context = Context2};
 attempt(_) ->
     undefined.
 

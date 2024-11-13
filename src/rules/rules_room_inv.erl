@@ -9,14 +9,14 @@
 
 -include("mud.hrl").
 
-attempt({#{}, Props, {Item, move, from, Source, to, Target}, _})
-  when (Source == self() orelse Target == self()),
-       is_pid(Item) ->
+attempt({#{}, Props, {Item, move, from, Source, to, Target}, Context})
+  when is_pid(Item) ->
     Log = [{?SOURCE, Item},
            {?EVENT, move},
            {from, Source},
            {to, Target}],
-    ?SUCCEED_SUB;
+    Name = proplists:get_value(name, Props),
+    ?SUCCEED_SUB([{room, self()}, {room_name, Name} | Context]);
 attempt(_) ->
     undefined.
 
