@@ -40,6 +40,7 @@ all() ->
      decompose,
      search_character,
      player_say,
+     player_emote,
      player_shout,
      get_experience_from_killing,
      achievement,
@@ -863,6 +864,27 @@ player_say(_Config) ->
     Player2Received = egremud_test_socket:messages(player2),
     Player3Received = egremud_test_socket:messages(player3),
     Expected = [<<"Reginald says: foo bar">>],
+    ?assertMatch(Expected, PlayerReceived),
+    ?assertMatch(Expected, Player2Received),
+    ?assertMatch([], Player3Received).
+
+player_emote(_Config) ->
+    start(?WORLD_SAY),
+    login(player2),
+    login(player),
+    login(player3),
+    Fun = fun() ->
+                  egremud_test_socket:messages(player),
+                  egremud_test_socket:messages(player2),
+                  egremud_test_socket:messages(player3)
+          end,
+    wait_loop(Fun, 5),
+    egremud_test_socket:send(player, <<"emote coughs">>),
+    wait(200),
+    PlayerReceived = egremud_test_socket:messages(player),
+    Player2Received = egremud_test_socket:messages(player2),
+    Player3Received = egremud_test_socket:messages(player3),
+    Expected = [<<"Reginald coughs">>],
     ?assertMatch(Expected, PlayerReceived),
     ?assertMatch(Expected, Player2Received),
     ?assertMatch([], Player3Received).

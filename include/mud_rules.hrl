@@ -24,6 +24,7 @@
                                   rules_char_cleanup,
                                   rules_char_say,
                                   rules_char_shout,
+                                  rules_char_emote,
                                   rules_char_achievement,
                                   rules_char_effect,
                                   rules_char_quest_giver,

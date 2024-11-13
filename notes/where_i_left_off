@@ -6,7 +6,7 @@ x move
 x look
 x say
 x shout (1 room away)
-- emote ("emote farts" -> "Reginald farts")
+x emote ("emote farts" -> "Reginald farts")
 x get
 x put
 x attack
