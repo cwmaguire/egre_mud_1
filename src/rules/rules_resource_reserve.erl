@@ -10,7 +10,13 @@
 -export([fail/1]).
 
 % If something reserves us and we have the same owner (character).
-attempt({#{owner := Owner}, Props, {Owner, reserve, Amount, 'of', Self, for, Proc}, _})
+attempt({#{owner := Owner},
+         Props,
+         {Owner, reserve, Amount,
+          'of', Self,
+          for, Proc,
+          to, _Purpose,
+          _Times, times}, _})
   when Self == self() ->
     Log = [{?SOURCE, Owner},
            {?EVENT, reserve},
@@ -33,20 +39,30 @@ attempt({#{}, Props, {Self, update_tick}, _}) when Self == self() ->
 attempt(_) ->
     undefined.
 
-succeed({Props, {Character, reserve, Amount, 'of', Self, for, Proc}, _})
+succeed({Props,
+         {Character, reserve, Amount,
+          'of', Self,
+          for, Proc,
+          to, Purpose,
+          Times, times}, _})
   when Self == self() ->
     Log = [{?SOURCE, Character},
            {?EVENT, reserve},
            {amount, Amount},
            {?TARGET, Self},
-           {handler, ?MODULE},
+           {rules_module, ?MODULE},
            {for, Proc}],
     Reservations = proplists:get_value(reservations, Props, []),
-    Props2 = case lists:member({Proc, Amount}, Reservations) of
+    %Props2 = case lists:member({Proc, Amount}, Reservations) of
+    Props2 = case has_reservation(Proc, Amount, Reservations) of
                  true ->
                      Props;
                  false ->
-                    [{reservations, Reservations ++ [{Proc, Amount}]} | proplists:delete(reservations, Props)]
+                     lists:keystore(reservations,
+                                    1,
+                                    Props,
+                                    {reservations, [{Proc, {Amount, Purpose, Times}} | Reservations]})
+                    %[{reservations, [{Proc, {Amount, Times}} | Reservations]} | proplists:delete(reservations, Props)]
              end,
     Props3 = update_tick(Props2),
     {Props3, Log};
@@ -55,10 +71,14 @@ succeed({Props, {Character, unreserve, Self, for, Proc}, _})
     Log = [{?SOURCE, Character},
            {?EVENT, unreserve},
            {?TARGET, Self},
-           {handler, ?MODULE},
+           {rules_module, ?MODULE},
            {for, Proc}],
     Reservations = proplists:get_value(reservations, Props, []),
-    Props2 = lists:keystore(reservations, 1, Props, {reservations, lists:keydelete(Proc, 1, Reservations)}),
+    NewReservations = lists:keydelete(Proc, 1, Reservations),
+    Props2 = lists:keystore(reservations,
+                            1,
+                            Props,
+                            {reservations, NewReservations}),
     Props3 = update_tick(Props2),
     {Props3, Log};
 succeed(_) ->
@@ -82,3 +102,12 @@ update_tick(Props) ->
         _ ->
             Props
     end.
+
+has_reservation(Proc, Amount, Reservations) ->
+    lists:any(fun({Proc_, {Amount_, _, _}})
+                    when Proc_ == Proc,
+                         Amount_ == Amount ->
+                      true;
+                 (_) ->
+                      false end,
+              Reservations).

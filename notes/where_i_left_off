@@ -10,7 +10,8 @@ x emote ("emote farts" -> "Reginald farts")
 x get
 x put
 x attack
-- heal
+x heal spell
+- natural healing with attribute
 x die
 x loot / search
 x wield
@@ -26,8 +27,34 @@ x turn in quest
 - lists quests
   - list quest history
 
+Player input commands:
+x cast spell
+- attack
+
 Nice to haves:
 - custom TTL
+- buffs
+- debuffs
+- max hitpoints
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-15   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+Casting spells works and the healing spell works.
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-12   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+Working on casting a healing spell.
+Right now spells are cast by saying "attack <target>", but I don't want to
+have to say attack, so I'm leaning towards a "cast <spell> <target>" command
+that will just directly cast the spell.
+
+I might cast the spell if there's enough mana and tell the player if they
+don't have enough. Attacking kicks off resource tickers that build up the resource
+and then use it when there's enough.
 
 ┏━━━━━━━━━━━━━━━━┓
 ┃   2024-10-26   ┃

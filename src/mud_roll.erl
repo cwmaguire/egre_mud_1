@@ -9,5 +9,7 @@ roll({0 = _Roll, 0 = _Base}) ->
   0;
 roll({0 = _Roll, Base}) ->
   Base;
+roll({Roll, Base}) when Roll < 0 ->
+    -(roll({-Roll, -Base}));
 roll({Roll, Base}) ->
     rand:uniform(Roll) + Base.

@@ -44,6 +44,7 @@ succeed({Props, {_Self, affect, Target}, _}) ->
     Log = [{?SOURCE, Attack},
            {?EVENT, affect},
            {?TARGET, Target},
+           {rules_module, ?MODULE},
            {vector, Attack}],
     Character = proplists:get_value(character, Props),
     EffectType = proplists:get_value(type, Props),
@@ -57,9 +58,9 @@ succeed({Props, {Character, roll, SuccessRoll, for, hit, with, EffectType, on, T
        SuccessRoll > 0 ->
     Log = [{?SOURCE, Character},
            {?EVENT, roll_for_hit},
-           {amount, SuccessRoll},
            {?TARGET, Target},
-           {handler, ?MODULE},
+           {rules_module, ?MODULE},
+           {amount, SuccessRoll},
            {vector, Attack},
            {effect_type, EffectType},
            {effect, self()}],
@@ -73,9 +74,9 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Targ
        Self == self() ->
     Log = [{?SOURCE, Character},
            {?EVENT, roll_for_hit},
-           {amount, FailRoll},
            {?TARGET, Target},
-           {handler, ?MODULE},
+           {rules_module, ?MODULE},
+           {amount, FailRoll},
            {effect, Self}],
 
     CharacterSubstitutions = [{<<"<target>">>, Target}],
@@ -96,72 +97,68 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Targ
 succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, on, Target, with, Self}, _})
   when is_pid(Target),
        Self == self(),
-       EffectAmount > 0 ->
+       EffectAmount /= 0 ->
     Log = [{?SOURCE, Character},
            {?EVENT, roll_for_effect},
-           {amount, EffectAmount},
            {?TARGET, Target},
-           {handler, ?MODULE},
+           ?RULES_MOD,
+           {amount, EffectAmount},
            {effect, Self}],
 
     EffectEvent = {Character, cause, EffectAmount, 'of', EffectType, to, Target, with, Self},
-    egre_object:attempt(Target, EffectEvent, false),
+    egre:attempt(Target, EffectEvent, true),
 
-    maybe_repeat(Props, Log);
+    {Props, Log};
 
-succeed({Props, {Character, roll, IneffectiveAmount, for, effect, with, EffectType, on, Target, with, Self}, _})
+succeed({Props, {Character, roll, IneffectiveAmount, for, effect, with, _EffectType, on, Target, with, Self}, _})
   when is_pid(Target),
        Self == self() ->
     Log = [{?SOURCE, Character},
            {?EVENT, roll_for_effect},
            {amount, IneffectiveAmount},
            {?TARGET, Target},
-           {handler, ?MODULE},
+           ?RULES_MOD,
            {effect, Self}],
+    Msg =
+        <<"{attacker} has no effect on {target} with ",
+          (proplists:get_value(name, Props))/binary>>,
+    Placeholders = [{Character, <<"<attacker>">>},
+                    {Target, <<"<target>">>}],
+    egre:attempt(Character, {send, {room, 'of', Target}, Msg, Placeholders}, _Sub0 = false),
 
-    CharacterSubstitutions = [{<<"<target>">>, Target}],
-    AmountBin = <<" [", (mud_util:itob(IneffectiveAmount))/binary, "]">>,
-    CharacterMsg =
-        <<(mud_util:atob(EffectType))/binary,
-          " has no effect on <target> (",
-          AmountBin/binary,
-          ")">>,
-    egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
-
-    TargetSubstitutions = [{<<"<character>">>, Character}],
-    TargetMsg = <<"<character>'s ", (mud_util:atob(EffectType))/binary, " has no effect">>,
-    TargetSubstitutions = [{<<"<target>">>, Target},
-                           {<<"<character>">>, Character}],
-    egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
     {Props, Log};
 
-succeed({Props, {Attacker, do, EffectAmount, 'of', EffectType, to, Target, with, Self}, _})
+succeed({Props, {Attacker, cause, EffectAmount, 'of', EffectType, to, Target, with, Self}, _})
   when is_pid(Target),
        Self == self() ->
-    Log = [{?SOURCE, Self},
+    Log = [{?SOURCE, Attacker},
            {?TARGET, Target},
            {?EVENT, affect},
-           {handler, ?MODULE},
+           ?RULES_MOD,
            {effect_type, EffectType}],
 
-    AttackerSubstitutions = [{<<"<target>">>, self()}],
-    AmountBin = <<" [", (mud_util:itob(EffectAmount))/binary, "]">>,
-    AttackerMsg =
-        <<"You do ",
+    AmountBin = <<"[", (mud_util:itob(abs(EffectAmount)))/binary, "]">>,
+    Effect =
+        case EffectAmount of
+            Positive when Positive > 0 ->
+                <<"damage">>;
+            _ ->
+                <<"healing">>
+        end,
+    Msg =
+        <<"<attacker> does ",
           AmountBin/binary,
-          " damage to <target> with ",
-          (mud_util:atob(EffectType))/binary>>,
-    egre_object:attempt(Attacker, {send, Attacker, AttackerMsg, AttackerSubstitutions}, _Sub0 = false),
+          " ",
+          (proplists:get_value(name, Props))/binary,
+          " ",
+          Effect/binary,
+          " to <target>">>,
+    Placeholders = [{Attacker, <<"<attacker>">>},
+                    {Target, <<"<target>">>}],
+    egre:attempt(Attacker, {send, {room, 'of', Target}, Msg, Placeholders}, _Sub0 = false),
 
-    TargetSubstitutions = [{<<"<attacker>">>, Attacker}],
-    TargetMsg = <<"<attacker> does ",
-                  AmountBin/binary,
-                  " damage to you with ",
-                  (mud_util:atob(EffectType))/binary>>,
-    egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}, _Sub1 = false),
-
-
-    {Props, Log};
+    %{Props, Log};
+    maybe_repeat(Props, Log);
 
 succeed({Props, {stop, Self}, _}) when Self == self() ->
     {stop, finished, Props, _LogProps = []};
@@ -171,22 +168,6 @@ succeed(_) ->
 
 fail(_) ->
     undefined.
-
-%% TODO move to target processes: e.g. HP, stamina, etc.
-% affect(Props, EffectAmount) ->
-%     Character = proplists:get_value(character, Props),
-%     EffectType = proplists:get_value(effect_type, Props),
-%     Target = proplists:get_value(target, Props),
-%     NewEvent = {Character, Roll, for, EffectType, on, Target, with, self()},
-%     egre_object:attempt(self(), NewEvent),
-%
-%    Target = proplists:get_value(target, Props),
-%    AttackType = proplists:get_value(attack_type, Props, []),
-%    Hit = calc_hit(Props),
-%
-%    Event = {Character, roll, 0, for, affect, with, EffectType, on, Target, with, Self},
-%    % I think we're auto-subscribed
-%    egre_object:attempt(self(), Event).
 
 calc_hit_roll(Props) ->
     Roll = proplists:get_value(hit_roll, Props, {0, 0}),

@@ -25,6 +25,7 @@
                                   rules_char_say,
                                   rules_char_shout,
                                   rules_char_emote,
+                                  rules_char_send,
                                   rules_char_achievement,
                                   rules_char_effect,
                                   rules_char_quest_giver,
@@ -76,14 +77,18 @@
                                  rules_resource_reserve |
                                  ?UNIVERSAL_RULES]}).
 
--define(SPELL_RULES, {rules, [rules_attack,
+-define(SPELL_RULES, {rules, [rules_attack, %% TODO use macro like ?RULES_SPELL_ATTACK
+                              rules_spell_ack,
+                              rules_spell_cast,
                               rules_spell_memorize,
                               rules_spell_inject_self |
                               ?UNIVERSAL_RULES]}).
 
 -define(EFFECT_PROTOTYPE_RULES, {rules, [rules_effect_create]}).
 
--define(EFFECT_RULES, {rules, [rules_effect_attack |
+-define(EFFECT_RULES, {rules, [rules_effect_ack,
+                               rules_effect_attack,
+                               rules_effect_inject_self |
                                ?UNIVERSAL_RULES]}).
 
 -define(WEAPON_RULES, {rules, [rules_attack,
@@ -167,12 +172,13 @@
           ?ATTRIBUTE_RULES |
           Props]}).
 
--define(stamina(Id, Owner, PerTick, TickMillis, Max, Props),
+-define(resource(Id, Owner, Type, PerTick, TickMillis, Max, Props),
         {Id,
          [{owner, Owner},
-          {type, stamina},
+          {type, Type},
           {per_tick, PerTick},
           {tick_time, TickMillis},
+          {current, Max},
           {max, Max},
           {icon, resource},
           ?RESOURCE_RULES |

@@ -29,7 +29,8 @@ attempt(_) ->
 succeed({Props, {_Self, Player, says, Phrase, in, Room}, _}) ->
     Log = [{?SOURCE, Player},
            {?EVENT, says},
-           {?TARGET, Room}],
+           {?TARGET, Room},
+           {rules_module, ?MODULE}],
     Conn = proplists:get_value(conn, Props),
     egre:attempt(Conn, {send, self(), <<Player/binary, " says: ", Phrase/binary>>}),
     {Props, Log};

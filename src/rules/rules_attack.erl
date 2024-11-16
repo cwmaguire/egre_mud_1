@@ -31,7 +31,10 @@ attempt({#{character := Character},
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            egre_object:attempt(self(), {Character, attack, Target, with, self()});
+            egre_object:attempt(self(),
+                                {Character, attack, Target,
+                                 with, self(),
+                                 infinite, times});
          _ ->
              ok
     end,
@@ -41,7 +44,7 @@ attempt({#{character := Character},
 %% that is specific to us
 attempt({#{character := Character},
          Props,
-         {Character, Attack, Target, with, Self},
+         {Character, Attack, Target, with, Self, _Times, times},
          _})
   when Self == self(),
        Attack == attack;
@@ -67,7 +70,7 @@ attempt({#{character := Character},
 
 attempt({#{},
          Props,
-         {Resource, allocate, Required, 'of', Type, to, Self},
+         {Resource, allocate, Required, 'of', Type, to, Self, for, attack},
          _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
@@ -131,13 +134,13 @@ succeed({Props, {Character, Attack, Target}, _})
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            egre_object:attempt(self(), {Character, attack, Target, with, self()});
+            egre_object:attempt(self(), {Character, attack, Target, with, self(), infinite, times});
          _ ->
              ok
      end,
      {Props, Log};
 
-succeed({Props, {Attacker, Attack, Target, with, Self}, _})
+succeed({Props, {Attacker, Attack, Target, with, Self, Times, times}, _})
   when Self == self(),
        Attack == attack; Attack == counter_attack ->
     Log = [{?EVENT, attack},
@@ -148,7 +151,7 @@ succeed({Props, {Attacker, Attack, Target, with, Self}, _})
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            reserve(Character, Props),
+            reserve(Character, Props, Times),
             Props2 = lists:keystore(target, 1, Props, {target, Target}),
             Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, true}),
             {Props3, Log};
@@ -174,7 +177,7 @@ succeed({Props, {Character, die}, _}) ->
     Props3 = lists:keystore(is_attacking, 1, Props2, {is_attacking, false}),
     {Props3, Log};
 
-succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}, _})
+succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self, to, attack}, _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
            {amount, Amt},
@@ -199,23 +202,27 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self}, _})
     Props2 = lists:keystore(allocated_resources, 1, Props, {allocated_resources, RemainingAllocated}),
     {Props2, Log};
 
-succeed({Props, _, _}) ->
-    Props.
+succeed(_) ->
+    undefined.
 
-fail({Props, _, _, _}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 should_attack(Props) ->
     ShouldAttackModule = proplists:get_value(should_attack_module, Props),
     ShouldAttackModule:should_attack(Props).
 
-reserve(Character, Props) when is_list(Props) ->
-    [reserve(Character, Resource, Amount) || {Resource, Amount} <- proplists:get_value(resources, Props, [])].
+reserve(Char, Props, Times) when is_list(Props) ->
+    Resources = proplists:get_value(resources, Props, []),
+    [reserve(Char, Res, Times, Amt) || {Res, Amt} <- Resources].
 
-reserve(Character, Resource, Amount) ->
+reserve(Character, Resource, Times, Amount) ->
     egre_object:attempt(self(),
                         {Character, reserve, Amount,
-                         'of', Resource, for, self()}).
+                         'of', Resource,
+                         for, self(),
+                         to, attack,
+                         Times, times}).
 
 unreserve(Character, Props) when is_list(Props) ->
     [unreserve(Character, Resource) || {Resource, _Amt} <- proplists:get_value(resources, Props, [])];

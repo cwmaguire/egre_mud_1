@@ -29,3 +29,4 @@
 -define(FAIL_NOSUB(Reason), #result{result = {fail, Reason}, subscribe = false, props = Props, log = Log}).
 -define(RESEND_SUB(Pid, NewEvent), #result{result = {resend, Pid, NewEvent}, props = Props, log = Log}).
 -define(RESEND_NOSUB(Pid, NewEvent), #result{result = {resend, Pid, NewEvent}, subscribe = false, props = Props, log = Log}).
+-define(RESEND_NOSUB(Pid, NewEvent, Log), #result{result = {resend, Pid, NewEvent}, subscribe = false, props = Props, log = Log}).

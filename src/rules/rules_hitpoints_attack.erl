@@ -45,6 +45,7 @@ fail(_) ->
 take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
     Owner = proplists:get_value(owner, Props),
     Hp = proplists:get_value(hitpoints, Props, 0) - Amount,
+    ct:pal("~p:~p: Hp~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Hp]),
     Log = [{hp, Hp}],
 
 
@@ -66,6 +67,8 @@ take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
 is_hp_effect(blunt_force) ->
     true;
 is_hp_effect(fire) ->
+    true;
+is_hp_effect(heal) ->
     true;
 is_hp_effect(_) ->
     false.

@@ -26,7 +26,7 @@ succeed({Props, {Character, affect, Target, because, Attack}, _}) ->
     Log = [{?EVENT, attack},
            {?SOURCE, Character},
            {?TARGET, Target},
-           {handler, ?MODULE},
+           {rules_module, ?MODULE},
            {attack, Attack}],
     ChildProps = replace_rules_with_child_rules(Props),
     ChildPropsWithTarget = [{target, Target} | ChildProps],

@@ -227,38 +227,6 @@ player_attack(Config) ->
           fun() -> val(hitpoints, z_hp) =< 0 end}],
     wait_for(Conditions, 4).
 
-wait_for(_NoUnmetConditions = [], _) ->
-    ok;
-wait_for(Conditions, Count) when Count =< 0 ->
-    {Failures, _} = lists:unzip(Conditions),
-    ct:fail("Failed waiting for conditions: ~p~n", [Failures]);
-wait_for(Conditions, Count) ->
-    {Descriptions, _} = lists:unzip(Conditions),
-    ct:pal("Checking conditions: ~p~n", [Descriptions]),
-    timer:sleep(1000),
-    {_, ConditionsUnmet} = lists:partition(fun run_condition/1, Conditions),
-    wait_for(ConditionsUnmet, Count - 1).
-
-run_condition({_Desc, Fun}) ->
-    Fun().
-
-wait_for_sorted_messages(Character, Expected, Count) ->
-    wait_for_sorted_messages(Character, Expected, [], Count).
-
-wait_for_sorted_messages(Character, Expected, Received, Count) when Count =< 0 ->
-    ct:fail("Failed waiting for ~p socket messages: ~p~nReceived: ~p",
-            [Character, Expected, Received]);
-wait_for_sorted_messages(Character, Expected, Received, Count) ->
-    New = egremud_test_socket:messages(Character),
-    Sorted = lists:sort(New ++ Received),
-    ct:pal("~p:~p: Sorted~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Sorted]),
-    case Sorted of
-        Expected ->
-            ok;
-        _ ->
-            wait(1000),
-            wait_for_sorted_messages(Character, Expected, Sorted, Count - 1)
-    end.
 
 player_resource_wait(Config) ->
     start(?WORLD_RESOURCE_WAIT),
@@ -702,7 +670,7 @@ set_character(Config) ->
     ?assertMatch(Dog, val(character, stealth)).
 
 counterattack_with_spell(Config) ->
-    start(?WORLD_11),
+    start(?WORLD_SPELL_ATTACK),
     Giant = get_pid(giant),
     Player = get_pid(player),
 
@@ -733,7 +701,7 @@ counterattack_with_spell(Config) ->
     ok.
 
 cast_spell(Config) ->
-    start(?WORLD_11),
+    start(?WORLD_SPELL_ATTACK),
     Player = get_pid(player),
     _Giant = get_pid(giant),
     attempt(Config, Player, {Player, memorize, <<"fireball">>}),
@@ -754,6 +722,37 @@ cast_spell(Config) ->
     10 = val(hitpoints, p_hp),
     true = val(is_alive, p_life),
     false = val(is_alive, g_life).
+
+cast_heal(_Config) ->
+    start(?WORLD_SPELL_HEAL),
+    _Player1 = login(player1),
+    _Player2 = login(player2),
+    _Player3 = login(player3),
+
+    Conditions =
+        [{"Spell 'heal' is not memorized",
+          fun() -> not val(is_memorized, heal_spell ) end}],
+    wait_for(Conditions, 10),
+
+    egremud_test_socket:send(player1, <<"cast heal">>),
+
+    MessageFilter =
+       fun(<<"bob does [", _:1/binary, "] heal spell healing to bob">>) ->
+               true;
+          (_) ->
+               false
+       end,
+    [] = wait_for_message(player1, MessageFilter, 5),
+    [] = wait_for_message(player2, MessageFilter, 5),
+    [] = wait_for_message(player3, MessageFilter, 5),
+
+    HP = val(hitpoints, p_hp),
+    ct:pal("~p:~p: HP: ~p", [?MODULE, ?FUNCTION_NAME, HP]),
+
+    Conditions2 =
+        [{"Player 1 should have health higher than before (>1)",
+          fun() -> val(hitpoints, p_hp) > 1 end}],
+    wait_for(Conditions2, 10).
 
 revive_process(_Config) ->
     start(?WORLD_3),
@@ -1347,3 +1346,52 @@ drain_socket(Player) ->
               egremud_test_socket:messages(Player)
           end,
     wait_loop(Fun, 5).
+
+wait_for(_NoUnmetConditions = [], _) ->
+    ok;
+wait_for(Conditions, Count) when Count =< 0 ->
+    {Failures, _} = lists:unzip(Conditions),
+    ct:fail("Failed waiting for conditions: ~p~n", [Failures]);
+wait_for(Conditions, Count) ->
+    {Descriptions, _} = lists:unzip(Conditions),
+    ct:pal("Checking conditions: ~p~n", [Descriptions]),
+    timer:sleep(1000),
+    {_, ConditionsUnmet} = lists:partition(fun run_condition/1, Conditions),
+    wait_for(ConditionsUnmet, Count - 1).
+
+run_condition({_Desc, Fun}) ->
+    Fun().
+
+wait_for_sorted_messages(Character, Expected, Count) ->
+    wait_for_sorted_messages(Character, Expected, [], Count).
+
+wait_for_sorted_messages(Character, Expected, Received, Count) when Count =< 0 ->
+    ct:fail("Failed waiting for ~p socket messages: ~p~nReceived: ~p",
+            [Character, Expected, Received]);
+wait_for_sorted_messages(Character, Expected, Received, Count) ->
+    New = egremud_test_socket:messages(Character),
+    Sorted = lists:sort(New ++ Received),
+    ct:pal("~p:~p: Sorted~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Sorted]),
+    case Sorted of
+        Expected ->
+            ok;
+        _ ->
+            wait(1000),
+            wait_for_sorted_messages(Character, Expected, Sorted, Count - 1)
+    end.
+
+wait_for_message(Character, FilterFun, Count) ->
+    wait_for_message(Character, FilterFun, Count, []).
+
+wait_for_message(_Character, _FilterFun, _Count = 0, _OtherMessages) ->
+    ct:fail("Failed waiting for specific message");
+wait_for_message(Character, FilterFun, Count, OtherMessages) ->
+    NewMessages = egremud_test_socket:messages(Character),
+    ct:pal("~p:~p: Waiting for message, got ~p", [?MODULE, ?FUNCTION_NAME, NewMessages]),
+    case lists:partition(FilterFun, NewMessages) of
+        {[], Unmatched} ->
+           wait(1000),
+           wait_for_message(Character, FilterFun, Count - 1, Unmatched ++ OtherMessages);
+        {[_Match | Rest], Unmatched} ->
+           Rest ++ Unmatched ++ OtherMessages
+    end.

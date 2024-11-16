@@ -36,7 +36,7 @@ succeed({Props, {Self, tick, Ref, with, Count}, _})
   when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, tick},
-           {handler, ?MODULE},
+           {rules_module, ?MODULE},
            {ref, Ref},
            {count, Count}],
     Current = proplists:get_value(current, Props, 0),
@@ -57,8 +57,10 @@ succeed({Props, {Self, tick, Ref, with, Count}, _})
                 Type = proplists:get_value(type, Props),
                 allocate(Type, Reservations, New)
         end,
-    OtherProps = lists:keydelete(reservations, 1, lists:keydelete(current, 1, Props)),
-    Props2 = [{current, Remaining}, {reservations, RotatedReservations} | OtherProps],
+    NoCurrent = lists:keydelete(current, 1, Props),
+    NoReservationsOrCurrent = lists:keydelete(reservations, 1, NoCurrent),
+    Props2 = [{current, Remaining},
+              {reservations, RotatedReservations} | NoReservationsOrCurrent],
     {Props2, Log};
 
 succeed(_) ->
@@ -67,11 +69,16 @@ succeed(_) ->
 fail(_) ->
     undefined.
 
-allocate(Type, [{Proc, Required} | Reservations], Available)
-  when Available >= Required ->
-    egre_object:attempt(Proc, {self(), allocate, Required, 'of', Type, to, Proc}),
-    RotatedReservations = Reservations ++ [{Proc, Required}],
+allocate(Type, [{Proc, {Required, Purpose, Times}} | Reservations], Available)
+  when Available >= Required,
+       (Times == infinity orelse Times > 0) ->
+    egre_object:attempt(Proc, {self(), allocate, Required, 'of', Type, to, Proc, to, Purpose}),
+    RotatedReservations = Reservations ++ [{Proc, {Required, Times, - 1}}],
     allocate(Type, RotatedReservations, Available - Required);
+allocate(Type, [{_Proc, {_Required, _Purpose, Times}} | Reservations], Available)
+  when is_integer(Times),
+       Times =< 0 ->
+    allocate(Type, Reservations, Available);
 allocate(_, Reservations, Available) ->
     {Reservations, Available}.
 

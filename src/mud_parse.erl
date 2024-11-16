@@ -46,6 +46,18 @@ parse(Player, <<"emote ", Emote/binary>>) ->
     log([<<"Emote ">>, Emote]),
     {Player, emotes, Emote};
 
+parse(Player, Command = <<"cast ", SpellTarget/binary>>) ->
+    log([<<"Cast ">>, SpellTarget]),
+    case binary:split(string:trim(SpellTarget), <<" ">>, [global]) of
+        [Spell, Target] when size(Spell) > 0, size(Target) > 0 ->
+            {Player, cast, Spell, on, Target};
+        [Spell] when size(Spell) > 0 ->
+            {Player, cast, Spell};
+        _ ->
+            io:format("~p:~p: Command: ~p", [?MODULE, ?FUNCTION_NAME, Command]),
+            {error, <<"What do you mean by '", Command/binary, "'">>}
+    end;
+
 parse(_, Command) ->
     % TODO log to JSON
     io:format("~p:~p: Command~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Command]),
