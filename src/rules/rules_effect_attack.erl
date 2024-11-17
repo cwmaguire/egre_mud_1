@@ -69,7 +69,7 @@ succeed({Props, {Character, roll, SuccessRoll, for, hit, with, EffectType, on, T
     egre_object:attempt(self(), Event),
     {Props, Log};
 
-succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Target, with, Self}, _})
+succeed({Props, {Character, roll, FailRoll, for, hit, with, _EffectType, on, Target, with, Self}, _})
   when is_pid(Target),
        Self == self() ->
     Log = [{?SOURCE, Character},
@@ -79,19 +79,13 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, EffectType, on, Targ
            {amount, FailRoll},
            {effect, Self}],
 
-    CharacterSubstitutions = [{<<"<target>">>, Target}],
-    AmountBin = <<" [", (mud_util:itob(FailRoll))/binary, "]">>,
-    CharacterMsg =
-        <<"You miss <target> with ",
-          (mud_util:atob(EffectType))/binary,
-          AmountBin/binary>>,
-    egre_object:attempt(Target, {send, Character, CharacterMsg, CharacterSubstitutions}),
+    Msg =
+        <<"{attacker} misses {target} with ",
+          (proplists:get_value(name, Props))/binary>>,
+    Placeholders = [{Character, <<"{attacker}">>},
+                    {Target, <<"{target}">>}],
+    egre:attempt(Character, {send, {room, 'of', Target}, Msg, Placeholders}, _Sub0 = false),
 
-    TargetSubstitutions = [{<<"<character>">>, Character}],
-    TargetMsg = <<"<character> misses you with ", (mud_util:atob(EffectType))/binary>>,
-    TargetSubstitutions = [{<<"<target>">>, Target},
-                           {<<"<character>">>, Character}],
-    egre_object:attempt(Target, {send, Target, TargetMsg, TargetSubstitutions}),
     {Props, Log};
 
 succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, on, Target, with, Self}, _})
@@ -119,11 +113,12 @@ succeed({Props, {Character, roll, IneffectiveAmount, for, effect, with, _EffectT
            {?TARGET, Target},
            ?RULES_MOD,
            {effect, Self}],
+
     Msg =
         <<"{attacker} has no effect on {target} with ",
           (proplists:get_value(name, Props))/binary>>,
-    Placeholders = [{Character, <<"<attacker>">>},
-                    {Target, <<"<target>">>}],
+    Placeholders = [{Character, <<"{attacker}">>},
+                    {Target, <<"{target}">>}],
     egre:attempt(Character, {send, {room, 'of', Target}, Msg, Placeholders}, _Sub0 = false),
 
     {Props, Log};
@@ -146,15 +141,15 @@ succeed({Props, {Attacker, cause, EffectAmount, 'of', EffectType, to, Target, wi
                 <<"healing">>
         end,
     Msg =
-        <<"<attacker> does ",
+        <<"{attacker} does ",
           AmountBin/binary,
           " ",
           (proplists:get_value(name, Props))/binary,
           " ",
           Effect/binary,
-          " to <target>">>,
-    Placeholders = [{Attacker, <<"<attacker>">>},
-                    {Target, <<"<target>">>}],
+          " to {target}">>,
+    Placeholders = [{Attacker, <<"{attacker}">>},
+                    {Target, <<"{target}">>}],
     egre:attempt(Attacker, {send, {room, 'of', Target}, Msg, Placeholders}, _Sub0 = false),
 
     %{Props, Log};

@@ -106,6 +106,23 @@ attempt({#{room := Room}, Props, {send, {room, 'of', Self}, Msg}, _}) when Self 
            {?TARGET, Room}],
     Event = {send, {room, Room}, Msg},
     ?RESEND_SUB(self(), Event);
+attempt({#{}, Props, {Char, cast, Spell, on, TargetName}, _})
+  when is_binary(TargetName) ->
+    Log = [{?SOURCE, Char},
+           {?EVENT, cast},
+           {?TARGET, TargetName}],
+
+    case is_name(Props, TargetName) of
+        true ->
+            NewEvent = {Char, cast, Spell, on, self()},
+            #result{result = {resend, Char, NewEvent},
+                    subscribe = true,
+                    props = Props,
+                    log = Log};
+        _ ->
+            ?SUCCEED_NOSUB
+    end;
+
 attempt(_) ->
     undefined.
 

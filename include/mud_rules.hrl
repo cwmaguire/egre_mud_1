@@ -145,9 +145,13 @@
           Props]}).
 
 -define(hp(Id, Owner, HP, Props),
+        ?hp(Id, Owner, HP, HP, Props)).
+
+-define(hp(Id, Owner, HP, Max, Props),
         {Id,
          [{owner, Owner},
           {hitpoints, HP},
+          {max, Max},
           {icon, stat},
           ?HITPOINTS_RULES |
           Props]}).

@@ -728,6 +728,7 @@ cast_heal(_Config) ->
     _Player1 = login(player1),
     _Player2 = login(player2),
     _Player3 = login(player3),
+    _Player4 = login(player4),
 
     Conditions =
         [{"Spell 'heal' is not memorized",
@@ -736,23 +737,78 @@ cast_heal(_Config) ->
 
     egremud_test_socket:send(player1, <<"cast heal">>),
 
-    MessageFilter =
+    MessageFilter1 =
        fun(<<"bob does [", _:1/binary, "] heal spell healing to bob">>) ->
                true;
           (_) ->
                false
        end,
-    [] = wait_for_message(player1, MessageFilter, 5),
-    [] = wait_for_message(player2, MessageFilter, 5),
-    [] = wait_for_message(player3, MessageFilter, 5),
+    [] = wait_for_message(player1, MessageFilter1, 5),
+    [] = wait_for_message(player2, MessageFilter1, 5),
+    [] = wait_for_message(player3, MessageFilter1, 5),
+    ?assertEqual([], egremud_test_socket:messages(player4)),
 
-    HP = val(hitpoints, p_hp),
-    ct:pal("~p:~p: HP: ~p", [?MODULE, ?FUNCTION_NAME, HP]),
+    BobHP = val(hitpoints, p_hp),
+    ct:pal("~p:~p: HP: ~p", [?MODULE, ?FUNCTION_NAME, BobHP]),
 
     Conditions2 =
         [{"Player 1 should have health higher than before (>1)",
           fun() -> val(hitpoints, p_hp) > 1 end}],
-    wait_for(Conditions2, 10).
+    wait_for(Conditions2, 10),
+
+    egre_dbg:add(rules_resource_reserve, update_tick),
+
+    egremud_test_socket:send(player1, <<"cast heal Pete">>),
+
+    MessageFilter2 =
+       fun(<<"bob does [", _:1/binary, "] heal spell healing to Pete">>) ->
+               true;
+          (_) ->
+               false
+       end,
+    [] = wait_for_message(player1, MessageFilter2, 5),
+    [] = wait_for_message(player2, MessageFilter2, 5),
+    [] = wait_for_message(player3, MessageFilter2, 5),
+    ?assertEqual([], egremud_test_socket:messages(player4)),
+
+    Conditions3 =
+        [{"Player 2 ('Pete') should have health higher than before (>1)",
+          fun() -> val(hitpoints, p2_hp) > 1 end}],
+    wait_for(Conditions3, 10),
+
+           %{hit_roll, {1, 10}},
+           %{effect_roll, -9},
+    HealEffectPrototype = get_pid(p_heal_effect_prototype),
+    egre_object:set(HealEffectPrototype, {hit_roll, {1, -1}}),
+    PeteHP = val(hitpoints, p2_hp),
+    ct:pal("~p:~p: PeteHP~n\t~p~n", [?MODULE, ?FUNCTION_NAME, PeteHP]),
+    egremud_test_socket:send(player1, <<"cast heal Pete">>),
+
+    wait_for_sorted_messages(player1, [<<"bob misses Pete with heal spell">>], 5),
+    wait_for_sorted_messages(player2, [<<"bob misses Pete with heal spell">>], 5),
+    wait_for_sorted_messages(player3, [<<"bob misses Pete with heal spell">>], 5),
+    ?assertEqual([], egremud_test_socket:messages(player4)),
+
+    Conditions4 =
+        [{"Player 2 ('Pete') should have the same health as before",
+          fun() -> PeteHP == val(hitpoints, p2_hp) end}],
+    wait_for(Conditions4, 10),
+
+    egre_object:set(HealEffectPrototype, {hit_roll, {1, 10}}),
+    egre_object:set(HealEffectPrototype, {effect_roll, {1, -1}}),
+    egremud_test_socket:send(player1, <<"cast heal Pete">>),
+
+    wait_for_sorted_messages(player1, [<<"bob has no effect on Pete with heal spell">>], 5),
+    wait_for_sorted_messages(player2, [<<"bob has no effect on Pete with heal spell">>], 5),
+    wait_for_sorted_messages(player3, [<<"bob has no effect on Pete with heal spell">>], 5),
+    ?assertEqual([], egremud_test_socket:messages(player4)),
+
+    ct:pal("~p:~p: PeteHP~n\t~p~n", [?MODULE, ?FUNCTION_NAME, PeteHP]),
+
+    Conditions5 =
+        [{"Player 2 ('Pete') should have the same health as before",
+          fun() -> PeteHP == val(hitpoints, p2_hp) end}],
+    wait_for(Conditions5, 10).
 
 revive_process(_Config) ->
     start(?WORLD_3),

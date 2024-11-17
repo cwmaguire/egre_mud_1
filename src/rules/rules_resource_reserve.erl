@@ -99,7 +99,9 @@ update_tick(Props) ->
             [{tick, Ref} | Props];
         {[], _} ->
             lists:keydelete(tick, 1, Props);
-        _ ->
+        {Res, Tick} ->
+            ct:pal("~p update tick 'fell through' with Reservations ~p and Tick ~p",
+                   [self(), Res, Tick]),
             Props
     end.
 

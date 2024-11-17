@@ -861,17 +861,30 @@
            ?RESOURCE_RULES]}]).
 
 -define(WORLD_SPELL_HEAL,
-        [{room,
-          [{visitor, player1},
+        [{room_n,
+          [{exit, exit_ns},
+           {visitor, player1},
            {visitor, player2},
            {visitor, player3},
            {icon, room},
            ?ROOM_RULES]},
 
+         {room_s,
+          [{exit, exit_ns},
+           {visitor, player4},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {exit_ns,
+          [{{room, n}, room_n},
+           {{room, s}, room_s},
+           {icon, exit},
+           ?EXIT_RULES]},
+
          {player1,
           [{name, <<"bob">>},
-           {owner, room},
-           {room, room},
+           {owner, room_n},
+           {room, room_n},
            {hitpoints, p_hp},
            {icon, person},
            {resource, p_mana},
@@ -917,20 +930,20 @@
            ?EFFECT_PROTOTYPE_RULES]},
 
          {player2,
-          [{owner, room},
-           {room, room},
+          [{owner, room_n},
+           {room, room_n},
            {name, <<"Pete">>},
            {hitpoints, p2_hp},
            {life, p2_life},
            {icon, person},
            ?CHARACTER_RULES]},
 
-         ?hp(p2_hp, player2, 1, []),
+         ?hp(p2_hp, player2, 1, 100, []),
          ?life(p2_life, player2, []),
 
          {player3,
-          [{owner, room},
-           {room, room},
+          [{owner, room_n},
+           {room, room_n},
            {name, <<"Nancy">>},
            {hitpoints, p3_hp},
            {life, p3_life},
@@ -938,7 +951,19 @@
            ?CHARACTER_RULES]},
 
          ?hp(p3_hp, player3, 1, []),
-         ?life(p3_life, player3, [])]).
+         ?life(p3_life, player3, []),
+
+         {player4,
+          [{owner, room_s},
+           {room, room_s},
+           {name, <<"Charles">>},
+           {hitpoints, p4_hp},
+           {life, p4_life},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         ?hp(p4_hp, player4, 1, []),
+         ?life(p4_life, player4, [])]).
 
 -define(WORLD_12, [{room,
                     [{visitor, player},

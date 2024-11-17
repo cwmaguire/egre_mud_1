@@ -45,23 +45,25 @@ succeed({Props, {Self, tick, Ref, with, Count}, _})
     PerTick = proplists:get_value(per_tick, Props, 1),
     TickTime = proplists:get_value(tick_time, Props, _OneSecond = 1000),
     Reservations = proplists:get_value(reservations, Props, []),
-    {RotatedReservations, Remaining} =
+    {Props2, RotatedReservations, Remaining} =
         case {Reservations, New} of
             {[], Max} ->
-                {[], Max};
+                PropsWithoutTick = lists:keydelete(tick, 1, Props),
+                {PropsWithoutTick, [], Max};
             _ ->
                 %% For now just make each tick take at _least_ PerTick
                 %% millis instead of trying to wait close to a PerTick,
                 %% or trying to correct for a long previous tick.
                 egre_object:attempt_after(TickTime, Self, {Self, tick, Ref, with, PerTick}),
                 Type = proplists:get_value(type, Props),
-                allocate(Type, Reservations, New)
+                {Reservations2, StillRemaining} = allocate(Type, Reservations, New),
+                {Props, Reservations2, StillRemaining}
         end,
-    NoCurrent = lists:keydelete(current, 1, Props),
-    NoReservationsOrCurrent = lists:keydelete(reservations, 1, NoCurrent),
-    Props2 = [{current, Remaining},
-              {reservations, RotatedReservations} | NoReservationsOrCurrent],
-    {Props2, Log};
+    Props3 = lists:keydelete(current, 1, Props2),
+    Props4 = lists:keydelete(reservations, 1, Props3),
+    Props5 = [{current, Remaining},
+              {reservations, RotatedReservations} | Props4],
+    {Props5, Log};
 
 succeed(_) ->
     undefined.
@@ -73,7 +75,7 @@ allocate(Type, [{Proc, {Required, Purpose, Times}} | Reservations], Available)
   when Available >= Required,
        (Times == infinity orelse Times > 0) ->
     egre_object:attempt(Proc, {self(), allocate, Required, 'of', Type, to, Proc, to, Purpose}),
-    RotatedReservations = Reservations ++ [{Proc, {Required, Times, - 1}}],
+    RotatedReservations = Reservations ++ [{Proc, {Required, Purpose, Times - 1}}],
     allocate(Type, RotatedReservations, Available - Required);
 allocate(Type, [{_Proc, {_Required, _Purpose, Times}} | Reservations], Available)
   when is_integer(Times),
