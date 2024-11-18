@@ -893,7 +893,7 @@
            ?CHARACTER_RULES]},
 
          ?resource(p_mana, player1, mana, 1, 10, 10, []),
-         ?hp(p_hp, player1, 1, []),
+         ?hp(p_hp, player1, 1, 10, []),
          ?life(p_life, player1, []),
 
          {heal_spell,
