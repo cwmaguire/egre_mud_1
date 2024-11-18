@@ -126,9 +126,11 @@ SVG {
   border: 1px solid red;
 }
 
+/*
 .message:hover {
   font-size: 12pt;
 }
+*/
 
 .hoverLabel, .hoverBox {
   visibility: hidden;
