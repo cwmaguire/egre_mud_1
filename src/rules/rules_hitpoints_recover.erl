@@ -21,7 +21,7 @@ attempt({#{},
     ?SUCCEED_SUB;
 attempt({#{},
          Props,
-         {Resource, allocate, Required, 'of', healing, to, Self, to, heal},
+         {Resource, allocate, Required, 'of', healing, to, Self, for, heal},
          _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
@@ -89,7 +89,7 @@ succeed({Props, {Owner, hitpoints, below, max}, _}) ->
                          {Owner, reserve,
                           1, 'of', healing,
                           for, self(),
-                          to, heal,
+                          for, heal,
                           infinity, times},
                          #{},
                          false),
@@ -107,7 +107,7 @@ succeed({Props, {Owner, hitpoints, at, max}, _}) ->
     Props2 = lists:keystore(is_healing, 1, Props, {is_healing, false}),
     {Props2, Log};
 
-succeed({Props, {Resource, allocate, Amt, 'of', healing, to, Self, to, heal}, _})
+succeed({Props, {Resource, allocate, Amt, 'of', healing, to, Self, for, heal}, _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
            {amount, Amt},

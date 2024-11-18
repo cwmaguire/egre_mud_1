@@ -95,7 +95,8 @@
                   ?attribute(dexterity0, 1, 99, player, []),
                   ?resource(p_stamina, player, stamina, 1, 100, 10, []),
                   ?hand(p_hand_right, player, <<"right_hand">>,
-                        [{item, p_fist_right}, {max_items, 1}]),
+                        [{item, p_fist_right},
+                         {max_items, 1}]),
 
                   {p_fist_right,
                    [{name, <<"right fist">>},
@@ -981,7 +982,7 @@
            {spell, heal_spell},
            ?CHARACTER_RULES]},
 
-         ?resource(p_healing, player1, healing, 1, 1000, 1, []),
+         ?resource(p_healing, player1, healing, 1, 100, 1, []),
          ?hp(p_hp, player1, 5_000, 10_000, []),
          ?life(p_life, player1, [])]).
 

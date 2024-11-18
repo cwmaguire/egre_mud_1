@@ -36,7 +36,7 @@ succeed({Props, {Self, tick, Ref, with, Count}, _})
   when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, tick},
-           {rules_module, ?MODULE},
+           ?RULES_MOD,
            {ref, Ref},
            {count, Count}],
     Current = proplists:get_value(current, Props, 0),
@@ -58,7 +58,8 @@ succeed({Props, {Self, tick, Ref, with, Count}, _})
                                    Self,
                                    {Self, tick, Ref, with, PerTick}),
                 Type = proplists:get_value(type, Props),
-                {Reservations2, StillRemaining} = allocate(Type, Reservations, New),
+                {Reservations2, StillRemaining} =
+                    allocate(Type, Reservations, New),
                 {Props, Reservations2, StillRemaining}
         end,
     Props3 = lists:keydelete(current, 1, Props2),
@@ -81,7 +82,7 @@ allocate(Type, [{Proc, {Required, Purpose, Times}} | Reservations], Available)
                         {self(), allocate,
                          Required, 'of', Type,
                          to, Proc,
-                         to, Purpose}),
+                         for, Purpose}),
     TimesLeft = times_left(Times),
     RotatedReservations = Reservations ++ [{Proc, {Required, Purpose, TimesLeft}}],
     allocate(Type, RotatedReservations, Available - Required);

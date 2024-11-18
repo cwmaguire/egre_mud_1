@@ -16,6 +16,7 @@ attempt({#{owner := Owner},
     Log = [{?EVENT, Effect},
            {?SOURCE, Attacker},
            {?TARGET, Owner},
+           ?RULES_MOD,
            {Effect, Amount}],
     case is_hp_effect(Effect) of
         true ->
@@ -31,6 +32,7 @@ succeed({Props,
          Context}) ->
     Log = [{?EVENT, Effect},
            {?TARGET, Owner},
+           ?RULES_MOD,
            {from, Attacker},
            {Effect, Amount}],
     {Props2, Log2} = take_damage(Attacker, Owner, Amount, Effect, Props, Context),

@@ -15,7 +15,7 @@ attempt({#{owner := Owner},
          {Owner, reserve, Amount,
           'of', Self,
           for, Proc,
-          to, _Purpose,
+          for, _Purpose,
           _Times, times}, _})
   when Self == self() ->
     Log = [{?SOURCE, Owner},
@@ -43,15 +43,16 @@ succeed({Props,
          {Character, reserve, Amount,
           'of', Self,
           for, Proc,
-          to, Purpose,
-          Times, times}, _})
+          for, Purpose,
+          Times0, times}, _})
   when Self == self() ->
     Log = [{?SOURCE, Character},
            {?EVENT, reserve},
            {amount, Amount},
            {?TARGET, Self},
-           {rules_module, ?MODULE},
+           ?RULES_MOD,
            {for, Proc}],
+    Times = maybe_fix_times(Times0),
     Reservations = proplists:get_value(reservations, Props, []),
     %Props2 = case lists:member({Proc, Amount}, Reservations) of
     Props2 = case has_reservation(Proc, Amount, Reservations) of
@@ -71,7 +72,7 @@ succeed({Props, {Character, unreserve, Self, for, Proc}, _})
     Log = [{?SOURCE, Character},
            {?EVENT, unreserve},
            {?TARGET, Self},
-           {rules_module, ?MODULE},
+           ?RULES_MOD,
            {for, Proc}],
     Reservations = proplists:get_value(reservations, Props, []),
     NewReservations = lists:keydelete(Proc, 1, Reservations),
@@ -113,3 +114,9 @@ has_reservation(Proc, Amount, Reservations) ->
                  (_) ->
                       false end,
               Reservations).
+
+maybe_fix_times(infinite) ->
+    io:format("*** Reservation with 'infinite' times: use 'infinity' times. ***"),
+    infinity;
+maybe_fix_times(Times) ->
+    Times.

@@ -20,7 +20,7 @@ attempt({#{character := Character},
            {?TARGET, Target}],
     ?SUCCEED_SUB;
 
-attempt({#{}, Props, {Resource, allocate, Required, 'of', Type, to, Self, to, cast}, _})
+attempt({#{}, Props, {Resource, allocate, Required, 'of', Type, to, Self, for, cast}, _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
            {amount, Required},
@@ -43,7 +43,7 @@ succeed({Props, {Character, cast, _Self, on, Target}, _}) ->
     Props2 = lists:keystore(target, 1, Props, {target, Target}),
     {Props2, Log};
 
-succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self, to, cast}, _})
+succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self, for, cast}, _})
   when Self == self() ->
     Log = [{?EVENT, allocate},
            {amount, Amt},
@@ -65,7 +65,11 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self, to, cast}, _})
             _ ->
                 Allocated
         end,
-    Props2 = lists:keystore(allocated_resources, 1, Props, {allocated_resources, RemainingAllocated}),
+    Props2 = lists:keystore(allocated_resources,
+                            1,
+                            Props,
+                            {allocated_resources,
+                             RemainingAllocated}),
     {Props2, Log};
 
 succeed(_) ->
@@ -83,7 +87,7 @@ reserve(Character, Resource, Times, Amount) ->
                         {Character, reserve, Amount,
                          'of', Resource,
                          for, self(),
-                         to, cast,
+                         for, cast,
                          Times, times}).
 
 update_allocated(New, Type, Props) ->

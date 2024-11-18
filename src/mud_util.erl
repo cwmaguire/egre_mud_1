@@ -13,8 +13,11 @@
 atob(Atom) ->
     list_to_binary(atom_to_list(Atom)).
 
-itob(Int) ->
-    list_to_binary(integer_to_list(Int)).
+itob(Int) when is_integer(Int) ->
+    integer_to_binary(Int);
+itob(NotInt) ->
+    io:format("itob(~p) called when ~p is not an int", [NotInt, NotInt]),
+    <<"[not_an_int]">>.
 
 describe(Template, Props) ->
     DescTemplate = mud_config:desc_template(Template),

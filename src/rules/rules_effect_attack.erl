@@ -133,6 +133,7 @@ succeed({Props, {Attacker, cause, EffectAmount, 'of', EffectType, to, Target, wi
            {effect_type, EffectType}],
 
     AmountBin = <<"[", (mud_util:itob(abs(EffectAmount)))/binary, "]">>,
+    TargetName = proplists:get_value(name, Props, <<"[no name]">>),
     Effect =
         case EffectAmount of
             Positive when Positive > 0 ->
@@ -144,7 +145,7 @@ succeed({Props, {Attacker, cause, EffectAmount, 'of', EffectType, to, Target, wi
         <<"{attacker} does ",
           AmountBin/binary,
           " ",
-          (proplists:get_value(name, Props))/binary,
+          TargetName/binary,
           " ",
           Effect/binary,
           " to {target}">>,

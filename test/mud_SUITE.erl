@@ -220,13 +220,12 @@ player_attack(Config) ->
     start(?WORLD_3),
     Player = get_pid(player),
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
-    receive after 1000 -> ok end,
     Conditions =
         [{"Zombie is dead",
           fun() -> val(is_alive, z_life) == false end},
          {"Zombie hp < 1",
           fun() -> val(hitpoints, z_hp) =< 0 end}],
-    wait_for(Conditions, 4).
+    wait_for(Conditions, 8).
 
 
 player_resource_wait(Config) ->
