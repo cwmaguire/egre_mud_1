@@ -62,7 +62,8 @@
                              rules_exit_shout |
                              ?UNIVERSAL_RULES]}).
 
--define(HITPOINTS_RULES, {rules, [rules_hitpoints_attack |
+-define(HITPOINTS_RULES, {rules, [rules_hitpoints_attack,
+                                  rules_hitpoints_recover |
                                   ?UNIVERSAL_RULES]}).
 
 -define(LIFE_RULES, {rules, [rules_life_attack,

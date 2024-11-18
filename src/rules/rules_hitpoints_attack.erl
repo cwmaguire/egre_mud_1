@@ -44,24 +44,33 @@ fail(_) ->
 
 take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
     Owner = proplists:get_value(owner, Props),
-    Hp = proplists:get_value(hitpoints, Props, 0) - Amount,
-    ct:pal("~p:~p: Hp~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Hp]),
-    Log = [{hp, Hp}],
+    MaxHP = proplists:get_value(max, Props, 100_000_000),
+    CurrHp = proplists:get_value(hitpoints, Props, 0),
+    NewHp = min(CurrHp - Amount, MaxHP),
+    Log = [{hp, NewHp}],
+    IsHealing = proplists:get_value(is_healing, Props, false),
 
 
-    case Hp of
-        X when X < 1 ->
-            Owner = proplists:get_value(owner, Props),
-            ct:pal("~p trying to call egre:attempt(~p, {~p, killed, ~p, with, ~p}, ~p, _ShouldSubscribe = true)",
-                   [self(), Owner, Attacker, Owner, EffectType, Context]),
+    case {NewHp, IsHealing} of
+        {Death, _} when Death =< 0 ->
             egre:attempt(Owner,
                          {Attacker, killed, Owner, with, EffectType},
                          Context,
                          _ShouldSubscribe = true);
-        _ ->
+        {MaxHP, true} ->
+            egre:attempt(self(),
+                         {Owner, hitpoints, at, max},
+                         #{},
+                         false);
+        {_, false} ->
+            egre:attempt(self(),
+                         {Owner, hitpoints, below, max},
+                         #{},
+                         false);
+        {_, _} ->
             ok
     end,
-    Props2 = lists:keystore(hitpoints, 1, Props, {hitpoints, Hp}),
+    Props2 = lists:keystore(hitpoints, 1, Props, {hitpoints, NewHp}),
     {Props2, Log}.
 
 is_hp_effect(blunt_force) ->

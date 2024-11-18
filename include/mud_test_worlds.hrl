@@ -965,6 +965,26 @@
          ?hp(p4_hp, player4, 1, []),
          ?life(p4_life, player4, [])]).
 
+-define(WORLD_RECOVER_HEALTH,
+        [{room_n,
+          [{visitor, player1},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player1,
+          [{name, <<"bob">>},
+           {owner, room_n},
+           {room, room_n},
+           {hitpoints, p_hp},
+           {icon, person},
+           {resource, p_healing},
+           {spell, heal_spell},
+           ?CHARACTER_RULES]},
+
+         ?resource(p_healing, player1, healing, 1, 1000, 1, []),
+         ?hp(p_hp, player1, 5_000, 10_000, []),
+         ?life(p_life, player1, [])]).
+
 -define(WORLD_12, [{room,
                     [{visitor, player},
                      {visitor, zombie},

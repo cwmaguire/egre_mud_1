@@ -37,6 +37,7 @@ all() ->
      look_item,
      set_character,
      cast_spell,
+     cast_heal,
      decompose,
      search_character,
      player_say,
@@ -50,7 +51,8 @@ all() ->
      complete_quest,
      turn_in_quest,
      no_quests_available,
-     no_quests_left].
+     no_quests_left,
+     self_healing_over_time].
 
 init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
@@ -75,7 +77,6 @@ end_per_testcase(_, _Config) ->
     logout(player3),
     logout(player4),
     egre:wait_db_done(500),
-    ct:pal("something"),
     application:stop(recon),
     application:stop(mud),
     application:stop(egremud),
@@ -1306,6 +1307,40 @@ complete_get_quest(Config) ->
                "Glove was in wrong room"),
     ?assertNot(val(is_complete, p_quest_4),
                "Glove was in wrong room").
+
+self_healing_over_time(Config) ->
+    start(?WORLD_RECOVER_HEALTH),
+    Player = login(player1),
+
+    %egre_dbg:add(rules_resource_tick, allocate),
+    %egre_dbg:add(rules_resource_reserve),
+
+    attempt(Config,
+            Player,
+            {test, cause, 1000, 'of', blunt_force, to, Player, with, bar}),
+
+    Conditions1 =
+        [{"Player has taken 1000 damage, going from 5000 to 4000 hp",
+          fun() -> val(hitpoints, p_hp) < 5000 end}],
+    wait_for(Conditions1, 5),
+
+    PlayerHP1 = val(hitpoints, p_hp),
+
+    Conditions2 =
+        [{["Player has healed above ", PlayerHP1],
+          fun() -> Val = val(hitpoints, p_hp),
+                   ct:pal("~p~n", [Val]),
+                   Val > PlayerHP1
+          end}],
+    wait_for(Conditions2, 5),
+
+    PlayerHP2 = val(hitpoints, p_hp),
+
+    Conditions3 =
+        [{["Player has healed above ", PlayerHP2],
+          fun() -> val(hitpoints, p_hp) > PlayerHP2 end}],
+    wait_for(Conditions3, 5).
+
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

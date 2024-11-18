@@ -54,7 +54,9 @@ succeed({Props, {Self, tick, Ref, with, Count}, _})
                 %% For now just make each tick take at _least_ PerTick
                 %% millis instead of trying to wait close to a PerTick,
                 %% or trying to correct for a long previous tick.
-                egre_object:attempt_after(TickTime, Self, {Self, tick, Ref, with, PerTick}),
+                egre:attempt_after(TickTime,
+                                   Self,
+                                   {Self, tick, Ref, with, PerTick}),
                 Type = proplists:get_value(type, Props),
                 {Reservations2, StillRemaining} = allocate(Type, Reservations, New),
                 {Props, Reservations2, StillRemaining}
@@ -73,9 +75,15 @@ fail(_) ->
 
 allocate(Type, [{Proc, {Required, Purpose, Times}} | Reservations], Available)
   when Available >= Required,
-       (Times == infinity orelse Times > 0) ->
-    egre_object:attempt(Proc, {self(), allocate, Required, 'of', Type, to, Proc, to, Purpose}),
-    RotatedReservations = Reservations ++ [{Proc, {Required, Purpose, Times - 1}}],
+       (Times == infinity orelse
+       (is_integer(Times) andalso Times > 0)) ->
+    egre_object:attempt(Proc,
+                        {self(), allocate,
+                         Required, 'of', Type,
+                         to, Proc,
+                         to, Purpose}),
+    TimesLeft = times_left(Times),
+    RotatedReservations = Reservations ++ [{Proc, {Required, Purpose, TimesLeft}}],
     allocate(Type, RotatedReservations, Available - Required);
 allocate(Type, [{_Proc, {_Required, _Purpose, Times}} | Reservations], Available)
   when is_integer(Times),
@@ -84,4 +92,7 @@ allocate(Type, [{_Proc, {_Required, _Purpose, Times}} | Reservations], Available
 allocate(_, Reservations, Available) ->
     {Reservations, Available}.
 
-
+times_left(infinity) ->
+    infinity;
+times_left(Int) when is_integer(Int) ->
+    Int - 1.
