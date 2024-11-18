@@ -43,3 +43,41 @@ https://www.twitch.tv/lulu58e2
 
 ---
 https://youtu.be/ryaasVMpiS0 - Web logging updates
+
+### Progress
+
+##### Done
+[x] move
+[x] look
+[x] say
+[x] shout (1 room away)
+[x] emote ("emote farts" -> "Reginald farts")
+[x] get
+[x] put
+[x] attack
+[x] heal spell
+[x] natural healing with attribute
+[x] die
+[x] loot / search
+[x] wield
+[x] cast spell
+[x] activate quest
+[x] complete quest
+[x] turn in quest
+[x] parse cast spell
+
+##### TODO
+[ ] buy / sell
+[ ] resurrect
+[ ] build the MUD from within the MUD (rooms, items, etc.)
+[ ] roles (e.g. admin rights)
+[ ] inventory
+[ ] lists quests
+[ ] list quest history
+[ ] parse attack
+
+##### Nice to Have:
+[ ] custom TTL
+[ ] buffs
+[ ] debuffs
+[ ] max hitpoints
