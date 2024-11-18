@@ -868,8 +868,7 @@ decompose(Config) ->
     Sword = get_pid(sword),
     attempt(Config, Player, {Player, cause, 1000, 'of', fire,
                              to, Zombie,
-                             with, undefined,
-                             with, []}),
+                             with, undefined}),
     wait(1000),
     Conditions =
         [{"Zombie process is dead",
