@@ -270,7 +270,7 @@ function add_rules_module(parent, log){
   } else if(rawRulesModule == 'no_rules_module'){
     rules = 'none';
   } else {
-    rules = rawRulesModule.split('_').slice(1).join(' ');
+    rules = rawRulesModule.split('_').join(' ');
   }
 
   let rulesSpan = span(rules, 'module');
