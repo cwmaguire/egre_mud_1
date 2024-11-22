@@ -13,3 +13,6 @@ cp -u ~/dev/egre_mud/include/* deps/egre_mud/include/
 # Compile all of the dependencies in case we're making changes here
 # instead of in their own projects
 make FULL=1 all deps
+
+# Build the test suite and include the bash completions parse transform
+erlc -o test/ -pa test/ -I include/ -I deps/ test/mud_test_completions.erl  test/mud_SUITE.erl

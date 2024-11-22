@@ -1,6 +1,7 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(mud_SUITE).
 -compile(export_all).
+-compile({parse_transform, mud_test_completions}).
 
 -include("mud_test_worlds.hrl").
 -include_lib("eunit/include/eunit.hrl").
