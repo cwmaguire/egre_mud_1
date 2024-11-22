@@ -13,13 +13,20 @@
 %% Defend
 attempt({#{character := Character},
          Props,
-         {Attacker, calc, HitRoll, on, Character, with, AttackType},
+         {Attacker, roll, HitOrEffectAmount,
+          for, HitOrEffect,
+          with, _EffectType,  %% TODO eventually use this to see if armor is effective
+          on, Character,
+          with,
+          attack_source, AttackSource,
+          effect, _Effect},
          _}) ->
     Log = [{?SOURCE, Attacker},
-           {?EVENT, calc_hit},
-           {hit, HitRoll},
+           {?EVENT, HitOrEffect},
            {?TARGET, Character},
-           {attack_type, AttackType}],
+           ?RULES_MOD,
+           {roll_amount, HitOrEffectAmount},
+           {attack_source, AttackSource}],
     case should_defend(Props) of
         true ->
             case proplists:get_value(defence_hit_roll, Props, {0, 0}) of
@@ -27,30 +34,19 @@ attempt({#{character := Character},
                     ?SUCCEED_NOSUB;
                 {MaybeRoll, Base} ->
                     DefenceRoll = roll(MaybeRoll, Base),
-                    NewEvent = {Attacker, calc, HitRoll - DefenceRoll, on, Character, with, AttackType},
-                    ?SUCCEED_SUB_NEW_EVENT(NewEvent)
-            end;
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-attempt({#{character := Character},
-         Props,
-         {Attacker, calc, EffectRoll, on, Character, with, Effect},
-         _}) ->
-    Log = [{?SOURCE, Attacker},
-           {?EVENT, calc_damage},
-           {effect_roll, EffectRoll},
-           {?TARGET, Character},
-           {effect, Effect}],
-    case should_defend(Props) of
-        true ->
-            case proplists:get_value(defence_effect_roll, Props, {0, 0}) of
-                {_Roll = 0, _Base = 0} ->
-                    ?SUCCEED_NOSUB;
-                {MaybeRoll, Base} ->
-                    DefenceRoll = roll(MaybeRoll, Base),
-                    NewEvent = {Attacker, calc, EffectRoll - DefenceRoll, damage, Character},
-                    ?SUCCEED_SUB_NEW_EVENT(NewEvent)
+
+                    NewEvent = {Attacker, roll, HitOrEffectAmount - DefenceRoll,
+                                for, HitOrEffect,
+                                with, _EffectType,
+                                on, Character,
+                                with,
+                                attack_source, AttackSource,
+                                effect, _Effect},
+
+                    #result{event = NewEvent,
+                            subscribe = false,
+                            props = Props,
+                            log = [{new_roll, HitOrEffectAmount - DefenceRoll} | Log]}
             end;
         _ ->
             ?SUCCEED_NOSUB
@@ -73,6 +69,3 @@ roll(_Roll = 0, Base) ->
     Base;
 roll(Roll, Base) ->
     rand:uniform(Roll) + Base.
-
-%% log(Props) ->
-%%     egre_event_log:log(debug, [{module, ?MODULE} | Props]).

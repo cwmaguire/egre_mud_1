@@ -31,7 +31,7 @@ succeed({Props, {Character, affect, Target, because, Attack}, _}) ->
     ChildProps = replace_rules_with_child_rules(Props),
     ChildPropsWithTarget = [{target, Target} | ChildProps],
     {ok, Pid} = supervisor:start_child(egre_object_sup, [undefined, ChildPropsWithTarget]),
-    egre_object:attempt(Pid, {Pid, affect, Target}),
+    egre_object:attempt(Pid, {Pid, affect, Target, with, Attack}),
     {Props, Log};
 
 succeed(_) ->

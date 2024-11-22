@@ -11,7 +11,7 @@
 
 attempt({#{owner := Attack},
          Props,
-         {Self, affect, Target},
+         {Self, affect, Target, with, Attack},
          _})
   when Self == self() ->
     Log = [{?SOURCE, Attack},
@@ -22,7 +22,13 @@ attempt({#{owner := Attack},
 
 attempt({#{},
          Props,
-         {_Character, roll, _Roll, for, HitOrEffect, with, EffectType, on, Target, with, Self},
+         {_Character, roll, _Roll,
+          for, HitOrEffect,
+          with, EffectType,
+          on, Target,
+          with,
+          attack_source, _AttackSource,
+          effect, Self},
          _})
   when Self == self(),
        HitOrEffect == hit; HitOrEffect == effect ->
@@ -39,37 +45,62 @@ attempt({#{},
 attempt(_) ->
     undefined.
 
-succeed({Props, {_Self, affect, Target}, _}) ->
-    Attack = proplists:get_value(owner, Props),
-    Log = [{?SOURCE, Attack},
+succeed({Props, {_Self, affect, Target, with, AttackSource}, _}) ->
+    AttackSource = proplists:get_value(owner, Props),
+    Log = [{?SOURCE, AttackSource},
            {?EVENT, affect},
            {?TARGET, Target},
            {rules_module, ?MODULE},
-           {vector, Attack}],
+           {attack_source, AttackSource}],
     Character = proplists:get_value(character, Props),
     EffectType = proplists:get_value(type, Props),
-    Event = {Character, roll, calc_hit_roll(Props), for, hit, with, EffectType, on, Target, with, self()},
+    Event = {Character, roll, calc_hit_roll(Props),
+             for, hit,
+             with, EffectType,
+             on, Target,
+             with,
+             attack_source, AttackSource,
+             effect, self()},
     egre_object:attempt(self(), Event),
 
     {Props, Log};
 
-succeed({Props, {Character, roll, SuccessRoll, for, hit, with, EffectType, on, Target, with, Attack}, _})
+succeed({Props, {Character, roll, SuccessRoll,
+                 for, hit,
+                 with, EffectType,
+                 on, Target,
+                 with,
+                 attack_source, AttackSource,
+                 effect, Self}, _})
   when is_pid(Target),
-       SuccessRoll > 0 ->
+       SuccessRoll > 0,
+       self() == Self ->
     Log = [{?SOURCE, Character},
            {?EVENT, roll_for_hit},
            {?TARGET, Target},
-           {rules_module, ?MODULE},
+           ?RULES_MOD,
            {amount, SuccessRoll},
-           {vector, Attack},
+           {attack_source, AttackSource},
            {effect_type, EffectType},
-           {effect, self()}],
+           {effect, Self}],
 
-    Event = {Character, roll, calc_effect_roll(Props), for, effect, with, EffectType, on, Target, with, self()},
+    Event = {Character, roll, calc_effect_roll(Props),
+             for, effect,
+             with, EffectType,
+             on, Target,
+             with,
+             attack_source, AttackSource,
+             effect, Self},
     egre_object:attempt(self(), Event),
     {Props, Log};
 
-succeed({Props, {Character, roll, FailRoll, for, hit, with, _EffectType, on, Target, with, Self}, _})
+succeed({Props, {Character, roll, FailRoll,
+                 for, hit,
+                 with, _EffectType,
+                 on, Target,
+                 with,
+                 attack_source, _AttackSource,
+                 effect, Self}, _})
   when is_pid(Target),
        Self == self() ->
     Log = [{?SOURCE, Character},
@@ -88,7 +119,13 @@ succeed({Props, {Character, roll, FailRoll, for, hit, with, _EffectType, on, Tar
 
     {Props, Log};
 
-succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, on, Target, with, Self}, _})
+succeed({Props, {Character, roll, EffectAmount,
+                 for, effect,
+                 with, EffectType,
+                 on, Target,
+                 with,
+                 attack_source, _AttackSource,
+                 effect, Self}, _})
   when is_pid(Target),
        Self == self(),
        EffectAmount /= 0 ->
@@ -99,12 +136,22 @@ succeed({Props, {Character, roll, EffectAmount, for, effect, with, EffectType, o
            {amount, EffectAmount},
            {effect, Self}],
 
-    EffectEvent = {Character, cause, EffectAmount, 'of', EffectType, to, Target, with, Self},
+    EffectEvent = {Character, cause, EffectAmount,
+                   'of', EffectType,
+                   to, Target,
+                   with, Self},
     egre:attempt(Target, EffectEvent, true),
 
     {Props, Log};
 
-succeed({Props, {Character, roll, IneffectiveAmount, for, effect, with, _EffectType, on, Target, with, Self}, _})
+succeed({Props, {Character, roll, IneffectiveAmount,
+                 for, effect,
+                 with, _EffectType,
+                 on, Target,
+                 with,
+                 attack_source, _AttackSource,
+                 effect, Self},
+         _})
   when is_pid(Target),
        Self == self() ->
     Log = [{?SOURCE, Character},

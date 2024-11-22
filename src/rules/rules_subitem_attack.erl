@@ -26,81 +26,46 @@
 
 -include("mud.hrl").
 
-%% Attacking: hit and damage
-attempt({#{top_item := TopItem = #top_item{is_wielded = true, is_active = true},
-           attack_hit_modifier := AttackHitModifier,
-           is_active := true},
+attempt({#{character := Character},
          Props,
-         {Character, calc, Hit, on, Target, with, TopItem},
+         {Attacker, roll, HitOrEffectAmount,
+          for, HitOrEffect,
+          with, EffectType,
+          on, Defender,
+          with,
+          attack_source, AttackSource,
+          effect, Effect},
          _}) ->
-    Log = [{?SOURCE, Character},
-           {?EVENT, calc_hit},
-           {hit, Hit},
-           {?TARGET, Target},
-           {vector, TopItem}],
-    NewEvent = {Character, calc, Hit + AttackHitModifier, on, Target, with, TopItem},
-    #result{result = succeed,
-            event = NewEvent,
-            subscribe = false,
-            props = Props,
-            log = Log};
-attempt({#{top_item := TopItem = #top_item{is_wielded = true, is_active = true},
-           attack_damage_modifier := AttackDamageModifier,
-           is_active := true},
-         Props,
-         {Character, damage, Damage, to, Target, with, TopItem},
-         _}) ->
-    Log = [{?SOURCE, Character},
-           {?EVENT, damage},
-           {damage, Damage},
-           {?TARGET, Target},
-           {vector, TopItem}],
-    NewEvent = {Character, calc, Damage + AttackDamageModifier, on, Target, with, TopItem},
-    #result{result = succeed,
-            event = NewEvent,
-            subscribe = false,
-            props = Props,
-            log = Log};
+    Log = [{?EVENT, HitOrEffect},
+           {?SOURCE, Attacker},
+           {?TARGET, Defender},
+           ?RULES_MOD,
+           {roll, HitOrEffectAmount},
+           {item, AttackSource}],
+    TopItem = proplists:get_value(top_item, Props),
+    case is_interested(TopItem, Props) of
+        true ->
+            CharIsAttacker = Character == Attacker,
+            case get_modifier(CharIsAttacker, HitOrEffect, Props) of
+                undefined ->
+                    ?SUCCEED_NOSUB;
+                Modifier ->
+                    Event = {Attacker, roll, HitOrEffectAmount + Modifier,
+                             for, HitOrEffect,
+                             with, EffectType,
+                             on, Defender,
+                             with,
+                             attack_source, AttackSource,
+                             effect, Effect},
+                    #result{event = Event,
+                            subscribe = false,
+                            props = Props,
+                            log = [{new_roll, HitOrEffectAmount + Modifier} | Log]}
+            end;
+        _ ->
+            ?SUCCEED_NOSUB
+    end;
 
-%% Defending: hit and damage
-%% I'm going to have to have top items broadcast wielded
-%% and active when their states change.
-attempt({#{character := Character,
-           top_item := #top_item{is_wielded = true, is_active = true},
-           is_active := true,
-           defence_hit_modifier := DefenceHitModifier},
-         Props,
-         {Attacker, calc, Hit, on, Character, with, AttackVector},
-         _}) ->
-    Log = [{?SOURCE, Attacker},
-           {?EVENT, calc_hit},
-           {hit, Hit},
-           {?TARGET, Character},
-           {vector, AttackVector}],
-    NewEvent = {Character, calc, Hit + DefenceHitModifier, on, Character, with, AttackVector},
-    #result{result = succeed,
-            event = NewEvent,
-            subscribe = false,
-            props = Props,
-            log = Log};
-attempt({#{character := Character,
-           top_item := #top_item{is_wielded = true, is_active = true},
-           is_active := true,
-           defence_damage_modifier := DefenceDamageModifier},
-         Props,
-         {Character, damage, Damage, to, Target, with, AttackVector},
-         _}) ->
-    Log = [{?SOURCE, Character},
-           {?EVENT, damage},
-           {damage, Damage},
-           {?TARGET, Target},
-           {vector, AttackVector}],
-    NewEvent = {Character, calc, Damage + DefenceDamageModifier, on, Target, with, AttackVector},
-    #result{result = succeed,
-            event = NewEvent,
-            subscribe = false,
-            props = Props,
-            log = Log};
 attempt(_) ->
     undefined.
 
@@ -115,3 +80,21 @@ succeed(_) ->
 
 fail(_) ->
     undefined.
+
+is_interested(#top_item{is_wielded = true,
+                        is_active = true},
+              _Props) ->
+    true;
+is_interested(#top_item{is_active = true}, Props) ->
+    not proplists:get_value(must_be_wielded, Props, false);
+is_interested(_, _) ->
+    false.
+
+get_modifier(_IsAttacker = true, hit, Props) ->
+    proplists:get_value(attack_hit_modifier, Props, 0);
+get_modifier(_IsAttacker = true, effect, Props) ->
+    -(proplists:get_value(attack_damage_modifier, Props, 0));
+get_modifier(_IsAttacker = false, hit, Props) ->
+    proplists:get_value(defence_hit_modifier, Props, 0);
+get_modifier(_IsAttacker = false, effect, Props) ->
+    -(proplists:get_value(defence_damage_modifier, Props, 0)).

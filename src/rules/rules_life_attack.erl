@@ -33,54 +33,35 @@ attempt({#{owner := Owner}, Props, Msg = {Owner, die}, _}) ->
 %% Something is attack us and we are dead
 attempt({#{owner := Owner},
          Props,
-         Msg = {Attacker, calc, Hit, on, Owner, with, AttackVector},
-         _}) ->
-    Log = [{stage, attempt},
-           {?EVENT, calc_hit},
-           {object, self()},
-           {props, Props},
-           {?SOURCE, Attacker},
-           {?TARGET, Owner},
-           {hit, Hit},
-           {attack_vector, AttackVector},
-           {message, Msg},
-           {sub, false}],
-    case proplists:get_value(is_alive, Props, false) of
-        false ->
-            ?FAIL_NOSUB(target_is_dead);
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-attempt({#{owner := Owner},
-         Props,
-         Msg = {Attacker, calc, Types, damage, Damage, to, Owner, with, AttackVector},
-         _}) ->
-    Log = [{stage, attempt},
-           {?EVENT, calc_damage},
-           {object, self()},
-           {props, Props},
-           {?SOURCE, Attacker},
-           {?TARGET, Owner},
-           {damage, Damage},
-           {attack_vector, AttackVector},
-           {types, Types},
-           {message, Msg},
-           {sub, false}],
-    case proplists:get_value(is_alive, Props, false) of
-        false ->
-            ?FAIL_NOSUB(target_is_dead);
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-attempt({#{owner := Owner},
-         Props,
-         _Msg = {Self, attack, Attacker},
+         {Attacker, roll, Roll,
+          for, hit,
+          with, _EffectType,
+          on, Defender,
+          with,
+          attack_source, AttackSource,
+          effect, _Effect},
          _})
-  when Self == self() ->
+  when Attacker == Owner; Defender == Owner ->
+    Log = [{?EVENT, roll_hit},
+           {?SOURCE, Attacker},
+           {?TARGET, Owner},
+           ?RULES_MOD,
+           {roll, Roll},
+           {attack_source, AttackSource}],
+    case proplists:get_value(is_alive, Props, false) of
+        false ->
+            ?FAIL_NOSUB(target_is_dead);
+        _ ->
+            ?SUCCEED_NOSUB
+    end;
+attempt({#{owner := Owner},
+         Props,
+         _Msg = {Attacker, attack, Defender},
+         _}) when Attacker == Owner; Defender == Owner->
     Log = [{stage, attempt},
            {?EVENT, attack},
            {?SOURCE, Attacker},
-           {?TARGET, Owner}],
+           {?TARGET, Defender}],
     case proplists:get_value(is_alive, Props, false) of
         false ->
             ?FAIL_NOSUB(target_is_dead);
@@ -109,27 +90,26 @@ attempt(_) ->
     undefined.
 
 succeed({Props, {Self, init}, _}) ->
-    log([{?EVENT, init},
-         {?SOURCE, Self},
-         {?TARGET, Self}]),
-    Props;
+    Log = [{?EVENT, init},
+           {?SOURCE, Self},
+           {?TARGET, Self}],
+    {Props, Log};
 
 succeed({Props, {Source, killed, Owner, with, _AttackVector}, _}) ->
-    log([{?EVENT, killed},
-         {?SOURCE, Source},
-         {?TARGET, Owner}]),
+    Log = [{?EVENT, killed},
+           {?SOURCE, Source},
+           {?TARGET, Owner}],
     egre_object:attempt(self(), {Owner, die}),
-    Props;
+    {Props, Log};
 
 succeed({Props, {Owner, die}, _}) ->
-    log([{stage, succeed},
-         {?EVENT, die},
-         {object, self()},
-         {props, Props},
-         {?TARGET, Owner}]),
+    Log = [{?EVENT, die},
+           {?TARGET, Owner},
+           ?RULES_MOD],
     CorpseCleanupMilis = application:get_env(mud, corpse_cleanup_milis, 10 * 60 * 1000),
     egre_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
-    lists:keystore(is_alive, 1, Props, {is_alive, false});
+    Props2 = lists:keystore(is_alive, 1, Props, {is_alive, false}),
+    {Props2, Log};
 
 succeed({Props, Msg, _Context}) ->
     ct:pal("~p rules_life_attack received unexpected succeed: ~p",
@@ -140,6 +120,3 @@ succeed({Props, Msg, _Context}) ->
 fail({Props, _Reason, _Message, _Context}) ->
     throw(should_never_happen),
     Props.
-
-log(Terms) ->
-    egre_event_log:log(debug, [list_to_binary(atom_to_list(?MODULE)) | Terms]).

@@ -17,148 +17,53 @@
 %% This attribute can be for a character, a body part or an item.
 %%
 
-%% Attack
-attempt({#{character := Character,
-           top_item := TopItem = #top_item{item = Item}},
+attempt({#{character := Character},
          Props,
-         {Character, calc, Hit, on, Target, with, Item}, _}) ->
-    Log = [{?EVENT, calc_hit},
-           {?SOURCE, Character},
-           {?TARGET, Target},
-           {hit, Hit},
-           {item, Item}],
+         {Attacker, roll, HitOrEffectAmount,
+          for, HitOrEffect,
+          with, EffectType,
+          on, Defender,
+          with,
+          attack_source, AttackSource,
+          effect, Effect},
+         _}) ->
+    Log = [{?EVENT, HitOrEffect},
+           {?SOURCE, Attacker},
+           {?TARGET, Defender},
+           ?RULES_MOD,
+           {roll, HitOrEffectAmount},
+           {item, AttackSource}],
+    TopItem = proplists:get_value(top_item, Props),
     case is_interested(TopItem, Props) of
         true ->
-            case proplists:get_value(attack_hit_modifier, Props) of
+            CharIsAttacker = Character == Attacker,
+            case get_modifier(CharIsAttacker, HitOrEffect, Props) of
                 undefined ->
                     ?SUCCEED_NOSUB;
-                Amount ->
-                    #result{event = {Character, calc, Hit + Amount, on, Target, with, Item},
+                Modifier ->
+                    Event = {Attacker, roll, HitOrEffectAmount + Modifier,
+                             for, HitOrEffect,
+                             with, EffectType,
+                             on, Defender,
+                             with,
+                             attack_source, AttackSource,
+                             effect, Effect},
+                    #result{event = Event,
                             subscribe = false,
                             props = Props,
-                            log = [{new_hit, Hit + Amount} | Log]}
-            end;
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-attempt({#{character := Character,
-           top_item := TopItem = #top_item{item = Item}},
-         Props,
-         {Character, damage, Damage, to, Target, with, Item}, _}) ->
-    Log = [{?EVENT, damage},
-           {?SOURCE, Character},
-           {?TARGET, Target},
-           {damage, Damage},
-           {item, Item}],
-    case is_interested(TopItem, Props) of
-        true ->
-            case proplists:get_value(attack_damage_modifier, Props) of
-                undefined ->
-                    ?SUCCEED_NOSUB;
-                Amount ->
-                    #result{event = {Character, calc, Damage + Amount, on, Target, with, Item},
-                            subscribe = false,
-                            props = Props,
-                            log = [{new_damage, Damage + Amount} | Log]}
+                            log = [{new_roll, HitOrEffectAmount + Modifier} | Log]}
             end;
         _ ->
             ?SUCCEED_NOSUB
     end;
 
-%% Defend with item
-attempt({#{character := Character,
-           top_item := TopItem = #top_item{item = Item}},
-         Props,
-         {Attacker, calc, Hit, on, Character, with, Item}, _}) ->
-    Log = [{?EVENT, calc_hit},
-           {?SOURCE, Attacker},
-           {?TARGET, Character},
-           {hit, Hit},
-           {item, Item}],
-    case is_interested(TopItem, Props) of
-        true ->
-            case proplists:get_value(defence_hit_modifier, Props) of
-                undefined ->
-                    ?SUCCEED_NOSUB;
-                Amount ->
-                    #result{event = {Attacker, calc, Hit - Amount, on, Character, with, Item},
-                            subscribe = false,
-                            props = Props,
-                            log = [{new_hit, Hit - Amount} | Log]}
-            end;
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-attempt({#{character := Character,
-           top_item := TopItem = #top_item{item = Item}},
-         Props,
-         {Target, damage, Damage, to, Character, with, Item}, _}) ->
-    Log = [{?EVENT, damage},
-           {?SOURCE, Target},
-           {?TARGET, Character},
-           {item, Item}],
-    case is_interested(TopItem, Props) of
-        true ->
-            case proplists:get_value(defence_damage_modifier, Props) of
-                undefined ->
-                    ?SUCCEED_NOSUB;
-                Amount ->
-                    {succeed,
-                     {Target, calc, Damage - Amount, on, Character, with, Item},
-                     false,
-                     Props,
-                     [{new_damage, Damage - Amount} | Log]}
-            end;
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-
-%% Defend without item
-attempt({#{character := Character},
-         Props,
-         {Attacker, calc, Hit, on, Character, with, Item}, _}) ->
-    Log = [{?EVENT, calc_hit},
-           {?SOURCE, Attacker},
-           {?TARGET, Character},
-           {item, Item}],
-    case is_interested(not_an_item, Props) of
-        true ->
-            case proplists:get_value(defence_hit_modifier, Props) of
-                undefined ->
-                    ?SUCCEED_NOSUB;
-                Amount ->
-                    {succeed,
-                     {Attacker, calc, Hit - Amount, on, Character, with, Item},
-                     false,
-                     Props,
-                     [{new_hit, Hit - Amount} | Log]}
-            end;
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
-attempt({#{character := Character},
-         Props,
-         {Attacker, damage, Damage, to, Character, with, Item}, _}) ->
-    Log = [{?EVENT, damage},
-           {?SOURCE, Attacker},
-           {?TARGET, Character},
-           {item, Item}],
-    case is_interested(not_an_item, Props) of
-        true ->
-            case proplists:get_value(defence_damage_modifier, Props) of
-                undefined ->
-                    ?SUCCEED_NOSUB;
-                Amount ->
-                    {succeed,
-                     {Attacker, calc, Damage - Amount, on, Character, with, Item},
-                     false,
-                     Props,
-                     [{new_damage, Damage - Amount} | Log]}
-            end;
-        _ ->
-            ?SUCCEED_NOSUB
-    end;
 attempt(_) ->
+    undefined.
+
+succeed(_) ->
+    undefined.
+
+fail(_) ->
     undefined.
 
 is_interested(#top_item{is_wielded = true,
@@ -172,8 +77,11 @@ is_interested(_, _) ->
     %% e.g. character attribute
     true.
 
-succeed({Props, _, _}) ->
-    Props.
-
-fail({Props, _, _, _}) ->
-    Props.
+get_modifier(_IsAttacker = true, hit, Props) ->
+    proplists:get_value(attack_hit_modifier, Props, 0);
+get_modifier(_IsAttacker = true, effect, Props) ->
+    -(proplists:get_value(attack_damage_modifier, Props, 0));
+get_modifier(_IsAttacker = false, hit, Props) ->
+    proplists:get_value(defence_hit_modifier, Props, 0);
+get_modifier(_IsAttacker = false, effect, Props) ->
+    -(proplists:get_value(defence_damage_modifier, Props, 0)).
