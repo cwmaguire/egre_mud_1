@@ -92,7 +92,7 @@
 
                   ?hp(p_hp, player, 1000, []),
                   ?life(p_life, player, []),
-                  ?attribute(dexterity0, 1, 99, player, []),
+                  ?attribute(dexterity0, 1, 99, 0, 0, player, []),
                   ?resource(p_stamina, player, stamina, 1, 100, 10, []),
                   ?hand(p_hand_right, player, <<"right_hand">>,
                         [{item, p_fist_right},
@@ -145,7 +145,7 @@
 
                   ?hp(z_hp, zombie, 10, []),
                   ?life(z_life, zombie, []),
-                  ?attribute(z_dex, 1, 0, zombie, []),
+                  ?attribute(z_dex, 1, 0, 0, 0, zombie, []),
                   ?resource(z_stamina, zombie, stamina, 1, 500, 10, []),
                   ?hand(z_hand, zombie, <<"left hand">>,
                         [{item, sword}, {max_items, 1}]),
@@ -187,7 +187,7 @@
 
                   ?hp(p_hp, player, 1000, []),
                   ?life(p_life, player, []),
-                  ?attribute(p_dex, 1, 99, player, []),
+                  ?attribute(p_dex, 1, 99, 0, 0, player, []),
                   ?resource(p_stamina, player, stamina, 1, 100, 10, []),
                   ?hand(p_hand_right, player, <<"right_hand">>,
                         [{item, p_fist_right}, {max_items, 1}]),
@@ -239,7 +239,7 @@
 
                   ?hp(z_hp, zombie, 10, []),
                   ?life(z_life, zombie, []),
-                  ?attribute(z_dex, 1, 0, zombie, []),
+                  ?attribute(z_dex, 1, 0, 0, 0, zombie, []),
                   ?resource(z_stamina, zombie, stamina, 1, 500, 10, []),
                   ?hand(z_left_hand, zombie, <<"left hand">>,
                         [{item, sword}, {max_items, 1}]),
@@ -285,11 +285,7 @@
                     {icon, armor},
                     ?ITEM_RULES]},
 
-                  {dex_buff,
-                   [{name, <<"dex_buff">>},
-                    {owner, helmet},
-                    {icon, stat},
-                    ?ATTRIBUTE_RULES]}]).
+                  ?attribute(dex_buff, 0, 0, 0, 0, helmet, [{name, <<"dex_buff">>}])]).
 
 -define(WORLD_5, [{player,
                    [{item, helmet},
@@ -552,14 +548,14 @@
 
                   ?hp(p_hp, player, 10, []),
                   ?life(p_life, player, []),
-                  ?attribute(strength0, 100, 0, player, [{type, strength}, {value, 17}]),
-                  ?attribute(dexterity0, 100, 0, player, [{type, dexterity}, {value, 15}]),
+                  ?attribute(strength0, 0, 0, 100, 0, player, [{type, strength}, {value, 17}]),
+                  ?attribute(dexterity0, 100, 0, 0, 0, player, [{type, dexterity}, {value, 15}]),
                   ?resource(p_stamina, player, stamina, 1, 10, 10, []),
                   ?hand(hand0, player, <<"left hand">>, [{max_items, 1}, {item, p_fist}]),
                   ?hand(hand1, player, <<"right hand">>, [{max_items, 1}]),
 
                   {force_field,
-                   [{owner, player},
+                   [{owner, room1},
                     {body_parts, [back]},
                     {wielding_body_parts, [back]},
                     {name, <<"force field">>},
@@ -570,7 +566,7 @@
                     ?ITEM_RULES]},
 
                   {shield,
-                   [{owner, player},
+                   [{owner, room1},
                     {body_parts, [hand]},
                     {wielding_body_parts, [hand]},
                     {name, <<"shield">>},
@@ -614,7 +610,7 @@
                     {icon, body_part},
                     ?BODY_PART_RULES]},
 
-                  ?attribute(race0, 50, 0, player, [{type, race}]),
+                  ?attribute(race0, 0, 0, 50, 0, player, [{type, race}]),
 
                   {giant,
                    [{owner, room1},
@@ -632,11 +628,10 @@
                   ?hp(g_hp, giant, 310, []),
                   ?life(g_life, giant, []),
                   ?hand(g_hand_r, giant, <<"right hand">>, [{item, g_club}]),
-                  ?attribute(strength1, 50, 0, giant, [{type, strength}, {value, 17}]),
-                  ?attribute(dexterity1, 50, 50, player, [{type, dexterity}, {value, 15}]),
-                  ?attribute(race1, 50, 0, giant, [{type, race}]),
+                  ?attribute(strength1, 0, 0, 50, 0, giant, [{type, strength}, {value, 17}]),
+                  ?attribute(dexterity1, 50, 50, 0, 0, player, [{type, dexterity}, {value, 15}]),
+                  ?attribute(race1, 0, 0, 50, 0, giant, [{type, race}]),
                   ?resource(g_stamina, giant, stamina, 1, 10, 10, []),
-                  ?attribute(race1, 50, 0, giant, [{type, race}]),
 
                   {g_club,
                    [{name, <<"giant club">>},
@@ -1242,21 +1237,8 @@
            {child_rules, ?EFFECT_RULES}, %% e.g. {child_rules, {rules, [...]}}
            ?EFFECT_PROTOTYPE_RULES]},
 
-         {p_dexterity,
-          [{attack_hit_modifier, 1},
-           {defence_hit_modifier, 99},
-           {owner, player},
-           {character, player},
-           {icon, stat}, ?ATTRIBUTE_RULES]},
-
-         {p_stamina,
-          [{owner, player},
-           {type, stamina},
-           {per_tick, 1},
-           {tick_time, 100},
-           {max, 10},
-           {icon, resource},
-           ?RESOURCE_RULES]},
+         ?attribute(p_dexterity, 1, 99, 0, 0, player, [{character, player}]),
+         ?resource(p_stamina, player, stamina, 1, 100, 10, []),
 
          {rat,
           [{owner, room},
@@ -1568,7 +1550,7 @@
            {rewards, [{event, {add, 1, 'of', attribute, charisma, to, {player}}}]},
            ?QUEST_RULES]},
 
-         ?attribute(p_charisma, 0, 0, player, [{type, charisma}, {amount, 0}])]).
+         ?attribute(p_charisma, 0, 0, 0, 0, player, [{type, charisma}, {amount, 0}])]).
 
 -define(WORLD_COMPLETE_QUEST,
         [{room,
@@ -1661,7 +1643,7 @@
            {child_rules, ?EFFECT_RULES}, %% e.g. {child_rules, {rules, [...]}}
            ?EFFECT_PROTOTYPE_RULES]},
 
-         ?attribute(p_dexterity, 1, 99, player, []),
+         ?attribute(p_dexterity, 1, 99, 0, 0, player, []),
          ?resource(p_stamina, player, stamina, 1, 100, 10, []),
 
          {p_legs_2,
@@ -1692,7 +1674,7 @@
          ?exp(r_exp, rat1, 0, 1, []),
          ?hp(r_hp, rat1, 1, []),
          ?life(r_life, rat1, []),
-         ?attribute(r_dexterity, 1, 0, rat1, []),
+         ?attribute(r_dexterity, 1, 0, 0, 0, rat1, []),
          ?resource(r_stamina, rat1, stamina, 1, 500, 10, [{current, 0}]),
 
          {rat2,
@@ -1712,7 +1694,7 @@
          ?exp(r2_exp, rat2, 0, 1, []),
          ?hp(r2_hp, rat2, 1, []),
          ?life(r2_life, rat2, []),
-         ?attribute(r2_dexterity, 1, 0, rat2, []),
+         ?attribute(r2_dexterity, 1, 0, 0, 0, rat2, []),
          ?resource(r2_stamina, rat2, stamina, 1, 500, 10, [{current, 0}]),
 
          {rat3,
@@ -1732,7 +1714,7 @@
          ?exp(r3_exp, rat3, 0, 1, []),
          ?hp(r3_hp, rat3, 1, []),
          ?life(r3_life, rat3, []),
-         ?attribute(r3_dexterity, 1, 0, rat3, []),
+         ?attribute(r3_dexterity, 1, 0, 0, 0, rat3, []),
          ?resource(r3_stamina, rat3, stamina, 1, 500, 10, [{current, 0}])]).
 
 -define(WORLD_COMPLETE_GET_QUEST,
