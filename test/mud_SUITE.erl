@@ -219,6 +219,7 @@ player_attack(Config) ->
     _SupPid = whereis(egre_object_sup),
     start(?WORLD_3),
     Player = get_pid(player),
+    ct:pal("~p:~p: Player~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Player]),
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
     Conditions =
         [{"Zombie is dead",
@@ -248,7 +249,11 @@ one_sided_fight(Config) ->
     start(?WORLD_3),
     Player = get_pid(player),
     _Zombie = get_pid(zombie),
+
+    start_profile(),
     attempt(Config, Player, {Player, attack, <<"zombie">>}),
+    stop_profile(),
+
     WaitFun =
         fun() ->
             case val(hitpoints, z_hp) of
@@ -310,17 +315,30 @@ attack_with_modifiers(Config) ->
     start(?WORLD_8),
     Room = get_pid(room1),
     Player = get_pid(player),
+
+    %egre_dbg:add(egre_object, pids),
+    %egre_dbg:add(egre_object, default_pid_filter),
+
     %% TODO make sure that the giant is counterattacking
     _Giant = get_pid(giant),
-    wait(100),
+    wait(1000),
     attempt(Config, Player, {<<"force field">>, move, from, Room, to, Player}),
     attempt(Config, Player, {<<"shield">>, move, from, Room, to, Player}),
-    wait(100),
+
+    wait(1000),
     attempt(Config, Player, {<<"force field">>, move, from, Player, to, first_available_body_part}),
     attempt(Config, Player, {<<"shield">>, move, from, Player, to, first_available_body_part}),
-    wait(100),
+    wait(1000),
+  
+     %{ok, IO} = file:open("recon", [write]),
+    %recon_trace:calls({egre_object, handle_attempt, return_trace}, 100, [{scope, local}, {io_server, IO}]),
+    %recon_trace:calls({rules_stop, attempt, return_trace}, 200, [{scope, local}, {io_server, IO}]),
+    %recon_trace:calls({rules_attribute_modify, attempt, return_trace}, 200, [{scope, local}, {io_server, IO}]),
+
+    start_profile(),
     attempt(Config, Player, {Player, attack, <<"pete">>}),
-    wait(100),
+    wait(10000),
+    stop_profile(),
 
     %% The giant shouldn't be able to attack the player at all,
     %% so the giant should die and the player should be alive.
@@ -339,9 +357,9 @@ attack_with_modifiers(Config) ->
     true = wait_loop(WaitFun, true, 40),
     WaitFun2 =
         fun() ->
-            val('is_alive', g_hp)
+            val('is_alive', g_life)
         end,
-    false = wait_loop(WaitFun2, false, 30),
+    true = wait_loop(WaitFun2, false, 30),
     ok.
 
 stop_attack_on_move(Config) ->
@@ -983,10 +1001,8 @@ get_experience_from_killing(Config) ->
     Conditions1 =
         [{"Rat is dead",
           fun() -> val(is_alive, r_life) == false end},
-         {"Player has experience",
-          %% TODO can it just be 1?
-          %% We only kill 1 rat for 1 exp
-          fun() -> val(gained, p_exp) >= 1 end}],
+         {"Player has 1 experience",
+          fun() -> val(gained, p_exp) == 1 end}],
     wait_for(Conditions1, 5),
 
     attempt(Config, Player, {Player, attack, <<"big rat">>}),
@@ -995,7 +1011,7 @@ get_experience_from_killing(Config) ->
     Conditions2 =
         [{"Big Rat is dead",
           fun() -> val(is_alive, br_life) == false end},
-         {"Player has experience",
+         {"Player has 4 experience",
           fun() -> val(gained, p_exp) == 4 end}],
     wait_for(Conditions2, 5).
 
@@ -1484,3 +1500,18 @@ wait_for_message(Character, FilterFun, Count, OtherMessages) ->
         {[_Match | Rest], Unmatched} ->
            Rest ++ Unmatched ++ OtherMessages
     end.
+
+start_profile() ->
+    cprof:start().
+
+stop_profile() ->
+    {ok, IO} = file:open("cprof", [write]),
+    cprof:pause(),
+    Result = cprof:analyse(),
+    io:format(IO, "~p", [Result]),
+    file:close(IO),
+    cprof:stop().
+
+recon_trace(Mod, Fun) ->
+    {ok, IO} = file:open("recon", [write]),
+    recon_trace:calls({Mod, Fun, return_trace}, 200, [{scope, local}, {io_server, IO}]).
