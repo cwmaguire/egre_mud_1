@@ -38,6 +38,63 @@ Nice to haves:
 - max hitpoints
 
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-18   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+Buying and selling. Giving one thing, getting another.
+
+I think I'd like to do this transactionally.
+1. Reserve the required amount of money.
+2. Reserve the goods to be purchased
+3. Transfer both
+
+So how do we model this?
+The money process could have "wallets" to hold spendable money and reserved
+money. I guess an "accounts" metaphor works too.
+
+The objects to purchase could each have a "reserved" flag. It could say who it's
+reserved for. Once both reservations succeed, the items can be exchanged with normal
+movement inventory commands.
+
+One issue is figuring out how to unwind a failed transaction:
+1. Money is reserved
+2. Goods fail to be reserved
+3. ... I can't think of how a failure wouldn't reasonably undo the money reservation.
+
+I'm not going to try to solve potential graph communication issues with escrow
+mechanics.
+
+1. User says "buy bread"
+2. Buy process is started
+3. Process sends out '<char> buy "bread", with, self()'
+4. Bread injects self:
+
+  '<char> buy, <bread>, with, <buy>'          What if there are multiple "bread"?
+
+5. Seller that has <bread> for sale injects self:
+
+  '<char>, buy, <bread>, from, <seller>, with, <buy>, for, Amount'
+
+6. <buy> sees '<char>, buy, <bread>, from, <seller>, with, <buy>, for, Amount'
+   and sends out:
+   '<char> reserve Amount money'
+   '<seller> reserve <bread>'
+   '<bread> reserve for <buy>'
+
+7. Money reserves itself for buy
+8. Seller marks bread as reserved            How?
+9. Bread marks itself as reserved for buy
+10. Buy sees success in all three cases (buy is effectively a state machine)
+11. Buy sends out:
+   '<char> decrement Amount money'
+   '<seller> increment Amount money'
+   '<bread> move from <char> to <seller>'
+
+   There might be more cases than money where things are inc/dec'd instead of moved.
+   e.g. each bread might not need to be a process; the player could have a "food"
+   process.
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2024-11-15   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
