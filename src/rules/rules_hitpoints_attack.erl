@@ -9,7 +9,8 @@
 
 -include("mud.hrl").
 
-attempt({#{owner := Owner},
+attempt({#{owner := Owner,
+           hitpoints := HP},
          Props,
          {Attacker, cause, Amount, 'of', Effect, to, Owner, with, _Attack},
          _}) ->
@@ -18,8 +19,10 @@ attempt({#{owner := Owner},
            {?TARGET, Owner},
            ?RULES_MOD,
            {Effect, Amount}],
-    case is_hp_effect(Effect) of
-        true ->
+    case {HP, is_hp_effect(Effect)} of
+        {Dead, true} when Dead =< 0 ->
+            ?FAIL_NOSUB(no_damage_below_zero);
+        {_, true} ->
             ?SUCCEED_SUB;
         _ ->
             ?SUCCEED_NOSUB
@@ -35,7 +38,7 @@ succeed({Props,
            ?RULES_MOD,
            {from, Attacker},
            {Effect, Amount}],
-    {Props2, Log2} = take_damage(Attacker, Owner, Amount, Effect, Props, Context),
+    {Props2, Log2} = maybe_take_damage(Attacker, Owner, Amount, Effect, Props, Context),
     {Props2, Log2 ++ Log};
 
 succeed(_) ->
@@ -44,11 +47,19 @@ succeed(_) ->
 fail(_) ->
     undefined.
 
-take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
+maybe_take_damage(Attack, Owner, Amount, Effect, Props, Context) ->
+    CurrHp = proplists:get_value(hitpoints, Props),
+    case CurrHp of
+        AlreadyDead when AlreadyDead =< 0 ->
+            {Props, []};
+        _ ->
+            take_damage(Attack, Owner, Amount, Effect, CurrHp, Props, Context)
+    end.
+
+take_damage(Attacker, Owner, Amount, EffectType, CurrHp, Props, Context) ->
     Owner = proplists:get_value(owner, Props),
-    MaxHP = proplists:get_value(max, Props, 100_000_000),
-    CurrHp = proplists:get_value(hitpoints, Props, 0),
-    NewHp = min(CurrHp - Amount, MaxHP),
+    MaxHp = proplists:get_value(max, Props, 100_000_000),
+    NewHp = min(CurrHp - Amount, MaxHp),
     Log = [{hp, NewHp}],
     IsHealing = proplists:get_value(is_healing, Props, false),
 
@@ -59,7 +70,7 @@ take_damage(Attacker, Owner, Amount, EffectType, Props, Context) ->
                          {Attacker, killed, Owner, with, EffectType},
                          Context,
                          _ShouldSubscribe = true);
-        {MaxHP, true} ->
+        {MaxHp, true} ->
             egre:attempt(self(),
                          {Owner, hitpoints, at, max},
                          #{},
