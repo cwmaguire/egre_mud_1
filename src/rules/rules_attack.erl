@@ -9,15 +9,6 @@
 
 -include("mud.hrl").
 
-attempt({#{character := Character},
-         Props,
-         {Character, attack, Target},
-         _}) ->
-    Log = [{?SOURCE, Character},
-           {?EVENT, attack},
-           {?TARGET, Target}],
-    ?SUCCEED_SUB;
-
 %% If our character is attacking and we're not, tell ourself, specifically, to attempt an attack
 attempt({#{character := Character},
          Props,
