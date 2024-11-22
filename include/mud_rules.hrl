@@ -167,10 +167,12 @@
           ?BODY_PART_RULES |
           Props]}).
 
--define(attribute(Id, HitMod, DefMod, Owner, Props),
+-define(attribute(Id, AttHitMod, DefHitMod, AttDmgMod, DefDmgMod, Owner, Props),
         {Id,
-         [{attack_hit_modifier, HitMod},
-          {defence_hit_modifier, DefMod},
+         [{attack_hit_modifier, AttHitMod},
+          {defence_hit_modifier, DefHitMod},
+          {attack_dmg_modifier, AttDmgMod},
+          {defence_dmg_modifier, DefDmgMod},
           {owner, Owner},
           {character, Owner},
           {icon, stat},
