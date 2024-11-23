@@ -46,22 +46,48 @@ parse(Player, <<"emote ", Emote/binary>>) ->
     log([<<"Emote ">>, Emote]),
     {Player, emotes, Emote};
 
-parse(Player, Command = <<"cast ", SpellTarget/binary>>) ->
+parse(Player, <<"cast ", SpellTarget/binary>>) ->
     log([<<"Cast ">>, SpellTarget]),
-    case binary:split(string:trim(SpellTarget), <<" ">>, [global]) of
-        [Spell, Target] when size(Spell) > 0, size(Target) > 0 ->
-            {Player, cast, Spell, on, Target};
-        [Spell] when size(Spell) > 0 ->
-            {Player, cast, Spell};
-        _ ->
-            io:format("~p:~p: Command: ~p", [?MODULE, ?FUNCTION_NAME, Command]),
-            {error, <<"What do you mean by '", Command/binary, "'">>}
-    end;
+
+    Usage = <<"cast <spell> | cast <spell> <target>">>,
+    apply_args(<<"Cast">>,
+               SpellTarget,
+               fun ([Spell, Target]) -> {Player, cast, Spell, on, Target};
+                   ([Spell]) -> {Player, cast, Spell}
+               end,
+               Usage);
+
+parse(Player, <<"attack ", Args/binary>>) ->
+    Usage = <<"attack <target>">>,
+    apply_args(<<"Attack">>,
+               Args,
+               fun ([Target]) -> {Player, attack, Target} end,
+               Usage);
 
 parse(_, Command) ->
     % TODO log to JSON
     io:format("~p:~p: Command~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Command]),
     {error, <<"Huh?">>}.
+
+
+apply_args(Cmd, S, Fun, Usage) ->
+    try Fun(split_args(Cmd, S, Usage))
+    catch
+        Error:Reason ->
+            io:format("~p:~p: Failed to run command ~p with args: ~p~n~p:~p",
+                      [?MODULE, ?FUNCTION_NAME, Cmd, S, Error, Reason]),
+            {error, <<Usage/binary>>}
+    end.
+
+split_args(Cmd, S, Usage) ->
+    Words = binary:split(string:trim(S), <<" ">>, [global]),
+    case Words of
+        [<<>>] ->
+            io:format("~p:~p: Command ~p missing arguments", [?MODULE, ?FUNCTION_NAME, Cmd]),
+            {error, <<Usage/binary>>};
+        _ ->
+            Words
+    end.
 
 % TODO Maybe add some loggin?
 log(_Terms) ->

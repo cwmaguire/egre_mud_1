@@ -216,19 +216,17 @@ character_owner_add_remove(Config) ->
     [] = val(character, Clip),
     [] = val(character, Bullet).
 
-player_attack(Config) ->
+player_attack(_Config) ->
     _SupPid = whereis(egre_object_sup),
     start(?WORLD_3),
-    Player = get_pid(player),
-    ct:pal("~p:~p: Player~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Player]),
-    attempt(Config, Player, {Player, attack, <<"zombie">>}),
+    login(player),
+    egremud_test_socket:send(player, <<"attack zombie">>),
     Conditions =
         [{"Zombie is dead",
           fun() -> val(is_alive, z_life) == false end},
          {"Zombie hp < 1",
           fun() -> val(hitpoints, z_hp) =< 0 end}],
     wait_for(Conditions, 8).
-
 
 player_resource_wait(Config) ->
     start(?WORLD_RESOURCE_WAIT),
