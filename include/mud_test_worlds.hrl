@@ -1784,3 +1784,30 @@
            {desc, <<"A glove, I guess.">>},
            {is_clothing, true},
            ?ITEM_RULES]}]).
+
+-define(WORLD_BUY,
+        [{room,
+          [{visitor, player},
+           {visitor, shopkeeper},
+           {name, <<"room 1">>},
+           {icon, room},
+           ?ROOM_RULES]},
+
+         {player,
+          [{owner, room},
+           {name, <<"SecretShopper">>},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         {shopkeeper,
+          [{owner, room},
+           {name, <<"Kate">>},
+           {item, r_glove},
+           {cost, #{r_glove => 10}},
+           {icon, person},
+           ?CHARACTER_RULES]},
+
+         {r_glove,
+          [{owner, shopkeeper},
+           {name, <<"Left_hand_of_Vecna">>},
+           ?ITEM_RULES]}]).

@@ -29,7 +29,8 @@
                                   rules_char_achievement,
                                   rules_char_effect,
                                   rules_char_quest_giver,
-                                  rules_char_quest_doer |
+                                  rules_char_quest_doer,
+                                  rules_char_buysell |
                                   ?UNIVERSAL_RULES]}).
 
 -define(ITEM_RULES, {rules, [rules_item_look,
@@ -126,8 +127,8 @@
 -define(TIME_RULES,
         {rules, [rules_time_effect]}).
 
--define(QUEST_KILL_RAT_AT_NOON_WITH_FIST_WEARING_GLOVE,
-        {rules, [rules_quest_kill_rat_at_noon_with_fist_wearing_glove]}).
+-define(ESCROW_RULES,
+        {rules, [rules_escrow]}).
 
 -define(life(Id, Owner, Props),
         {Id,

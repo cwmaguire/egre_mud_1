@@ -64,11 +64,17 @@ parse(Player, <<"attack ", Args/binary>>) ->
                fun ([Target]) -> {Player, attack, Target} end,
                Usage);
 
+parse(Player, <<"buy ", Args/binary>>) ->
+    Usage = <<"buy <target>">>,
+    apply_args(<<"Buy">>,
+               Args,
+               fun ([Target]) -> {Player, buy, Target} end,
+               Usage);
+
 parse(_, Command) ->
     % TODO log to JSON
     io:format("~p:~p: Command~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Command]),
     {error, <<"Huh?">>}.
-
 
 apply_args(Cmd, S, Fun, Usage) ->
     try Fun(split_args(Cmd, S, Usage))

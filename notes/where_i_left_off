@@ -38,6 +38,44 @@ Nice to haves:
 - max hitpoints
 
 ┏━━━━━━━━━━━━━━━━┓
+┃   2024-11-23   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+Buying and selling
+
+1. {<Player>, buy, <ItemName>}
+2. {<Player>, buy, <Item>}
+3. {<Player>, buy, <Item>, from, <Seller>, for, <Cost>}
+4. Start escrow object
+5. {<Player>, buy, <Item>, from, <Seller>, for, <Cost>, with, <Escrow>}
+6. {<Player>, reserve, <Cost>, for, <Escrow>}
+7. {<Seller>, reserve, <Item>, for, <Escrow>}
+8. {<Item>, reserve, self, for, <Escrow>}
+9. Player succeeds or fails reserve (e.g. not enough money)
+9. Seller succeeds or fails reserve (e.g. item already reserved by someone else)
+9. Item succeeds or fails reserve (e.g. already reserved)
+10. Escrow sends out either:
+  - Player spend
+  - Seller accrue
+  - Item move
+  OR
+  - Player unreserve
+  - Seller unreserve
+  - Item unreserve
+    ... but only for the transaction parties that succeed in reserving
+
+Working on buy/sell with escrow:
+TODO:
+- fill in the Character attempt and succeed logic for
+  - reserve
+  - spend
+  - accrue
+  - unreserve
+- fill in the Item attempt and succeed logic for
+  - reserve
+  - move because of Escrow
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2024-11-18   ┃
 ┗━━━━━━━━━━━━━━━━┛
 

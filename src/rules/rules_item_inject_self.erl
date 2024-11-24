@@ -16,7 +16,8 @@ attempt({#{},
   when is_binary(ItemName) andalso
        (Action == get orelse
         Action == drop orelse
-        Action == look) ->
+        Action == look orelse
+        Action == buy) ->
     Log = [{?EVENT, inject_self},
            {action, Action},
            {name, ItemName}],
