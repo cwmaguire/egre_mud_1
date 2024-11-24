@@ -54,13 +54,13 @@ succeed({Props, {Char, enter_world, in, Self, with, Conn}, _}) when Self == self
 succeed(_) ->
     undefined.
 
-fail({Props, _Reason, {Char, move, from, Self, to, Target}}) when Self == self() ->
+fail({Props, _Reason, {Char, move, from, Self, to, Target}, _}) when Self == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, move},
            {from, Self},
            {to, Target}],
     {Props, Log};
-fail({Props, _Reason, {Char, move, from, Source, to, Target, via, Exit}}) when Source == self(); Target == self() ->
+fail({Props, _Reason, {Char, move, from, Source, to, Target, via, Exit}, _}) when Source == self(); Target == self() ->
     Log = [{?SOURCE, Char},
            {?EVENT, move},
            {from, Source},
