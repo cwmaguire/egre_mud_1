@@ -54,7 +54,8 @@ all() ->
      no_quests_available,
      no_quests_left,
      self_healing_over_time,
-     buy].
+     buy,
+     buy_fail_no_item].
 
 init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
@@ -1374,6 +1375,18 @@ buy(_Config) ->
          {"Item is owned by player",
           fun() -> val(owner, r_glove) == Player end}],
     wait_for(Conditions1, 10).
+
+buy_fail_no_item(_Config) ->
+    start(?WORLD_BUY),
+    login(player),
+
+    egremud_test_socket:send(player, <<"buy item_that_doesnt_exist">>),
+
+    egre_dbg:add(egremud_test_socket, messages),
+    egre_dbg:add(mud_SUITE, wait_for_sorted_messages),
+
+    ExpectedMsg = [<<"Item item_that_doesnt_exist doesn't exist">>],
+    wait_for_sorted_messages(player, ExpectedMsg, 5).
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

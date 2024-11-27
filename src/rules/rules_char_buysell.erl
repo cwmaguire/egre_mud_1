@@ -123,6 +123,13 @@ attempt({#{}, Props, {unreserve, for, Escrow}, _}) ->
 attempt(_) ->
     undefined.
 
+succeed({Props, {Self, buy, ItemName}, _}) when is_binary(ItemName) ->
+    Log = [{?EVENT, buy},
+           {?SOURCE, Self},
+           {?TARGET, ItemName},
+           ?RULES_MOD],
+    egre:attempt(Self, {send, self(), <<"Item ", ItemName/binary, " doesn't exist">>}),
+    {Props, Log};
 succeed({Props, {Self, spend, Cost, because, Escrow}, _}) ->
     Log = [{?EVENT, spend},
            {?SOURCE, Escrow},
