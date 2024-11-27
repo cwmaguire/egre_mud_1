@@ -38,7 +38,8 @@
                              rules_item_inject_self,
                              rules_item_search,
                              rules_item_cleanup,
-                             rules_item_effect |
+                             rules_item_effect,
+                             rules_item_buysell |
                              ?UNIVERSAL_RULES]}).
 
 -define(CONN_RULES, {rules, [rules_conn_enter_world,

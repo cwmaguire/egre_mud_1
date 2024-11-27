@@ -1355,38 +1355,25 @@ self_healing_over_time(Config) ->
           fun() -> val(hitpoints, p_hp) > PlayerHP2 end}],
     wait_for(Conditions3, 5).
 
-buy(Config) ->
-    start(?WORLD_RECOVER_HEALTH),
-    Player = login(player1),
+buy(_Config) ->
+    start(?WORLD_BUY),
+    Player = login(player),
+    Glove = get_pid(r_glove),
 
-    %egre_dbg:add(rules_resource_tick, allocate),
-    %egre_dbg:add(rules_resource_reserve),
-
-    attempt(Config,
-            Player,
-            {test, cause, 1000, 'of', blunt_force, to, Player, with, bar}),
+    egremud_test_socket:send(player, <<"buy Left_hand_of_Vecna">>),
 
     Conditions1 =
-        [{"Player has taken 1000 damage, going from 5000 to 4000 hp",
-          fun() -> val(hitpoints, p_hp) < 5000 end}],
-    wait_for(Conditions1, 5),
-
-    PlayerHP1 = val(hitpoints, p_hp),
-
-    Conditions2 =
-        [{["Player has healed above ", PlayerHP1],
-          fun() -> Val = val(hitpoints, p_hp),
-                   ct:pal("~p~n", [Val]),
-                   Val > PlayerHP1
-          end}],
-    wait_for(Conditions2, 5),
-
-    PlayerHP2 = val(hitpoints, p_hp),
-
-    Conditions3 =
-        [{["Player has healed above ", PlayerHP2],
-          fun() -> val(hitpoints, p_hp) > PlayerHP2 end}],
-    wait_for(Conditions3, 5).
+        [{"Player has glove",
+          fun() -> val(item, player) == Glove end},
+         {"Player has 1 money left",
+          fun() -> val(money, player) == 1 end},
+         {"Seller has no item",
+          fun() -> val(item, shopkeeper) == [] end},
+         {"Seller 10 more money",
+          fun() -> val(money, shopkeeper) == 12 end},
+         {"Item is owned by player",
+          fun() -> val(owner, r_glove) == Player end}],
+    wait_for(Conditions1, 10).
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

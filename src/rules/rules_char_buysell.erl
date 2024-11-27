@@ -10,13 +10,17 @@
 -include("mud_rules.hrl").
 
 
-attempt({#{}, Props, {Self, buy, ItemName}, _}) when is_binary(ItemName) ->
+attempt({#{}, Props, {Self, buy, ItemName}, _})
+  when is_binary(ItemName),
+       Self == self() ->
     Log = [{?EVENT, buy},
            {?SOURCE, Self},
            {?TARGET, ItemName},
            ?RULES_MOD],
     ?SUCCEED_SUB;
-attempt({#{}, Props, {Self, buy, Item}, _}) when is_pid(Item) ->
+attempt({#{}, Props, {Self, buy, Item}, _})
+  when is_pid(Item),
+       Self == self() ->
     Log = [{?EVENT, buy},
            {?SOURCE, Self},
            {?TARGET, Item},
@@ -47,15 +51,20 @@ attempt({#{}, Props, {Character, buy, Item, from, Seller, for, Cost}, _})
            {?TARGET, Item},
            ?RULES_MOD],
 
-    EscrowProperties = [{owner, self()},
-                     {buyer, self()},
-                     {seller, Seller},
-                     {item, Item},
-                     {cost, Cost},
-                     ?ESCROW_RULES],
-    {ok, Escrow} = supervisor:start_child(egre_object_sup, [undefined, EscrowProperties]),
-    egre:attempt(Escrow, {Character, buy, Item, from, Seller, for, Cost, with, Escrow}, false),
-    ?SUCCEED_NOSUB;
+    case proplists:get_value(money, Props) of
+        NotEnough when NotEnough < Cost ->
+            ?FAIL_NOSUB(insufficient_funds);
+        _ ->
+            EscrowProperties = [{owner, self()},
+                                {buyer, self()},
+                                {seller, Seller},
+                                {item, Item},
+                                {cost, Cost},
+                                ?ESCROW_RULES],
+            {ok, Escrow} = supervisor:start_child(egre_object_sup, [undefined, EscrowProperties]),
+            egre:attempt(Escrow, {Character, buy, Item, from, Seller, for, Cost, with, Escrow}, false),
+            ?SUCCEED_NOSUB
+    end;
 attempt({#{}, Props, {Self, reserve, Item, for, Escrow}, _})
   when Self == self(),
        is_pid(Item) ->
@@ -63,7 +72,17 @@ attempt({#{}, Props, {Self, reserve, Item, for, Escrow}, _})
            {?SOURCE, Escrow},
            {?TARGET, Self},
            ?RULES_MOD],
-    ?SUCCEED_SUB;
+    HasItem = lists:member({item, Item}, Props),
+    IsItemReserved = lists:member({reserve, {Escrow, Item}}, Props),
+    case {HasItem, IsItemReserved} of
+        {false, _} ->
+            ?FAIL_NOSUB(missing_item);
+        {_, true} ->
+            ?FAIL_NOSUB(item_reserved);
+        _ ->
+            Props2 = [{reserve, {Escrow, Item}} | Props],
+            #result{props = Props2, log = Log}
+    end;
 attempt({#{}, Props, {Self, reserve, Cost, for, Escrow}, _})
   when Self == self(),
        is_integer(Cost) ->
@@ -71,19 +90,101 @@ attempt({#{}, Props, {Self, reserve, Cost, for, Escrow}, _})
            {?SOURCE, Escrow},
            {?TARGET, Self},
            ?RULES_MOD],
+    case proplists:get_value(money, Props) of
+        NotEnough when NotEnough < Cost ->
+            ?FAIL_NOSUB(insufficient_funds);
+        Money ->
+            Props2 = [{reserve, {Escrow, Cost}} | Props],
+            Props3 = lists:keyreplace(money, 1, Props2, {money, Money - Cost}),
+            #result{props = Props3,
+                    log = Log}
+    end;
+attempt({#{}, Props, {Self, spend, _Cost, because, Escrow}, _}) 
+  when Self == self() ->
+    Log = [{?EVENT, spend},
+           {?SOURCE, Escrow},
+           {?TARGET, Self},
+           ?RULES_MOD],
     ?SUCCEED_SUB;
-
-%% TODO: finish these
-attempt({#{}, Props, {Self, spend, Cost, because, Escrow}, _})
-attempt({#{}, Props, {Self, accrue, Cost, because, Escrow}, _})
-attempt({#{}, Props, {unreserve, for, Escrow}, _})
+attempt({#{}, Props, {Self, accrue, _Cost, because, Escrow}, _}) 
+  when Self == self() ->
+    Log = [{?EVENT, accrue},
+           {?SOURCE, Escrow},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    ?SUCCEED_SUB;
+attempt({#{}, Props, {unreserve, for, Escrow}, _}) ->
+    Log = [{?EVENT, unreserve},
+           {?SOURCE, Escrow},
+           {?TARGET, self()},
+           ?RULES_MOD],
+    ?SUCCEED_SUB;
 
 attempt(_) ->
     undefined.
 
+succeed({Props, {Self, spend, Cost, because, Escrow}, _}) ->
+    Log = [{?EVENT, spend},
+           {?SOURCE, Escrow},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    Props2 = lists:delete({reserve, {Escrow, Cost}}, Props),
+    {Props2, Log};
+succeed({Props, {Self, accrue, Cost, because, Escrow}, _}) ->
+    Log = [{?EVENT, spend},
+           {?SOURCE, Escrow},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    Props2 = lists:filter(fun({reserve, {Escrow_, _Item}})
+                                when Escrow_ == Escrow ->
+                                  false;
+                             (_) ->
+                                  true
+                          end,
+                          Props),
+    Money = proplists:get_value(money, Props2),
+    Props3 = lists:keyreplace(money, 1, Props2, {money, Money + Cost}),
+    {Props3, Log};
+succeed({Props, {unreserve, for, Escrow}, _}) ->
+    Log = [{?EVENT, unreserve},
+           {?SOURCE, Escrow},
+           {?TARGET, self()},
+           ?RULES_MOD],
+    [{reserve, {_, ItemOrCost}}] =
+        lists:filter(fun({reserve, {Escrow_, _}})
+                           when Escrow_ == Escrow ->
+                             true;
+                        (_) ->
+                             false
+                     end,
+                     Props),
+    Props2 =
+        case ItemOrCost of
+            Cost when is_integer(Cost) ->
+                unreserve_cost(Escrow, Cost, Props);
+            Item when is_pid(Item) ->
+                unreserve_item(Escrow, Item, Props)
+        end,
+    {Props2, Log};
+
 succeed(_) ->
     undefined.
 
+fail({Props, _Reason, {Self, reserve, Cost, for, Escrow}, _})
+  when is_integer(Cost) ->
+    Log = [{?EVENT, reserve},
+           {?SOURCE, Escrow},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    Props2 = unreserve_cost(Escrow, Cost, Props),
+    {Props2, Log};
+fail({Props, _Reason, {Self, reserve, Item, for, Escrow}, _}) ->
+    Log = [{?EVENT, reserve},
+           {?SOURCE, Escrow},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    Props2 = unreserve_item(Escrow, Item, Props),
+    {Props2, Log};
 fail(_) ->
     undefined.
 
@@ -104,3 +205,11 @@ is_item_for_sale(Props, Item) ->
 cost(Props, Item) ->
     #{Item := Cost} = proplists:get_value(cost, Props),
     Cost.
+
+unreserve_cost(Escrow, Cost, Props) ->
+    Props2 = lists:delete({reserve, {Escrow, Cost}}, Props),
+    Money = proplists:get_value(money, Props2),
+    lists:keyreplace(money, 1, Props2, {money, Money + Cost}).
+
+unreserve_item(Escrow, Item, Props) ->
+    lists:delete({reserve, {Escrow, Item}}, Props).

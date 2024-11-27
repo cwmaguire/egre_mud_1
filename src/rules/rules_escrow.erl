@@ -9,45 +9,53 @@
 
 -include("mud_rules.hrl").
 
-attempt({#{}, Props, {Buyer, buy, Item, from, Seller, for, Cost, with, Self}, _})
-  when Self /= self() ->
+attempt({#{}, Props, {Buyer, buy, Item, from, _Seller, for, _Cost, with, Self}, _})
+  when Self == self() ->
     Log = [{?EVENT, buy},
            {?SOURCE, Buyer},
            {?TARGET, Item},
            ?RULES_MOD],
+    ?SUCCEED_SUB;
+attempt(_) ->
+    undefined.
 
+
+succeed({Props, {Buyer, buy, Item, from, Seller, for, Cost, with, Self}, _}) ->
+    Log = [{?EVENT, buy},
+           {?SOURCE, Buyer},
+           {?TARGET, Item},
+           ?RULES_MOD],
     egre:attempt(Buyer, {Buyer, reserve, Cost, for, Self}),
     egre:attempt(Seller, {Seller, reserve, Item, for, Self}),
     egre:attempt(Item, {Item, reserve, self, for, Self}),
-    ?SUCCEED_NOSUB;
-attempt(_) ->
-    undefined.
-succeed({Props, Event = {Character, reserve, Cost, for, _Self}, Context}) ->
+    {Props, Log};
+succeed({Props, {Character, reserve, Cost, for, _Self}, _})
+  when is_integer(Cost) ->
     Log = [{?EVENT, reserve},
            {?SOURCE, Character},
            {?TARGET, Cost},
            ?RULES_MOD],
     Props2 = [{reserved, {buyer, success}} | Props],
-    maybe_resolve(Props2, Event, Context, Log);
-succeed({Props, Event = {Seller, reserve, Item, for, _Self}, Context}) ->
-    Log = [{?EVENT, reserve},
-           {?SOURCE, Seller},
-           {?TARGET, Item},
-           ?RULES_MOD],
-    Props2 = [{reserved, {seller, success}} | Props],
-    maybe_resolve(Props2, Event, Context, Log);
-succeed({Props, Event = {Item, reserve, self, for, _Self}, Context}) ->
+    maybe_resolve(Props2, Log);
+succeed({Props, {Item, reserve, self, for, _Self}, _}) ->
     Log = [{?EVENT, reserve},
            {?SOURCE, Item},
            {?TARGET, Item},
            ?RULES_MOD],
     Props2 = [{reserved, {item, success}} | Props],
-    maybe_resolve(Props2, Event, Context, Log);
+    maybe_resolve(Props2, Log);
+succeed({Props, {Seller, reserve, Item, for, _Self}, _}) ->
+    Log = [{?EVENT, reserve},
+           {?SOURCE, Seller},
+           {?TARGET, Item},
+           ?RULES_MOD],
+    Props2 = [{reserved, {seller, success}} | Props],
+    maybe_resolve(Props2, Log);
     %{Props2, Log};
 succeed(_) ->
     undefined.
 
-fail({Props, _Reason, Event = {Something, reserve, Target, for, _}, Context}) ->
+fail({Props, _Reason, {Something, reserve, Target, for, _}, _}) ->
     Log = [{?EVENT, reserve},
            {?SOURCE, Something},
            {?TARGET, Target},
@@ -66,18 +74,22 @@ fail({Props, _Reason, Event = {Something, reserve, Target, for, _}, Context}) ->
                 [{reserved, {item, fail}} | Props]
         end,
 
-    maybe_resolve(Props2, Event, Context, Log);
+    maybe_resolve(Props2, Log);
 fail(_) ->
     undefined.
 
-maybe_resolve(Props, Event, Context, LogProps) ->
+maybe_resolve(Props, LogProps) ->
     case lists:sort(proplists:lookup_all(reserved, Props)) of
-        [{buyer, success}, {item, success}, {seller, success}] ->
+        [{reserved, {buyer, success}},
+         {reserved, {item, success}},
+         {reserved, {seller, success}}] ->
             close(Props),
-            {stop, Event, Context, Props, LogProps};
-        [{buyer, _}, {item, _}, {seller, _}] ->
+            {stop, normal, Props, LogProps};
+        [{reserved, {buyer, _}},
+         {reserved, {item, _}},
+         {reserved, {seller, _}}] ->
             cancel(Props),
-            {stop, Event, Context, Props, LogProps};
+            {stop, normal, Props, LogProps};
         _ ->
             {Props, LogProps}
     end.
@@ -88,9 +100,9 @@ close(Props) ->
     Item = proplists:get_value(item, Props),
     Cost = proplists:get_value(cost, Props),
 
-    egre:attempt(Buyer, {Buyer, spend, Cost, because, self()}),
-    egre:attempt(Seller, {Seller, accrue, Cost, because, self()}),
-    egre:attempt(Item, {Item, move, from, Seller, to, Buyer, because, self()}).
+    egre:attempt(Buyer, {Buyer, spend, Cost, because, self()}, false),
+    egre:attempt(Seller, {Seller, accrue, Cost, because, self()}, false),
+    egre:attempt(Item, {Item, move, from, Seller, to, Buyer, because, self()}, false).
 
 cancel(Props) ->
     [cancel(X, Props) || {reserve, {X, success}} <- Props].

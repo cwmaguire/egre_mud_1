@@ -1796,6 +1796,7 @@
          {player,
           [{owner, room},
            {name, <<"SecretShopper">>},
+           {money, 11},
            {icon, person},
            ?CHARACTER_RULES]},
 
@@ -1804,6 +1805,7 @@
            {name, <<"Kate">>},
            {item, r_glove},
            {cost, #{r_glove => 10}},
+           {money, 2},
            {icon, person},
            ?CHARACTER_RULES]},
 
