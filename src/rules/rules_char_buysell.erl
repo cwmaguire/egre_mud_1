@@ -53,7 +53,10 @@ attempt({#{}, Props, {Character, buy, Item, from, Seller, for, Cost}, _})
 
     case proplists:get_value(money, Props) of
         NotEnough when NotEnough < Cost ->
-            ?FAIL_NOSUB(insufficient_funds);
+            #result{result = {fail, insufficient_funds},
+                    subscribe = true,
+                    props = Props,
+                    log = Log};
         _ ->
             EscrowProperties = [{owner, self()},
                                 {buyer, self()},
@@ -176,7 +179,14 @@ succeed({Props, {unreserve, for, Escrow}, _}) ->
 
 succeed(_) ->
     undefined.
-
+fail({Props, insufficient_funds, {Self, buy, Item, from, _Seller, for, Cost}, _}) ->
+    Log = [{?EVENT, buy},
+           {?SOURCE, Self},
+           {?TARGET, Item},
+           ?RULES_MOD],
+    CostBin = integer_to_binary(Cost),
+    egre:attempt(Item, {Item, send, Self, <<"Cannot afford cost of ", CostBin/binary, " for ">>}),
+    {Props, Log};
 fail({Props, _Reason, {Self, reserve, Cost, for, Escrow}, _})
   when is_integer(Cost) ->
     Log = [{?EVENT, reserve},

@@ -67,6 +67,9 @@ fail({Props, _Reason, {Something, reserve, Target, for, _}, _}) ->
     Props2 =
         case Something of
             Buyer ->
+                Character = Something,
+                Cost = integer_to_binary(Target),
+                egre:attempt(Item, {Item, send, Character, <<"Cannot afford cost of ", Cost/binary, " for ">>}),
                 [{reserved, {buyer, fail}} | Props];
             Seller ->
                 [{reserved, {seller, fail}} | Props];

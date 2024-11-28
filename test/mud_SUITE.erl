@@ -56,7 +56,9 @@ all() ->
      self_healing_over_time,
      buy,
      buy_fail_no_item,
-     buy_fail_not_for_sale].
+     buy_fail_not_for_sale,
+     buy_fail_insufficient_funds_1,
+     buy_fail_insufficient_funds_2].
 
 init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
@@ -1390,6 +1392,47 @@ buy_fail_not_for_sale(_Config) ->
     egremud_test_socket:send(player, <<"buy Right_hand_of_Vecna">>),
     ExpectedMsg = [<<"Item Right_hand_of_Vecna not for sale">>],
     wait_for_sorted_messages(player, ExpectedMsg, 5).
+
+buy_fail_insufficient_funds_1(_Config) ->
+    start(?WORLD_BUY),
+    %egre_dbg:add(egre_object, send),
+    Player = get_pid(player),
+    egre:set(Player, {money, 0}),
+    wait(50),
+    login(player),
+    egremud_test_socket:send(player, <<"buy Left_hand_of_Vecna">>),
+    ExpectedMsg = [<<"Cannot afford cost of 10 for Left_hand_of_Vecna">>],
+    wait_for_sorted_messages(player, ExpectedMsg, 5).
+
+buy_fail_insufficient_funds_2(_Config) ->
+    start(?WORLD_BUY),
+    Player = get_pid(player),
+    Rules = val(rules, player),
+    egre:set(Player, {rules, [#{attempt => {zero_money, fun zero_money_on_attempt/1},
+                                succeed => fun(_) -> undefined end,
+                                fail => fun(_) -> undefined end} | Rules]}),
+    wait(50),
+    %ct:pal("~p:~p: PlayerMoney~n\t~p~n", [?MODULE, ?FUNCTION_NAME, PlayerMoney]),
+    login(player),
+    egremud_test_socket:send(player, <<"buy Left_hand_of_Vecna">>),
+    ExpectedMsg = [<<"Cannot afford cost of 10 for Left_hand_of_Vecna">>],
+    wait_for_sorted_messages(player, ExpectedMsg, 5).
+
+zero_money_on_attempt({_,
+                       Props,
+                       {Character, buy, _, from, _, for, _, with, _},
+                       Context})
+  when Character == self() ->
+    Log = [{?EVENT, zero_out_money},
+           {rules_module, zero_out_money}],
+    Props2 = lists:keyreplace(money, 1, Props, {money, 0}),
+    #result{result = succeed,
+            subscribe = false,
+            props = Props2,
+            log = Log,
+            context = Context};
+zero_money_on_attempt(_) ->
+    undefined.
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

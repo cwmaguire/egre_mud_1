@@ -46,6 +46,19 @@ attempt({#{}, Props, {ItemName, move, from, Source, to, Target}, _})
         _ ->
             ?SUCCEED_NOSUB
     end;
+attempt({#{name := Name},
+         Props,
+         {Self, send, Character, Message},
+         _}) when Self == self() ->
+    Log = [{?EVENT, send},
+           {?SOURCE, Character},
+           {?TARGET, Character},
+           ?RULES_MOD],
+    NewEvent = {send, Character, <<Message/binary, Name/binary>>},
+    #result{result = {resend, Character, NewEvent},
+            subscribe = false,
+            props = Props,
+            log = Log};
 attempt(_) ->
     undefined.
 
