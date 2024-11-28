@@ -9,6 +9,12 @@
 
 -include("mud_rules.hrl").
 
+attempt({#{}, Props, {Character, buy, Self}, _}) when Self == self() ->
+    Log = [{?EVENT, buy},
+           {?SOURCE, Character},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    ?SUCCEED_SUB;
 attempt({#{}, Props, {Self, reserve, self, for, Escrow}, _})
   when Self == self() ->
     Log = [{?EVENT, reerve},
@@ -28,7 +34,7 @@ attempt({#{}, Props, {unreserve, for, Escrow}, _}) ->
            {?TARGET, self()},
            ?RULES_MOD],
     ?SUCCEED_SUB;
-attempt({#{}, Props, {Self, move, from, _Seller, to, _Buyer, because, Escrow}, _}) 
+attempt({#{}, Props, {Self, move, from, _Seller, to, _Buyer, because, Escrow}, _})
   when Self == self() ->
     Log = [{?EVENT, move},
            {?SOURCE, Escrow},
@@ -38,6 +44,14 @@ attempt({#{}, Props, {Self, move, from, _Seller, to, _Buyer, because, Escrow}, _
 attempt(_) ->
     undefined.
 
+succeed({Props, {Character, buy, Self}, _}) when Self == self() ->
+    Log = [{?EVENT, buy},
+           {?SOURCE, Character},
+           {?TARGET, Self},
+           ?RULES_MOD],
+    Name = proplists:get_value(name, Props),
+    egre:attempt(Character, {send, Character, <<"Item ", Name/binary, " not for sale">>}),
+    {Props, Log};
 succeed({Props, {_Self, move, from, Seller, to, Buyer, because, Escrow}, _}) ->
     Log = [{?EVENT, move},
            {?SOURCE, Buyer},
