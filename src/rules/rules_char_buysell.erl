@@ -44,7 +44,7 @@ attempt({#{}, Props, {Character, buy, Item}, _})
         _ ->
             ?SUCCEED_NOSUB
     end;
-attempt({#{}, Props, {Character, buy, Item, from, Seller, for, Cost}, _})
+attempt({#{}, Props, {Character, buy, Item, from, _Seller, for, Cost}, _})
   when Character == self() ->
     Log = [{?EVENT, buy},
            {?SOURCE, Character},
@@ -58,15 +58,7 @@ attempt({#{}, Props, {Character, buy, Item, from, Seller, for, Cost}, _})
                     props = Props,
                     log = Log};
         _ ->
-            EscrowProperties = [{owner, self()},
-                                {buyer, self()},
-                                {seller, Seller},
-                                {item, Item},
-                                {cost, Cost},
-                                ?ESCROW_RULES],
-            {ok, Escrow} = supervisor:start_child(egre_object_sup, [undefined, EscrowProperties]),
-            egre:attempt(Escrow, {Character, buy, Item, from, Seller, for, Cost, with, Escrow}, false),
-            ?SUCCEED_NOSUB
+            ?SUCCEED_SUB
     end;
 attempt({#{}, Props, {Self, reserve, Item, for, Escrow}, _})
   when Self == self(),
@@ -102,27 +94,33 @@ attempt({#{}, Props, {Self, reserve, Cost, for, Escrow}, _})
             #result{props = Props3,
                     log = Log}
     end;
-attempt({#{}, Props, {Self, spend, _Cost, because, Escrow}, _}) 
+attempt({#{}, Props, {Self, spend, _Cost, because, Escrow}, _})
   when Self == self() ->
     Log = [{?EVENT, spend},
            {?SOURCE, Escrow},
            {?TARGET, Self},
            ?RULES_MOD],
     ?SUCCEED_SUB;
-attempt({#{}, Props, {Self, accrue, _Cost, because, Escrow}, _}) 
+attempt({#{}, Props, {Self, accrue, _Cost, because, Escrow}, _})
   when Self == self() ->
     Log = [{?EVENT, accrue},
            {?SOURCE, Escrow},
            {?TARGET, Self},
            ?RULES_MOD],
     ?SUCCEED_SUB;
-attempt({#{}, Props, {unreserve, for, Escrow}, _}) ->
+attempt({#{reserve := {Escrow, _}}, Props, {unreserve, for, Escrow}, _}) ->
     Log = [{?EVENT, unreserve},
            {?SOURCE, Escrow},
            {?TARGET, self()},
            ?RULES_MOD],
     ?SUCCEED_SUB;
-
+attempt({#{}, Props, {Item, move, from, Self, to, Buyer, because, _Escrow}, _})
+  when Self == self() ->
+    Log = [{?EVENT, move},
+           {?SOURCE, Buyer},
+           {?TARGET, Item},
+           ?RULES_MOD],
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
@@ -133,6 +131,21 @@ succeed({Props, {Self, buy, ItemName}, _}) when is_binary(ItemName) ->
            ?RULES_MOD],
     egre:attempt(Self, {send, self(), <<"Item ", ItemName/binary, " doesn't exist">>}),
     {Props, Log};
+succeed({Props, {Self, buy, Item, from, Seller, for, Cost}, _}) ->
+    Log = [{?EVENT, buy},
+           {?SOURCE, Self},
+           {?TARGET, Item},
+           ?RULES_MOD],
+            EscrowProperties = [{owner, self()},
+                                {buyer, self()},
+                                {seller, Seller},
+                                {item, Item},
+                                {cost, Cost},
+                                ?ESCROW_RULES],
+            {ok, Escrow} = supervisor:start_child(egre_object_sup, [undefined, EscrowProperties]),
+            egre:attempt(Escrow, {Self, buy, Item, from, Seller, for, Cost, with, Escrow}, false),
+    Props2 = [{escrow, Escrow} | Props],
+    {Props2, Log};
 succeed({Props, {Self, spend, Cost, because, Escrow}, _}) ->
     Log = [{?EVENT, spend},
            {?SOURCE, Escrow},
@@ -176,9 +189,18 @@ succeed({Props, {unreserve, for, Escrow}, _}) ->
                 unreserve_item(Escrow, Item, Props)
         end,
     {Props2, Log};
-
+succeed({Props, {Item, move, from, _Self, to, Buyer, because, _Escrow}, _}) ->
+    Log = [{?EVENT, move},
+           {?SOURCE, Buyer},
+           {?TARGET, Item},
+           ?RULES_MOD],
+    Costs = proplists:get_value(cost, Props, #{}),
+    Costs2 = maps:without([Item], Costs),
+    Props2 = lists:keyreplace(cost, 1, Props, {cost, Costs2}),
+    {Props2, Log};
 succeed(_) ->
     undefined.
+
 fail({Props, insufficient_funds, {Self, buy, Item, from, _Seller, for, Cost}, _}) ->
     Log = [{?EVENT, buy},
            {?SOURCE, Self},

@@ -58,7 +58,8 @@ all() ->
      buy_fail_no_item,
      buy_fail_not_for_sale,
      buy_fail_insufficient_funds_1,
-     buy_fail_insufficient_funds_2].
+     buy_fail_insufficient_funds_2,
+     buy_fail_on_buyer_money_reserve].
 
 init_per_testcase(TestCase, Config) ->
     Port = ct:get_config(port),
@@ -1376,7 +1377,16 @@ buy(_Config) ->
          {"Seller 10 more money",
           fun() -> val(money, shopkeeper) == 12 end},
          {"Item is owned by player",
-          fun() -> val(owner, r_glove) == Player end}],
+          fun() -> val(owner, r_glove) == Player end},
+         {"Item is removed from cost map",
+          fun() ->
+              case val(cost, shopkeeper) of
+                  #{r_glove := _} ->
+                      false;
+                  _ ->
+                      true
+              end
+          end}],
     wait_for(Conditions1, 10).
 
 buy_fail_no_item(_Config) ->
@@ -1433,6 +1443,50 @@ zero_money_on_attempt({_,
             context = Context};
 zero_money_on_attempt(_) ->
     undefined.
+
+buy_fail_on_buyer_money_reserve(_Config) ->
+    start(?WORLD_MID_ESCROW),
+    Player = get_pid(player),
+    Escrow = get_pid(escrow),
+    Glove = get_pid(left_glove),
+    Shopkeeper = get_pid(shopkeeper),
+    login(player),
+
+    Rules = val(rules, escrow),
+    egre:set(Escrow, {rules, [#{attempt => {reserve_listener, fun listen_to_reserve/1},
+                                succeed => fun(_) -> undefined end,
+                                fail => fun(_) -> undefined end} | Rules]}),
+    wait(50),
+
+    egre:attempt(Escrow, {Player, reserve, 10, for, Escrow}),
+
+    Conditions1 =
+        [{"Seller has glove",
+          fun() -> val(item, shopkeeper) == Glove end},
+         {"Seller has no reservation",
+          fun() -> val(reserve, shopkeeper) == [] end},
+         {"Item has no reservation",
+          fun() -> val(reserve, left_glove) == [] end},
+         {"Item is owned by shopkeeper",
+          fun() -> val(owner, left_glove) == Shopkeeper end}],
+    wait_for(Conditions1, 5).
+
+listen_to_reserve({_,
+                   Props,
+                   {_Buyer, reserve, Cost, for, Self},
+                   Context})
+  when is_integer(Cost),
+       Self == self() ->
+    Log = [{?EVENT, sub_to_reserve},
+           {rules_module, listen_to_reserve}],
+    #result{result = succeed,
+            subscribe = true,
+            props = Props,
+            log = Log,
+            context = Context};
+listen_to_reserve(_) ->
+    undefined.
+
 
 log(_Config) ->
     {ok, Cwd} = file:get_cwd(),

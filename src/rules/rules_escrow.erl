@@ -16,6 +16,12 @@ attempt({#{}, Props, {Buyer, buy, Item, from, _Seller, for, _Cost, with, Self}, 
            {?TARGET, Item},
            ?RULES_MOD],
     ?SUCCEED_SUB;
+attempt({#{}, Props, {unreserve, for, Self}, _})
+  when Self == self() ->
+    Log = [{?EVENT, unreserve},
+           {?SOURCE, Self},
+           ?RULES_MOD],
+    ?SUCCEED_SUB;
 attempt(_) ->
     undefined.
 
@@ -52,6 +58,16 @@ succeed({Props, {Seller, reserve, Item, for, _Self}, _}) ->
     Props2 = [{reserved, {seller, success}} | Props],
     maybe_resolve(Props2, Log);
     %{Props2, Log};
+
+%% TODO instead of waiting for this to succeed, could I just not
+%% subscribe to it?
+%% The unreserve messages seem to drop off a cliff if I shut this
+%% process down before they're complete
+succeed({Props, {unreserve, for, Self}, _}) ->
+    Log = [{?EVENT, unreserve},
+           {?SOURCE, Self},
+           ?RULES_MOD],
+    {stop, finished, Props, Log};
 succeed(_) ->
     undefined.
 
@@ -92,7 +108,7 @@ maybe_resolve(Props, LogProps) ->
          {reserved, {item, _}},
          {reserved, {seller, _}}] ->
             cancel(Props),
-            {stop, normal, Props, LogProps};
+            {Props, LogProps};
         _ ->
             {Props, LogProps}
     end.
@@ -108,8 +124,10 @@ close(Props) ->
     egre:attempt(Item, {Item, move, from, Seller, to, Buyer, because, self()}, false).
 
 cancel(Props) ->
-    [cancel(X, Props) || {reserve, {X, success}} <- Props].
-
-cancel(Type, Props) ->
-    Party = proplists:get_value(Type, Props),
-    egre:attempt(Party, {unreserve, for, self()}).
+    case [X || {reserved, {X, success}} <- Props] of
+        [Type | _] ->
+            AnyParty = proplists:get_value(Type, Props),
+            egre:attempt(AnyParty, {unreserve, for, self()});
+        _ ->
+            ok
+    end.
