@@ -31,7 +31,8 @@ succeed({Props, {Player, quests, from, _Giver, turn, in}, _}) ->
 
     %% Give rewards
     [give_reward(Player, Reward) || Reward <- proplists:get_value(rewards, Props)],
-    {Props, Log};
+    Props2 = [{is_turned_in, true} | Props],
+    {Props2, Log};
 succeed(_) ->
     undefined.
 
