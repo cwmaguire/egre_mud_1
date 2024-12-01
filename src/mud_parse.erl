@@ -71,6 +71,19 @@ parse(Player, <<"buy ", Args/binary>>) ->
                fun ([Target]) -> {Player, buy, Target} end,
                Usage);
 
+parse(Player, <<"quests">>) ->
+    log([<<"quests">>]),
+    Active = [],
+    ReadyToTurnIn = [],
+    {Player, quests, Active, ReadyToTurnIn};
+
+parse(Player, <<"quests all">>) ->
+    log([<<"quests">>]),
+    Active = [],
+    ReadyToTurnIn = [],
+    TurnedIn = [],
+    {Player, quests, all, Active, ReadyToTurnIn, TurnedIn};
+
 parse(_, Command) ->
     % TODO log to JSON
     io:format("~p:~p: Command~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Command]),

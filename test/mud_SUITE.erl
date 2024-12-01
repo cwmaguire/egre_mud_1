@@ -53,6 +53,7 @@ all() ->
      turn_in_quest,
      no_quests_available,
      no_quests_left,
+     list_quests,
      self_healing_over_time,
      buy,
      buy_fail_no_item,
@@ -1176,13 +1177,76 @@ no_quests_left(_Config) ->
                     <<"Gaa'ark says: you already have all the quests, Smorkennical">>]),
     wait_for_sorted_messages(player, ExpectedMessages, 5).
 
+list_quests(_Config) ->
+    start(?WORLD_LIST_QUESTS),
+    _Player1 = login(player1),
+    _Player2 = login(player2),
+    _Player3 = login(player3),
+    _Player4 = login(player4),
+    _Player5 = login(player5),
+
+    egremud_test_socket:send(player1, <<"quests">>),
+    ExpectedMessages1 =
+        lists:sort([<<"Active: PQuest 1 Active 1, PQuest 1 Active 2\n"
+                      "Ready to turn in: PQuest 1 Ready\n">>]),
+    wait_for_sorted_messages(player1, ExpectedMessages1, 5),
+
+    egremud_test_socket:send(player1, <<"quests all">>),
+    ExpectedMessages2 =
+        lists:sort([<<"Active: PQuest 1 Active 1, PQuest 1 Active 2\n"
+                      "Ready to turn in: PQuest 1 Ready\n"
+                      "Turned in: PQuest 1 Done\n">>]),
+    wait_for_sorted_messages(player1, ExpectedMessages2, 5),
+
+    egremud_test_socket:send(player2, <<"quests">>),
+    ExpectedMessages3 =
+        lists:sort([<<"Active: PQuest 2 Active\n">>]),
+    wait_for_sorted_messages(player2, ExpectedMessages3, 5),
+
+    egremud_test_socket:send(player2, <<"quests all">>),
+    ExpectedMessages4 =
+        lists:sort([<<"Active: PQuest 2 Active\n"
+                      "Turned in: PQuest 2 Done\n">>]),
+    wait_for_sorted_messages(player2, ExpectedMessages4, 5),
+
+    egremud_test_socket:send(player3, <<"quests">>),
+    ExpectedMessages5 =
+        lists:sort([<<"You have no quests">>]),
+    wait_for_sorted_messages(player3, ExpectedMessages5, 5),
+
+    egremud_test_socket:send(player3, <<"quests all">>),
+    ExpectedMessages6 =
+        lists:sort([<<"You have no quests">>]),
+    wait_for_sorted_messages(player3, ExpectedMessages6, 5),
+
+    egremud_test_socket:send(player4, <<"quests">>),
+    ExpectedMessages7 =
+        lists:sort([<<"You have no quests">>]),
+    wait_for_sorted_messages(player4, ExpectedMessages7, 5),
+
+    egremud_test_socket:send(player4, <<"quests all">>),
+    ExpectedMessages8 =
+        lists:sort([<<"Turned in: PQuest 4 Done\n">>]),
+    wait_for_sorted_messages(player4, ExpectedMessages8, 5),
+
+    egremud_test_socket:send(player5, <<"quests">>),
+    ExpectedMessages9 =
+        lists:sort([<<"Ready to turn in: PQuest 5 Ready\n">>]),
+    wait_for_sorted_messages(player5, ExpectedMessages9, 5),
+
+    egremud_test_socket:send(player5, <<"quests all">>),
+    ExpectedMessages10 =
+        lists:sort([<<"Ready to turn in: PQuest 5 Ready\n">>]),
+    wait_for_sorted_messages(player5, ExpectedMessages10, 5).
+
 ask_for_quest(_Config) ->
     start(?WORLD_GET_QUEST),
     Player = login(player),
 
     egremud_test_socket:send(player, <<"say quests">>),
     ExpectedQuestListMessages1 = lists:sort([<<"Peter says: quests">>,
-                                            <<"Brenda says: Peter, I have these quests: five rats, temporary">>]),
+                                            <<"Brenda says: Peter, I have these quests: ",
+                                              "five rats, temporary">>]),
     wait_for_sorted_messages(player, ExpectedQuestListMessages1, 5),
 
     egremud_test_socket:send(player, <<"say quest five rats">>),
