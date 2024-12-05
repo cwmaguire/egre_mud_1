@@ -51,6 +51,7 @@ SVG {
 
 .process {
   margin: 2px;
+  padding: 3px;
   border: 2px dashed grey;
   width: 120px;
 }

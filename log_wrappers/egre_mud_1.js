@@ -148,15 +148,7 @@ function clear(){
 }
 
 function storeProcIds(procIds, log){
-  for(let [k, v] of Object.entries(log)){
-    if(k.endsWith('_id')){
-      let idKey = k;
-      let id = v;
-      let pidKey = idKey.substring(0, idKey.length - 3);
-      let pid = log[pidKey];
-      procIds.set(pid, id);
-    }
-  }
+  procIds.set(log.pid, log.id);
 }
 
 
@@ -289,18 +281,12 @@ function add_rules_module(parent, log){
 }
 
 function add_pid(typeKey, parent, log){
-  let idKey = typeKey + '_id';
-  let pidSpan = span();
-  let idSpan = span(prop(log, idKey, '__'));
-
-  let defaultPid = '<0.0.0>';
-  let pid = prop(log, typeKey, defaultPid);
-
-  pidSpan.className = 'process';
-
-  pidSpan.appendChild(idSpan);
-
-  parent.appendChild(pidSpan);
+  const id = prop(log, 'id', '[no id]');
+  const rawPid = prop(log, 'pid', '|0|');
+  const pid = rawPid.match(/\d{1,3}/)[0];
+  const idSpan = span(id + '  - ' + pid);
+  idSpan.className = 'process';
+  parent.appendChild(idSpan);
 }
 
 function add_event_name(parent, log){
@@ -375,10 +361,10 @@ function has_array(array){
 
 function maybe_pid_id_string(maybePid, procIds){
   //const regex = /<\d{1,3}\.\d{1,3}\.\d{1,3}>/;
-  const regex = /\d{1,3}/;
-  if(('' + maybePid).match(regex)){
-    let pid = maybePid;
-    let id = procIds.get(pid);
+  const regex = /\|\d{1,3}\|/;
+  if(regex.test(maybePid)){
+    let pid = maybePid.match(/\d{1,3}/)[0];
+    let id = procIds.get(maybePid);
     return `${id}<br>${pid}`;
   }else{
     return maybePid;
