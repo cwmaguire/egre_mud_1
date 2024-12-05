@@ -59,15 +59,53 @@ succeed({Props, {Seller, reserve, Item, for, _Self}, _}) ->
     maybe_resolve(Props2, Log);
     %{Props2, Log};
 
-%% TODO instead of waiting for this to succeed, could I just not
-%% subscribe to it?
-%% The unreserve messages seem to drop off a cliff if I shut this
-%% process down before they're complete
 succeed({Props, {unreserve, for, Self}, _}) ->
     Log = [{?EVENT, unreserve},
            {?SOURCE, Self},
            ?RULES_MOD],
     {stop, finished, Props, Log};
+succeed({Props, {Buyer, spend, _, because, _Self}, _}) ->
+    Log = [{?EVENT, spend},
+           {?SOURCE, self()},
+           {?TARGET, Buyer},
+           ?RULES_MOD],
+
+    IsMoneyAccrued = proplists:get_value(is_money_accrued, Props, false),
+    IsItemMoved = proplists:get_value(is_item_moved, Props, false),
+    case IsMoneyAccrued andalso IsItemMoved of
+        true ->
+            {stop, finished, [{is_money_spent, true} | Props], Log};
+        false ->
+            {[{is_money_spent, true} | Props], Log}
+    end;
+succeed({Props, {Seller, accrue, _Cost, because, _Self}, _}) ->
+    Log = [{?EVENT, accrue},
+           {?SOURCE, self()},
+           {?TARGET, Seller},
+           ?RULES_MOD],
+
+    IsMoneySpent = proplists:get_value(is_money_spent, Props, false),
+    IsItemMoved = proplists:get_value(is_item_moved, Props, false),
+    case IsMoneySpent andalso IsItemMoved of
+        true ->
+            {stop, finished, [{is_money_accrued, true} | Props], Log};
+        false ->
+            {[{is_money_accrued, true} | Props], Log}
+    end;
+succeed({Props, {Item, move, from, _Seller, to, _Buyer, because, _Self}, _}) ->
+    Log = [{?EVENT, accrue},
+           {?SOURCE, self()},
+           {?TARGET, Item},
+           ?RULES_MOD],
+
+    IsMoneySpent = proplists:get_value(is_money_spent, Props, false),
+    IsMoneyAccrued = proplists:get_value(is_money_accrued, Props, false),
+    case IsMoneySpent andalso IsMoneyAccrued of
+        true ->
+            {stop, finished, [{is_item_moved, true} | Props], Log};
+        false ->
+            {[{is_is_item_moved, true} | Props], Log}
+    end;
 succeed(_) ->
     undefined.
 
@@ -102,16 +140,15 @@ maybe_resolve(Props, LogProps) ->
         [{reserved, {buyer, success}},
          {reserved, {item, success}},
          {reserved, {seller, success}}] ->
-            close(Props),
-            {stop, normal, Props, LogProps};
+            close(Props);
         [{reserved, {buyer, _}},
          {reserved, {item, _}},
          {reserved, {seller, _}}] ->
-            cancel(Props),
-            {Props, LogProps};
+            cancel(Props);
         _ ->
-            {Props, LogProps}
-    end.
+            ok
+    end,
+    {Props, LogProps}.
 
 close(Props) ->
     Buyer = proplists:get_value(buyer, Props),
@@ -119,9 +156,9 @@ close(Props) ->
     Item = proplists:get_value(item, Props),
     Cost = proplists:get_value(cost, Props),
 
-    egre:attempt(Buyer, {Buyer, spend, Cost, because, self()}, false),
-    egre:attempt(Seller, {Seller, accrue, Cost, because, self()}, false),
-    egre:attempt(Item, {Item, move, from, Seller, to, Buyer, because, self()}, false).
+    egre:attempt(Buyer, {Buyer, spend, Cost, because, self()}),
+    egre:attempt(Seller, {Seller, accrue, Cost, because, self()}),
+    egre:attempt(Item, {Item, move, from, Seller, to, Buyer, because, self()}).
 
 cancel(Props) ->
     case [X || {reserved, {X, success}} <- Props] of
