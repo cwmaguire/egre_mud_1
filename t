@@ -76,3 +76,22 @@ select
  left join pid_id p4 on owner = p4.pid and log.tag = p4.tag
  left join pid_id p5 on "character" = p5.pid and log.tag = p5.tag;
 EOF
+
+psql -h localhost -U egre <<EOF
+create view log_view_short as
+SELECT
+    to_char(log.timestamp, 'SS.US') "TS",
+    log.pid,
+    "left"(p1.pid_id, 10) AS id,
+    log.event_type,
+    log.stage,
+    log.subscribe AS "sub?",
+    log.rules_module,
+    log.message
+FROM log
+     LEFT JOIN pid_id p1 ON log.pid = p1.pid AND log.tag = p1.tag
+     LEFT JOIN pid_id p2 ON log.event_source = p2.pid AND log.tag = p2.tag
+     LEFT JOIN pid_id p3 ON log.event_target = p3.pid AND log.tag = p3.tag
+     LEFT JOIN pid_id p4 ON log.owner = p4.pid AND log.tag = p4.tag
+     LEFT JOIN pid_id p5 ON log."character" = p5.pid AND log.tag = p5.tag;
+EOF
