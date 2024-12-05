@@ -19,7 +19,9 @@ attempt({#{}, Props, {Source, attack, TargetName}, _})
         true ->
             DeadChars = [],
             NewEvent = {Source, attack, TargetName, is, self(), 'if', alive, 'not', DeadChars},
-            ?RESEND_SUB(Source, NewEvent);
+            #result{result = {resend, Source, NewEvent},
+                    props = Props,
+                    log = [?RULES_MOD | Log]};
         _ ->
             ?SUCCEED_NOSUB
     end;
