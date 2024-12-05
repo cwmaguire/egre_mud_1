@@ -385,16 +385,15 @@ stop_attack_on_move(Config) ->
     GiantHP =  get_pid(g_hp),
     egre_object:set(GiantHP, {hitpoints, GiantHPAmt}),
 
-    wait(100),
+    wait(50),
     attempt(Config, Player, {<<"force field">>, move, from, Room1, to, Player}),
     attempt(Config, Player, {<<"shield">>, move, from, Room1, to, Player}),
-    wait(100),
+    wait(50),
     attempt(Config, Player, {<<"force field">>, move, from, Player, to, first_available_body_part}),
     attempt(Config, Player, {<<"shield">>, move, from, Player, to, first_available_body_part}),
-    wait(100),
-    attempt(Config, Player, {Player, attack, <<"pete">>}),
-    wait(100),
+    wait(50),
 
+    attempt(Config, Player, {Player, attack, <<"pete">>}),
     WaitFun1 =
         fun() ->
             case val(hitpoints, g_hp) of
@@ -405,63 +404,16 @@ stop_attack_on_move(Config) ->
                     false
             end
         end,
-    true = wait_loop(WaitFun1, true, 30),
-
-    %% Now that the giant has taken some damage, move the player
-    %% and make sure the attack stops.
-
+    wait_loop("Less than full giant HP", WaitFun1, true, 30),
     attempt(Config, Player, {Player, move, r2}),
-    WaitFun2 =
-        fun() ->
-            case val(room, player) of
-                Room2 ->
-                    true;
-                _ ->
-                    false
-            end
-        end,
-    true = wait_loop(WaitFun2, true, 30),
-
-    % Make sure the attack has stopped by checking that there
-    % are no reservations for the item
-
-    wait_value(p_stamina, reservations, [], 30),
-    %WaitFun3 =
-        %fun() ->
-            %val(reservations, p_stamina)
-        %end,
-    %true = wait_loop(WaitFun3, [], 30),
-
+    wait_value("Player in room 2", player, room, Room2, 30),
+    wait_value("Player stamina has no reservations", p_stamina, reservations, [], 300),
+    %% XXX The 500 ms in "wait_for_db" doesn't seem to be enough.
+    %% I'm not sure how we could have a 500 ms wait with no DB calls, but still not have
+    %% written all the messages to the DB.
+    wait(500),
     ok.
 
-wait_value(ObjectId, Key, ExpectedValue, Count) ->
-    WaitFun =
-        fun() ->
-            val(Key, ObjectId)
-        end,
-    true = wait_loop(WaitFun, ExpectedValue, Count).
-
-wait_loop(_Fun, _Count = 0) ->
-    ok;
-wait_loop(Fun, Count) when Count > 0 ->
-    Fun(),
-    wait(100),
-    wait_loop(Fun, Count - 1).
-
-wait_loop(Fun, ExpectedValue, _Count = 0) ->
-    ct:pal("Mismatched function result:~n\tFunction: ~p~n\tExected: ~p",
-           [erlang:fun_to_list(Fun), ExpectedValue]),
-    false;
-wait_loop(Fun, ExpectedValue, Count) ->
-    Result = Fun(),
-    case Result == ExpectedValue of
-        true ->
-            true;
-        false ->
-            ct:pal("wait_loop waiting for ~p, got ~p", [ExpectedValue, Result]),
-            wait(100),
-            wait_loop(Fun, ExpectedValue, Count - 1)
-    end.
 
 player_wield(Config) ->
     start(?WORLD_4),
@@ -930,6 +882,7 @@ player_say(_Config) ->
     login(player2),
     login(player),
     login(player3),
+    %% XXX these might be drained by login/1 automatically
     Fun = fun() ->
                   egremud_test_socket:messages(player),
                   egremud_test_socket:messages(player2),
@@ -1427,7 +1380,7 @@ self_healing_over_time(Config) ->
 buy(_Config) ->
     start(?WORLD_BUY),
     Player = login(player),
-    Glove = get_pid(r_glove),
+    Glove = get_pid(left_glove),
 
     egremud_test_socket:send(player, <<"buy Left_hand_of_Vecna">>),
 
@@ -1441,7 +1394,7 @@ buy(_Config) ->
          {"Seller 10 more money",
           fun() -> val(money, shopkeeper) == 12 end},
          {"Item is owned by player",
-          fun() -> val(owner, r_glove) == Player end},
+          fun() -> val(owner, left_glove) == Player end},
          {"Item is removed from cost map",
           fun() ->
               case val(cost, shopkeeper) of
@@ -1629,9 +1582,13 @@ mock_object() ->
     end,
     mock_object().
 
+get_pid(Id) when is_atom(Id) ->
+    %#object{pid = Pid} = egre_index:get(Id),
+    %Pid;
+    egre:get_object_pid(Id);
 get_pid(Id) ->
-    #object{pid = Pid} = egre_index:get(Id),
-    Pid.
+    ct:pal("~p:~p: Id~n\t~p~n", [?MODULE, ?FUNCTION_NAME, Id]),
+    exit(get_pid_with_non_atom_id).
 
 wait(Millis) ->
     %ct:pal("~p: Waiting ~p~n", [self(), Millis]),
@@ -1647,6 +1604,48 @@ drain_socket(Player) ->
               egremud_test_socket:messages(Player)
           end,
     wait_loop(Fun, 5).
+
+wait_value(ObjectId, Key, ExpectedValue, Count) ->
+    Desc = lists:flatten(io_lib:format("~p:~p == ~p", [ObjectId, Key, ExpectedValue])),
+    wait_value(Desc, Key, ExpectedValue, Count).
+
+wait_value(Desc, ObjectId, Key, ExpectedValue, Count) ->
+    WaitFun =
+        fun() ->
+            val(Key, ObjectId)
+        end,
+    wait_loop(Desc, WaitFun, ExpectedValue, Count).
+
+%% This is used exclusively to drain sockets
+wait_loop(_Fun, _Count = 0) ->
+    ok;
+wait_loop(Fun, Count) when Count > 0 ->
+    Fun(),
+    wait(100),
+    wait_loop(Fun, Count - 1).
+
+%% TODO Maybe replace with wait_for(Conditions, Count)
+%% (Except this now outputs expected and actual values)
+wait_loop(Fun, ExpectedValue, Count) ->
+    wait_loop("No description", Fun, ExpectedValue, Count).
+
+wait_loop(Desc, _Fun, ExpectedValue, _Count = 0) ->
+    ct:pal("wait_loop for [~p] failed, expected ~p",
+           [Desc, ExpectedValue]),
+    ct:fail("Failed waiting for: ~p", [Desc]);
+wait_loop(Desc, Fun, ExpectedValue, Count) ->
+    Result = Fun(),
+    case Result == ExpectedValue of
+        true ->
+            ct:pal("wait_loop for [~p] succeed: expecting ~p, got ~p",
+                   [Desc, ExpectedValue, Result]),
+            true;
+        false ->
+            ct:pal("wait_loop for [~p] expecting ~p, got ~p",
+                   [Desc, ExpectedValue, Result]),
+            wait(100),
+            wait_loop(Desc, Fun, ExpectedValue, Count - 1)
+    end.
 
 wait_for(_NoUnmetConditions = [], _) ->
     ok;
@@ -1701,9 +1700,9 @@ start_profile() ->
     cprof:start().
 
 stop_profile() ->
-    {ok, IO} = file:open("cprof", [write]),
     cprof:pause(),
     Result = cprof:analyse(),
+    {ok, IO} = file:open("cprof", [write]),
     io:format(IO, "~p", [Result]),
     file:close(IO),
     cprof:stop().

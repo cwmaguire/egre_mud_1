@@ -24,6 +24,18 @@ attempt({#{owner := Owner,
             log = Log};
 attempt({#{owner := Owner},
          Props,
+         {Source, attack, TargetName, is, Owner, 'if', alive, 'not', DeadChars},
+         _}) ->
+    Log = [{?SOURCE, Source},
+           {?TARGET, Owner},
+           {?EVENT, attack}],
+    NewEvent = {Source, attack, TargetName, 'not', [Owner | DeadChars]},
+    #result{result = {resend, Source, NewEvent},
+            subscribe = false,
+            props = Props,
+            log = Log};
+attempt({#{owner := Owner},
+         Props,
          {Source, attack, TargetName, 'not', DeadChars},
          _}) ->
     Log = [{?SOURCE, Source},

@@ -550,7 +550,7 @@
                   ?life(p_life, player, []),
                   ?attribute(strength0, 0, 0, 100, 0, player, [{type, strength}, {value, 17}]),
                   ?attribute(dexterity0, 100, 0, 0, 0, player, [{type, dexterity}, {value, 15}]),
-                  ?resource(p_stamina, player, stamina, 1, 10, 10, []),
+                  ?resource(p_stamina, player, stamina, 1, 1000, 5, []),
                   ?hand(hand0, player, <<"left hand">>, [{max_items, 1}, {item, p_fist}]),
                   ?hand(hand1, player, <<"right hand">>, [{max_items, 1}]),
 

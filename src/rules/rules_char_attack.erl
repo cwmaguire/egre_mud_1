@@ -13,7 +13,7 @@ attempt({#{}, Props, {Attacker, attack, Self}, _}) when Self == self() ->
            {?EVENT, attack},
            {?TARGET, Self}],
     ?SUCCEED_SUB;
-attempt({#{}, Props, {Self, attack, Target, with, AttackType}, _}) when Self == self() ->
+attempt({#{}, Props, {Self, attack, Target, with, AttackType, _Times, times}, _}) when Self == self() ->
     Log = [{?SOURCE, Self},
            {?EVENT, attack},
            {?TARGET, Target},
@@ -22,7 +22,7 @@ attempt({#{}, Props, {Self, attack, Target, with, AttackType}, _}) when Self == 
 attempt(_) ->
     undefined.
 
-succeed({Props, {Self, attack, Target, with, AttackType}, _}) ->
+succeed({Props, {Self, attack, Target, with, AttackType, _Times, times}, _}) ->
     Log = [{?SOURCE, Self},
            {?EVENT, attack},
            {?TARGET, Target},
