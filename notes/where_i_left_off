@@ -24,8 +24,8 @@ x turn in quest
 - build the MUD from within the MUD (rooms, items, etc.)
 - roles (e.g. admin rights)
 - inventory
-- lists quests
-  - list quest history
+x lists quests
+  x list quest history
 
 Player input commands:
 x cast spell
