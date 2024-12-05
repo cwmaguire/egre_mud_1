@@ -30,8 +30,7 @@ succeed({Props, {Character, affect, Target, because, Attack}, _}) ->
            {attack, Attack}],
     ChildProps = replace_rules_with_child_rules(Props),
     ChildPropsWithTarget = [{target, Target} | ChildProps],
-    ChildPropsMinusPid = lists:keydelete(pid, 1, ChildPropsWithTarget),
-    {ok, Pid} = supervisor:start_child(egre_object_sup, [undefined, ChildPropsMinusPid]),
+    {ok, Pid} = supervisor:start_child(egre_object_sup, [undefined, ChildPropsWithTarget]),
     egre_object:attempt(Pid, {Pid, affect, Target, with, Attack}),
     {Props, Log};
 
