@@ -55,20 +55,20 @@ create view log_view as
 select
  log.tag,
  log.pid "pid",
- left(p1.pid_id, 10) "id",
+ left(p1.id, 10) "id",
  event_type,
  stage,
  subscribe "sub?",
  rules_module,
  event_source,
- left(p2.pid_id, 10) "src_id",
+ left(p2.id, 10) "src_id",
  event_target,
- left(p3.pid_id, 10) "tgt_id",
+ left(p3.id, 10) "tgt_id",
  message,
  owner,
- left(p4.pid_id, 10) "own_id",
+ left(p4.id, 10) "own_id",
  "character" "char",
- left(p5.pid_id, 10) "char_id"
+ left(p5.id, 10) "char_id"
  from log
  left join pid_id p1 on log.pid = p1.pid and log.tag = p1.tag
  left join pid_id p2 on event_source = p2.pid and log.tag = p2.tag
@@ -82,7 +82,7 @@ create view log_view_short as
 SELECT
     to_char(log.timestamp, 'SS.US') "TS",
     log.pid,
-    "left"(p1.pid_id, 10) AS id,
+    left(p1.id, 10) AS id,
     log.event_type,
     log.stage,
     log.subscribe AS "sub?",
