@@ -31,7 +31,7 @@ attempt({#{},
           effect, Self},
          _})
   when Self == self(),
-       HitOrEffect == hit; HitOrEffect == effect ->
+       HitOrEffect == hit orelse HitOrEffect == effect ->
     Log = [{?SOURCE, Self},
            {?EVENT, roll_for_effect},
            {?TARGET, Target},
