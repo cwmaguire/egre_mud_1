@@ -18,7 +18,7 @@
 attempt({#{}, Props, {Self, Action, Item}, _Context})
   when Self == self() andalso
        is_pid(Item) andalso
-       Action == get; Action == drop ->
+       (Action == get orelse Action == drop) ->
     Log = [{?SOURCE, Self},
            {?EVENT, Action},
            {?TARGET, Item}],
@@ -39,7 +39,7 @@ attempt({#{}, Props, {Self, Action, Item}, _Context})
             ?SUCCEED_NOSUB
     end;
 attempt({#{}, Props, {Item, move, from, Self, to, Room}, _})
-  when Self == self() andalso
+  when Self == self(),
        is_pid(Item),
        is_pid(Room) ->
     Log = [{item, Item},
