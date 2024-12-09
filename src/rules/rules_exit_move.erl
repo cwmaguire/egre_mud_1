@@ -41,15 +41,11 @@ attempt({#{}, Props, {Mover, move, from, Source, to, Target, via, Self}, _}) whe
 attempt(_) ->
     undefined.
 
-succeed({Props, Msg, _Context}) ->
-    Log = [{?SOURCE, self()},
-           {message, Msg},
-           {result, succeed},
-           ?RULES_MOD],
-    {Props, Log}.
+succeed(_) ->
+    undefined.
 
-fail({Props, _Result, _Msg, _Context}) ->
-    Props.
+fail(_) ->
+    undefined.
 
 %% Make sure the specified exit name doesn't go back to the room that
 %% the object is trying to leave.
