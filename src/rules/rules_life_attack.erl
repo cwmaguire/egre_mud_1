@@ -111,9 +111,9 @@ succeed({Props, {Owner, die}, _}) ->
     Props2 = lists:keystore(is_alive, 1, Props, {is_alive, false}),
     {Props2, Log};
 
-succeed({Props, Msg, _Context}) ->
-    ct:pal("~p rules_life_attack received unexpected succeed: ~p",
-           [self(), Msg]),
+succeed({Props, Event, _Context}) ->
+    io:format("~p rules_life_attack received unexpected succeed: ~p",
+              [self(), Event]),
     throw(should_never_happen),
     Props.
 
