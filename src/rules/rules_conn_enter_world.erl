@@ -9,7 +9,7 @@
 -export([succeed/1]).
 -export([fail/1]).
 
-attempt({#parents{owner = Owner},
+attempt({#{owner := Owner},
          Props,
          {Owner, enter_world, in, Room, with, Self},
          _}) when Self == self(), is_pid(Room) ->
