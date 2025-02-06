@@ -73,7 +73,7 @@ succeed({Props, {Character, attack, Target}, _}) when is_pid(Target) ->
     Log = [{?SOURCE, Character},
            {?EVENT, attack},
            {?TARGET, Target}],
-    egre_object:attempt(self(), {Character, attack, Target, with, self()}),
+    egre:attempt(self(), {Character, attack, Target, with, self()}),
     {Props, Log};
 succeed(_) ->
     undefined.

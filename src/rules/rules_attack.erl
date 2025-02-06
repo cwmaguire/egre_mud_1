@@ -14,6 +14,12 @@ attempt({#{character := Character},
          Props,
          {Character, Attack, Target},
          _})
+  %% Target must be a pid in both cases; even though
+  %% a counterattack never has a binary target, it might be
+  %% good to use:
+  %% is_pid(Target) andalso
+  %%     (Attack == attack orelse
+  %%      Attack = counter_attack)
   when is_pid(Target),
        Attack == attack; Attack == counter_attack ->
     Log = [{?SOURCE, Character},

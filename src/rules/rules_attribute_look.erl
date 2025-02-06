@@ -53,11 +53,11 @@ describe(Source, Props, Context, deep) ->
     send_description(Source, Props, Context),
     Name = proplists:get_value(name, Props),
     NewContext = <<Context/binary, Name/binary, " -> ">>,
-    egre_object:attempt(Source, {Source, describe, self(), with, NewContext}).
+    egre:attempt(Source, {Source, describe, self(), with, NewContext}).
 
 send_description(Source, Props, Context) ->
     Description = description(Props),
-    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    egre:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 is_owner(MaybeOwner, Props) when is_pid(MaybeOwner) ->
     MaybeOwner == proplists:get_value(owner, Props);

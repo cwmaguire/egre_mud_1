@@ -20,6 +20,8 @@ attempt({#{type := Type},
            {?SOURCE, Character},
            {?TARGET, self()}],
     Context2 = [{kill, Type} | Context],
+    %% XXX The event doesn't seem changed at all.
+    %% We've just added context.
     NewEvent = {Character, cause,
                   EffectAmount, 'of', EffectType,
                   to, Self,
