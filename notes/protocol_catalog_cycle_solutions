@@ -1,0 +1,35 @@
+Possible cycle solutions:
+
+2 main solution types:
+- change the rules logic to be more expressive
+- change the parse transform to be more intelligent
+
+1 - add event variable type structures in the code
+    - e.g. {<<"foo">>}
+           [Pid]
+
+    Having unique shapes for data types
+
+    Could use macros: ?b(Value) for binary -> {bin, Value}
+
+    We'd have to use macros in the event matching:
+
+    attempt(#{}, Props, {X, move, from, ?b{BodyPartName, to, Y}
+
+2 - Preserve the guards / preserve the types
+
+  e.g. {1,move,from,2,to,3}, []
+
+       {1,move,from,2,to,3}, [{2, bin}]
+
+3 - Manually specify types with some pseudo code
+
+4 - Change the shape of the event
+
+5 - Store types instead of numbers when the type is known,
+    otherwise a number matches any type
+
+    When outputing guards and custom map matching, use
+    ...
+
+    {1, Pid}

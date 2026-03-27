@@ -1,4 +1,15 @@
 Protocol is too hard to follow
+
+┏━━━━━━━━━━━━━━━━┓
+┃   2025-09-14   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+parse_transform is working. Compile the files, then run egre_protocol_event_chains.erl in the EGRE project to read from
+the BERT files and generate the  'egre_protocol_chains' file.
+
+I'm putting notes about specific egre_mud_1 handler code that doesn't form proper chains in the EGRE project
+'protocol_is_too_hard_to_follow' note.
+
 ┏━━━━━━━━━━━━━━━━┓
 ┃   2024-10-29   ┃
 ┗━━━━━━━━━━━━━━━━┛
@@ -7,7 +18,8 @@ The parse_transform doesn't seem to be working anymore
 
 February 9, 2022
 
-I've written a parse_transform (gerlshmud_protocol_parse_transform) to pull out a lot of the events from attempt, succeed and gerlshmud_object:attempt/2.
+I've written a parse_transform (gerlshmud_protocol_parse_transform) to pull out a lot of the events from attempt,
+succeed and gerlshmud_object:attempt/2.
 
 January 28, 2022
 
