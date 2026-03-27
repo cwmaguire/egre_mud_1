@@ -78,7 +78,7 @@ allocate(Type, [{Proc, {Required, Purpose, Times}} | Reservations], Available)
   when Available >= Required,
        (Times == infinity orelse
        (is_integer(Times) andalso Times > 0)) ->
-    egre_object:attempt(Proc,
+    egre:attempt(Proc,
                         {self(), allocate,
                          Required, 'of', Type,
                          to, Proc,

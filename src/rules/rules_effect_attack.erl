@@ -61,7 +61,7 @@ succeed({Props, {_Self, affect, Target, with, AttackSource}, _}) ->
              with,
              attack_source, AttackSource,
              effect, self()},
-    egre_object:attempt(self(), Event),
+    egre:attempt(self(), Event),
 
     {Props, Log};
 
@@ -91,7 +91,7 @@ succeed({Props, {Character, roll, SuccessRoll,
              with,
              attack_source, AttackSource,
              effect, Self},
-    egre_object:attempt(self(), Event),
+    egre:attempt(self(), Event),
     {Props, Log};
 
 succeed({Props, {Character, roll, FailRoll,
@@ -229,7 +229,7 @@ maybe_repeat(Props, Log) ->
 stop(Props, Log) ->
     Owner = proplists:get_value(owner, Props),
     StopEvent = {delete, self()},
-    egre_object:attempt(Owner, StopEvent),
+    egre:attempt(Owner, StopEvent),
     {stop, finished, Props, Log}.
 
 

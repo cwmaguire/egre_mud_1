@@ -56,7 +56,7 @@ describe(Source, Props, Room, Context) ->
     Desc = <<Context/binary,
              "exits ",
              ExitsDesc/binary>>,
-    egre_object:attempt(Source, {send, Source, Desc}).
+    egre:attempt(Source, {send, Source, Desc}).
 
 other_exits(Props, Room) ->
     [Dir || {{room, Dir}, NotRoom} <- Props, Room /= NotRoom].

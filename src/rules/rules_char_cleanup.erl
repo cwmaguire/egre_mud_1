@@ -30,7 +30,7 @@ succeed({Props, {Self, cleanup, body_parts, _BodyParts, in, Room}, _}) when Self
     Log = [{?SOURCE, Self},
            {?TARGET, Room},
            {?EVENT, cleanup}],
-    egre_object:attempt(self(), {stop, self()}),
+    egre:attempt(self(), {stop, self()}),
     {Props, Log};
 
 succeed(_) ->

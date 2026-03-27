@@ -31,14 +31,14 @@ succeed({Props, {Attacker, attack, Self}, _}) ->
         true ->
             ok;
         _ ->
-            egre_object:attempt(self(), {self(), counter_attack, Attacker})
+            egre:attempt(self(), {self(), counter_attack, Attacker})
     end,
     {Props, Log};
 succeed({Props, {Self, counter_attack, Target}, _}) ->
     Log = [{?SOURCE, Self},
            {?EVENT, counter_attack},
            {?TARGET, Target}],
-    egre_object:attempt(self(), {self(), attack, Target}),
+    egre:attempt(self(), {self(), attack, Target}),
     {Props, Log};
 succeed(_) ->
     undefined.

@@ -26,7 +26,7 @@ succeed({Props, {Character, cleanup, body_parts, BodyParts, in, Room}, _}) ->
            {?EVENT, cleanup}],
     Owner = proplists:get_value(owner, Props),
     case lists:member(Owner, [Character | BodyParts]) of
-        true -> egre_object:attempt(self(),
+        true -> egre:attempt(self(),
                                          {self(), move, from, Owner, to, Room},
                                          _ShouldSubscribe = false);
         _ ->

@@ -96,7 +96,7 @@ update_tick(Props) ->
     case {Reservations, Tick} of
         {[_ | _], undefined} ->
             Ref = make_ref(),
-            egre_object:attempt(Self, {Self, tick, Ref, with, PerTick}),
+            egre:attempt(Self, {Self, tick, Ref, with, PerTick}),
             [{tick, Ref} | Props];
         {[], _} ->
             lists:keydelete(tick, 1, Props);

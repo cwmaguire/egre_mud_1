@@ -60,7 +60,7 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self, for, cast}, _})
                 Character = proplists:get_value(character, Props),
                 Target = proplists:get_value(target, Props),
                 Event = {Character, affect, Target, because, Self},
-                egre_object:attempt(self(), Event, false),
+                egre:attempt(self(), Event, false),
                 deallocate(Allocated, Required);
             _ ->
                 Allocated
@@ -83,7 +83,7 @@ reserve(Char, Props, Times) when is_list(Props) ->
     [reserve(Char, Res, Times, Amt) || {Res, Amt} <- Resources].
 
 reserve(Character, Resource, Times, Amount) ->
-    egre_object:attempt(self(),
+    egre:attempt(self(),
                         {Character, reserve, Amount,
                          'of', Resource,
                          for, self(),

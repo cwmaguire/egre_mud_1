@@ -99,7 +99,7 @@ succeed({Props, {Source, killed, Owner, with, _AttackVector}, _}) ->
     Log = [{?EVENT, killed},
            {?SOURCE, Source},
            {?TARGET, Owner}],
-    egre_object:attempt(self(), {Owner, die}),
+    egre:attempt(self(), {Owner, die}),
     {Props, Log};
 
 succeed({Props, {Owner, die}, _}) ->
@@ -107,7 +107,7 @@ succeed({Props, {Owner, die}, _}) ->
            {?TARGET, Owner},
            ?RULES_MOD],
     CorpseCleanupMilis = application:get_env(mud, corpse_cleanup_milis, 10 * 60 * 1000),
-    egre_object:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
+    egre:attempt_after(CorpseCleanupMilis, self(), {Owner, cleanup}),
     Props2 = lists:keystore(is_alive, 1, Props, {is_alive, false}),
     {Props2, Log};
 

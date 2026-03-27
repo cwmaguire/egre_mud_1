@@ -50,7 +50,7 @@ succeed({Props, {Self, move, from, Source, to, Target, via, Exit}, _}) when Self
     NewProps = set(room, Target, set(owner, Target, Props)),
     case proplists:get_value(is_attacking, Props) of
         true ->
-            egre_object:attempt(self(), {self(), stop_attack});
+            egre:attempt(self(), {self(), stop_attack});
         _ ->
             ok
     end,

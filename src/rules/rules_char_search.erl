@@ -53,5 +53,5 @@ counter_attack(Player, Self, Props) ->
         true ->
             ok;
         _ ->
-            egre_object:attempt(Self, {Self, attack, Player})
+            egre:attempt(Self, {Self, attack, Player})
     end.

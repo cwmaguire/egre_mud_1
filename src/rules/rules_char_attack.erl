@@ -37,7 +37,7 @@ succeed({Props, {Attacker, attack, Self}, _}) ->
         true ->
             ok;
         _ ->
-            egre_object:attempt(self(), {self(), counter_attack, Attacker})
+            egre:attempt(self(), {self(), counter_attack, Attacker})
     end,
     {Props, Log};
 succeed(_) ->

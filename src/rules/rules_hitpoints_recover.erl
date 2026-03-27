@@ -118,7 +118,7 @@ succeed({Props, {Resource, allocate, Amt, 'of', healing, to, Self, for, heal}, _
 
     Character = proplists:get_value(owner, Props),
     Event = {Character, cause, -1, 'of', heal, to, Character, with, Self},
-    egre_object:attempt(self(), Event, false),
+    egre:attempt(self(), Event, false),
 
     {Props, Log};
 succeed(_) ->

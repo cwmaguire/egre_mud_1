@@ -40,7 +40,7 @@ succeed({Props, {Char, move, from, Source, to, Self, via, Exit}, _}) when Self =
            {from, Source},
            {to, Self},
            {exit, Exit}],
-    egre_object:attempt(Self, {Char, look, Self}),
+    egre:attempt(Self, {Char, look, Self}),
     Props2 = [{character, Char} | Props],
     {Props2, Log};
 succeed({Props, {Char, enter_world, in, Self, with, Conn}, _}) when Self == self() ->
@@ -48,7 +48,7 @@ succeed({Props, {Char, enter_world, in, Self, with, Conn}, _}) when Self == self
            {?EVENT, enter_world},
            {room, Self},
            {conn, Conn}],
-    egre_object:attempt(Self, {Char, look, Self}),
+    egre:attempt(Self, {Char, look, Self}),
     Props2 = [{character, Char} | Props],
     {Props2, Log};
 succeed(_) ->

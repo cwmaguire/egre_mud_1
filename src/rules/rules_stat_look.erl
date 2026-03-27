@@ -47,7 +47,7 @@ is_owner(_, _) ->
 
 describe(Source, Props, Context) ->
     Description = description(Props),
-    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    egre:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 description(Props) when is_list(Props) ->
     DescTemplate = application:get_env(egre, item_desc_template, []),

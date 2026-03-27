@@ -154,7 +154,7 @@ set_child_properties(Child, Props) ->
                           ref = proplists:get_value(top_item_ref, Props)}
         end,
     ChildProps = [{top_item, TopItem}],
-    egre_object:attempt(Child, {self(), set_child_properties, ChildProps}).
+    egre:attempt(Child, {self(), set_child_properties, ChildProps}).
 
 clear_child_top_item(Props, Item, Target) ->
     Log = [{?EVENT, give},
@@ -167,7 +167,7 @@ clear_child_top_item(Props, Item, Target) ->
            {result, succeed}],
     TopItem = top_item(Props),
     Message = {Target, clear_child_property, top_item, 'if', TopItem},
-    egre_object:attempt(Item, Message),
+    egre:attempt(Item, Message),
     Props = lists:keydelete(Item, 2, Props),
     {Props, Log}.
 

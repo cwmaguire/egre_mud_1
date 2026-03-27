@@ -76,10 +76,10 @@ fail(_) ->
     undefined.
 
 reserve(Character, Resource, Amount, Owner) ->
-    egre_object:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, Owner}).
+    egre:attempt(self(), {Character, reserve, Amount, 'of', Resource, for, Owner}).
 
 unreserve(Character, Owner, Props) when is_list(Props) ->
     [unreserve(Character, Resource, Owner) || {resource, Resource} <- Props];
 
 unreserve(Character, Resource, Owner) ->
-    egre_object:attempt(self(), {Character, unreserve, Resource, for, Owner}).
+    egre:attempt(self(), {Character, unreserve, Resource, for, Owner}).

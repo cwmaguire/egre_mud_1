@@ -74,7 +74,7 @@ succeed({Props, {Item, move, from, Source, to, Self}, _}) when Self == self() ->
            {?SOURCE, Source},
            {?TARGET, Self},
            ?RULES_MOD],
-    egre_object:attempt(Item, {self(), set_child_property, character, self()}),
+    egre:attempt(Item, {self(), set_child_property, character, self()}),
     {[{item, Item} | Props], Log};
 succeed({Props, {Item, move, from, Self, to, BodyPart, on, body_part, type, BodyPartType}, _}) when Self == self() ->
     Log = [{item, Item},
@@ -101,7 +101,7 @@ fail(_) ->
 
 clear_child_character(Props, Item, Target) ->
     log([{?EVENT, give_item}, {?SOURCE, self()}, {?TARGET, Target}, {props, Props}]),
-    egre_object:attempt(Item, {Target, clear_child_property, character, 'if', self()}),
+    egre:attempt(Item, {Target, clear_child_property, character, 'if', self()}),
     lists:keydelete(Item, 2, Props).
 
 log(Props) ->

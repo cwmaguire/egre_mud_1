@@ -59,13 +59,13 @@ describe(Source, Props, Context, deep) ->
     send_description(Source, Props, Context),
     Name = proplists:get_value(name, Props),
     NewContext = <<Context/binary, Name/binary, " -> ">>,
-    egre_object:attempt(Source, {Source, describe, self(), with, NewContext});
+    egre:attempt(Source, {Source, describe, self(), with, NewContext});
 describe(Source, Props, Context, shallow) ->
     send_description(Source, Props, Context).
 
 send_description(Source, Props, Context) ->
     Description = description(Props),
-    egre_object:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
+    egre:attempt(Source, {send, Source, [<<Context/binary>>, Description]}).
 
 description(Props) when is_list(Props) ->
     DescTemplate = mud_config:desc_template(item),

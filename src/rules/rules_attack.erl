@@ -29,7 +29,7 @@ attempt({#{character := Character},
     IsAttacking = proplists:get_value(is_attacking, Props, false),
     case IsAttacking of
         false ->
-            egre_object:attempt(self(),
+            egre:attempt(self(),
                                 {Character, attack, Target,
                                  with, self(),
                                  infinity, times});
@@ -195,7 +195,7 @@ succeed({Props, {Resource, allocate, Amt, 'of', Type, to, Self, for, attack}, _}
                 Character = proplists:get_value(character, Props),
                 Target = proplists:get_value(target, Props),
                 Event = {Character, affect, Target, because, Self},
-                egre_object:attempt(self(), Event, false),
+                egre:attempt(self(), Event, false),
                 deallocate(Allocated, Required);
             _ ->
                 Allocated
@@ -218,7 +218,7 @@ reserve(Char, Props, Times) when is_list(Props) ->
     [reserve(Char, Res, Times, Amt) || {Res, Amt} <- Resources].
 
 reserve(Character, Resource, Times, Amount) ->
-    egre_object:attempt(self(),
+    egre:attempt(self(),
                         {Character, reserve, Amount,
                          'of', Resource,
                          for, self(),
@@ -228,7 +228,7 @@ reserve(Character, Resource, Times, Amount) ->
 unreserve(Character, Props) when is_list(Props) ->
     [unreserve(Character, Resource) || {Resource, _Amt} <- proplists:get_value(resources, Props, [])];
 unreserve(Character, Resource) ->
-    egre_object:attempt(self(), {Character, unreserve, Resource, for, self()}).
+    egre:attempt(self(), {Character, unreserve, Resource, for, self()}).
 
 update_allocated(New, Type, Props) ->
     Allocated = proplists:get_value(allocated_resources, Props, #{}),

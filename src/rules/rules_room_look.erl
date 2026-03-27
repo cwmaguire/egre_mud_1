@@ -27,7 +27,7 @@ succeed({Props, {Player, look, Self}, _}) when Self == self() ->
     %% Resend as Player looking at this Room with Context
     %% which is a key to objects in this room to describe themselves
     NewEvent = {Player, describe, self(), with, RoomContext},
-    egre_object:attempt(Player, NewEvent),
+    egre:attempt(Player, NewEvent),
     {Props, Log};
 succeed(_) ->
     undefined.
@@ -37,7 +37,7 @@ fail(_) ->
 
 describe(Source, Props) ->
     Description = description(Props),
-    egre_object:attempt(Source, {send, Source, Description}).
+    egre:attempt(Source, {send, Source, Description}).
 
 description(Props) when is_list(Props) ->
     DescTemplate = mud_config:desc_template(room),
