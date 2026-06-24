@@ -1,6 +1,27 @@
 Protocol is too hard to follow
 
 ┏━━━━━━━━━━━━━━━━┓
+┃   2026-06-23   ┃
+┗━━━━━━━━━━━━━━━━┛
+
+see protocol_is_too_hard_to_follow in the EGRE project.
+
+All the protocol stuff for the src/rules in this MUD actually happen in the EGRE project.
+We copy all the egre code here and then the parse_transform directives in the rules modules call out to the egre code.
+
+Kicking off a fresh compile:
+
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ░
+  ░ touch src/rules/*
+  ░ export EGRE_PARSE_TRANSFORM_OUT_DIR=inlined_rules
+  ░ ./c
+  ░
+  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+After that, you find the inlined "scope path" files in inlined_rules/ and the events BERT files in events/
+
+┏━━━━━━━━━━━━━━━━┓
 ┃   2025-09-14   ┃
 ┗━━━━━━━━━━━━━━━━┛
 
