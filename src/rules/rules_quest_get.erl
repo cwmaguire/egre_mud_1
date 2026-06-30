@@ -1,6 +1,7 @@
 -module(rules_quest_get).
 -behaviour(egre_rules).
--compile({parse_transform, egre_protocol_parse_transform}).
+-compile([{property_type_module, mud_util},
+          {parse_transform, egre_protocol_parse_transform}]).
 
 -include("mud.hrl").
 

@@ -1,7 +1,8 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(rules_resource_tick).
 -behaviour(egre_rules).
--compile({parse_transform, egre_protocol_parse_transform}).
+-compile([{property_type_module, mud_util},
+          {parse_transform, egre_protocol_parse_transform}]).
 
 %% This is a tick handler for a resource process. Resource processes manage
 %% how often other processes can perform actions such as attacks. Resource

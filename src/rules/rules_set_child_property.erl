@@ -1,7 +1,8 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(rules_set_child_property).
 -behaviour(egre_rules).
--compile({parse_transform, egre_protocol_parse_transform}).
+-compile([{property_type_module, mud_util},
+          {parse_transform, egre_protocol_parse_transform}]).
 
 %% @doc Only if the message has our owner do we set the character and
 %% then propagate the message. Otherwise we are not a child of the

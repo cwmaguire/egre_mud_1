@@ -1,7 +1,8 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(rules_body_part_search).
 -behaviour(egre_rules).
--compile({parse_transform, egre_protocol_parse_transform}).
+-compile([{property_type_module, mud_util},
+          {parse_transform, egre_protocol_parse_transform}]).
 
 -export([attempt/1]).
 -export([succeed/1]).

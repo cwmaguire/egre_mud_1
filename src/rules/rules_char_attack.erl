@@ -1,6 +1,8 @@
 %% Copyright 2022, Chris Maguire <cwmaguire@protonmail.com>
 -module(rules_char_attack).
 -behaviour(egre_rules).
+-compile([{property_type_module, mud_util},
+          {parse_transform, egre_protocol_parse_transform}]).
 
 -export([attempt/1]).
 -export([succeed/1]).
