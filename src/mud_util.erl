@@ -9,6 +9,7 @@
 -export([extract_from_props/1]).
 -export([serialize/2]).
 -export([rules_mod_suffix/1]).
+-export([property_types/0]).
 
 atob(Atom) ->
     list_to_binary(atom_to_list(Atom)).
@@ -105,3 +106,10 @@ rules_mod_suffix(Module) when is_atom(Module) ->
     end;
 rules_mod_suffix(Other) ->
     Other.
+
+property_types() ->
+    #{owner => pid,
+      character => pid}.
+% I'm not using these fields yet
+% top_item => pid (I think)
+% body_part => {body_part, Pid, ?, Ref}
