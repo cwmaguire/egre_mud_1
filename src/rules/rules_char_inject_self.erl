@@ -43,7 +43,7 @@ attempt({#{}, Props, {Source, attack, TargetName, 'not', DeadChars}, _})
             ?SUCCEED_NOSUB
     end;
 attempt({#{}, Props, {Source, Action, TargetName}, _})
-  when is_binary(TargetName) andalso
+  when is_binary(TargetName),
       (Action == look orelse
        Action == search) ->
     Log = [{?SOURCE, Source},
